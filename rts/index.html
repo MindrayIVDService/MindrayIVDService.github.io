@@ -220,7 +220,18 @@ table.dt tr:hover td{background:#FAFBFD}
 MRAuth.requireLogin({
   platform: "RTS",
   onSuccess: function(user) {
-    // page's existing scripts render as normal once login is confirmed
+    window.__mrUser = user;
+    // Deferred to 'load' on purpose: this script block runs before the rest of
+    // the page (including the applyRegionLock function, REGIONS/RS/STATE, and
+    // the #regionTags tags themselves, which are only generated later by
+    // initFilters()) has been parsed. Calling applyRegionLock synchronously
+    // here — like the QE dashboard originally did — silently no-ops for any
+    // account with an existing session, because none of that exists yet.
+    window.addEventListener('load', function () {
+      if (typeof window.applyRegionLock === 'function') {
+        window.applyRegionLock(user);
+      }
+    });
   }
 });
 </script>
@@ -1642,7 +1653,7 @@ function stab(group, panel, el) {
 function initFilters() {
   // Global region filter (overview fbar)
   document.getElementById('regionTags').innerHTML =
-    REGIONS.map(r => `<span class="ftag${r==='ALL'?' active':''}" onclick="setRegion('${r}',this)">${r==='ALL'?'全部/All':(RS[r]||r)}</span>`).join('');
+    REGIONS.map(r => `<span class="ftag${r==='ALL'?' active':''}" data-r="${r}" onclick="setRegion('${r}',this)">${r==='ALL'?'全部/All':(RS[r]||r)}</span>`).join('');
 }
 
 function setRegion(r, el) {
@@ -3387,6 +3398,41 @@ function computeKPIsFromRaw() {
 initFilters();
 computeKPIsFromRaw();
 renderOverview();
+
+// ── 14. REGION LOCK — restricts regional accounts to their own region ──
+function applyRegionLock(user) {
+  if (!user || !user.region || user.region === 'ALL') return; // HQ sees everything
+  const REGION_MAP = {
+    IN:'INDIA', EU:'EUROPE', AP:'APAC REGION', CA:'CENTRAL ASIA REGION',
+    LA:'LATAM', MEA:'MEA', RUS:'RUSSIA REGION'
+  };
+  const mapped = REGION_MAP[user.region];
+  if (!mapped) return;
+
+  STATE.region = mapped;
+
+  // Disable every region tag except this account's own (including "全部/All") —
+  // same approach used on the QE and TLA dashboards, so an account can't just
+  // click its way back to viewing other regions' data.
+  const tags = document.querySelectorAll('#regionTags .ftag');
+  tags.forEach(function (el) {
+    const isMine = el.dataset.r === mapped;
+    el.classList.toggle('active', isMine);
+    if (!isMine) {
+      el.style.pointerEvents = 'none';
+      el.style.opacity = '.35';
+      el.onclick = null;
+    } else {
+      el.title = 'Locked to your account region · 已按账号权限锁定区域';
+    }
+  });
+
+  if (typeof renderAll === 'function') {
+    try { renderAll(); } catch (e) { /* harmless if called before first paint */ }
+  }
+}
+window.applyRegionLock = applyRegionLock;
+if (window.__mrUser) applyRegionLock(window.__mrUser);
 
 
 
