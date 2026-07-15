@@ -523,6 +523,7 @@ MRAuth.requireLogin({
         <button class="toc-item active" onclick="scrollSec('s-basic')">① Basic 基本信息</button>
         <button class="toc-item" onclick="scrollSec('s-delivery')">② Delivery 交付</button>
         <button class="toc-item" onclick="scrollSec('s-config')">③ Config 配置</button>
+        <button class="toc-item" onclick="scrollSec('s-connectivity')">③b Server 服务器</button>
         <button class="toc-item" onclick="scrollSec('s-personnel')">④ Personnel 人员</button>
         <button class="toc-item" onclick="scrollSec('s-functions')">⑤ Functions 功能</button>
         <button class="toc-item" onclick="scrollSec('s-notes')">⑥ Notes 备注</button>
@@ -540,8 +541,11 @@ MRAuth.requireLogin({
 <option value="中东非MEA">中东非MEA</option>
 <option value="俄罗斯RU">俄罗斯RU</option></select></div>
           <div class="fg"><label>Region L3</label><select id="f-r3"><option value="">Select L2 first...</option></select></div>
-          <div class="fg"><label>Country <span class="required">*</span></label><input id="f-country" type="text" placeholder="e.g. 泰国THA"></div>
+          <div class="fg"><label>Sales office/country <span class="required">*</span></label><input id="f-country" type="text" placeholder="e.g. 泰国THA"></div>
+          <div class="fg"><label>City</label><input id="f-city" type="text" placeholder="e.g. Bangkok"></div>
           <div class="fg" style="grid-column:span 2"><label>Hospital Name <span class="required">*</span></label><input id="f-hospital" type="text"></div>
+          <div class="fg"><label>Customer ID</label><input id="f-cust-id" type="text" placeholder="CRM/ERP customer ID"></div>
+          <div class="fg"><label>Channel ID</label><input id="f-chan-id" type="text" placeholder="Distributor/channel ID"></div>
           <div class="fg"><label>Phase <span class="required">*</span></label><select id="f-phase"><option value="">Select...</option><option value="M1项目立项 | M1 Project Initiation">M1项目立项 | M1 Project Initiation</option>
 <option value="M2需求收集 | M2 Requirements Collection">M2需求收集 | M2 Requirements Collection</option>
 <option value="M3方案确认 | M3 Solution Confirmation">M3方案确认 | M3 Solution Confirmation</option>
@@ -599,6 +603,26 @@ MRAuth.requireLogin({
             <div class="fg"><label>Daily Samples Coag <span style="color:var(--muted);font-weight:400;font-size:9.5px">Coag/day</span></label><input id="f-dcoag" type="number" placeholder="e.g. 200"></div>
             <div class="fg"><label>Hema CAL 9000</label><select id="f-hema"><option value="">—</option><option value="true">Yes</option><option value="false">No</option></select></div>
             <div class="fg"><label>Daily Samples Hema <span style="color:var(--muted);font-weight:400;font-size:9.5px">Hema/day</span></label><input id="f-dhema" type="number" placeholder="e.g. 300"></div>
+            <div class="fg" style="grid-column:span 3"><label>Connected Instrument S/N <span style="color:var(--muted);font-weight:400;font-size:9.5px">连接的单机设备序列号(血球/生化/发光/凝血等,一行一个)</span></label><textarea id="f-dev-sn" style="min-height:52px" placeholder="e.g.&#10;BC-6800 - SN123456&#10;BS-2800 - SN654321"></textarea></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card" id="s-connectivity">
+        <div class="form-card-hdr"><h3>③b Server &amp; Connectivity</h3><span>服务器与联网</span></div>
+        <div class="form-card-body">
+          <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin-bottom:14px">
+            <div class="fg"><label>Connected to IoT</label><select id="f-iot"><option value="">—</option><option value="true">Yes</option><option value="false">No</option></select></div>
+            <div class="fg" style="grid-column:span 2"><label>Middleware Version</label><input id="f-mw-ver" type="text" placeholder="e.g. v3.2.1"></div>
+          </div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">Server PC · 服务器配置</div>
+          <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+            <div class="fg"><label>CPU</label><input id="f-srv-cpu" type="text" placeholder="e.g. 8 core 16 threads, 2.6GHz Base"></div>
+            <div class="fg"><label>RAM</label><input id="f-srv-ram" type="text" placeholder="e.g. DDR4-3200 2*16GB"></div>
+            <div class="fg"><label>HDD</label><input id="f-srv-hdd" type="text" placeholder="e.g. 2*1TB CMR 7200RPM RAID1"></div>
+            <div class="fg"><label>SSD</label><input id="f-srv-ssd" type="text" placeholder="e.g. 2*500GB PCIE 4.0 NVME RAID1"></div>
+            <div class="fg"><label>RAID1 Configured?</label><select id="f-srv-raid1"><option value="">—</option><option value="true">Yes</option><option value="false">No</option></select></div>
+            <div class="fg"><label>Network</label><input id="f-srv-net" type="text" placeholder="e.g. 2*1GbE"></div>
+            <div class="fg" style="grid-column:span 3"><label>Other</label><input id="f-srv-other" type="text" placeholder="e.g. USB ports, video output interface"></div>
           </div>
         </div>
       </div>
@@ -629,6 +653,7 @@ MRAuth.requireLogin({
           <div class="fg"><label>Sales Rep</label><input id="f-sales" type="text"></div>
           <div class="fg" style="grid-column:span 2"><label>Distributor</label><input id="f-dist" type="text"></div>
           <div class="fg"><label>On-site Staff</label><input id="f-onsite" type="text"></div>
+          <div class="fg"><label>On-site Staff Phone <span style="color:var(--muted);font-weight:400;font-size:9.5px">Contact tel.</span></label><input id="f-onsite-phone" type="text" placeholder="e.g. +66 xx xxx xxxx"></div>
         </div></div>
       </div>
       <div class="form-card" id="s-functions">
@@ -2139,12 +2164,13 @@ function clearForm() {
   document.getElementById('eid').value = '';
   document.getElementById('f-r2').value = '';
   document.getElementById('f-r3').innerHTML = '<option value="">Select L2 first...</option>';
-  ['f-country','f-hospital','f-phase','f-risk','f-idate','f-adate','f-sla','f-labor',
+  ['f-country','f-city','f-cust-id','f-chan-id','f-hospital','f-phase','f-risk','f-idate','f-adate','f-sla','f-labor',
    'f-lstatus','f-irpt','f-crpt','f-rev','f-lis','f-cmp','f-tube',
    'f-bcm','f-bcq','f-iam','f-iaq','f-coag','f-hema',
    'f-io','f-bulk','f-centri','f-centri-brand','f-decap','f-integ','f-fridge',
-   'f-nodes','f-sn','f-dbc','f-dia','f-dcoag','f-dhema','f-pm','f-ka','f-it',
-   'f-sales','f-dist','f-onsite','f-req'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+   'f-nodes','f-sn','f-dev-sn','f-dbc','f-dia','f-dcoag','f-dhema','f-pm','f-ka','f-it',
+   'f-sales','f-dist','f-onsite','f-onsite-phone','f-iot','f-mw-ver',
+   'f-srv-cpu','f-srv-ram','f-srv-hdd','f-srv-ssd','f-srv-raid1','f-srv-net','f-srv-other','f-req'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('f-model').value='MT 8000';
   FNS.forEach(f=>{const e=document.getElementById('f-'+f.key);if(e)e.checked=false;});
   document.getElementById('form-status').textContent='';
@@ -2157,7 +2183,8 @@ function editEntry(id) {
   const s=(fid,v)=>{const e=document.getElementById(fid);if(e&&v!=null)e.value=String(v);};
   const sb=(fid,v)=>{const e=document.getElementById(fid);if(e)e.value=v===true?'true':v===false?'false':'';};
   s('f-r2',c.r2); updateL3(c.r3);
-  s('f-country',c.country); s('f-hospital',c.hospital);
+  s('f-country',c.country); s('f-city',c.city); s('f-cust-id',c.customer_id); s('f-chan-id',c.channel_id);
+  s('f-hospital',c.hospital);
   s('f-phase',c.phase); s('f-risk',c.risk||'');
   s('f-idate',c.install_date); s('f-adate',c.activate_date);
   s('f-sla',c.sla_days); s('f-labor',c.labor);
@@ -2165,16 +2192,21 @@ function editEntry(id) {
   s('f-rev',c.reagent_rev); s('f-model',c.model||'MT 8000');
   s('f-bcm',c.biochem_model); s('f-bcq',c.biochem_qty);
   s('f-iam',c.ia_model); s('f-iaq',c.ia_qty);
-  s('f-nodes',c.nodes); s('f-sn',c.sn);
+  s('f-nodes',c.nodes); s('f-sn',c.sn); s('f-dev-sn',c.device_sn);
   s('f-dbc',c.daily_bc); s('f-dia',c.daily_ia); s('f-dcoag',c.daily_coag); s('f-dhema',c.daily_hema);
   s('f-lis',c.lis_vendor); s('f-cmp',c.competitor); s('f-tube',c.tube_brand);
   s('f-io',c.io); s('f-bulk',c.bulk); s('f-centri',c.centri_mod); s('f-centri-brand',c.centrifuge);
   s('f-decap',c.decap); s('f-integ',c.integ_mod); s('f-fridge',c.fridge);
   s('f-coag',parseFloat(c.coag)||0);
   {const e=document.getElementById('f-hema');if(e)e.value=c.hema===true?'true':c.hema===false?'false':'';}
+  {const e=document.getElementById('f-iot');if(e)e.value=c.iot_connected===true?'true':c.iot_connected===false?'false':'';}
+  {const e=document.getElementById('f-srv-raid1');if(e)e.value=c.srv_raid1===true?'true':c.srv_raid1===false?'false':'';}
+  s('f-mw-ver',c.middleware_ver);
+  s('f-srv-cpu',c.srv_cpu); s('f-srv-ram',c.srv_ram); s('f-srv-hdd',c.srv_hdd); s('f-srv-ssd',c.srv_ssd);
+  s('f-srv-net',c.srv_network); s('f-srv-other',c.srv_other);
   s('f-pm',c.pm); s('f-ka',c.ka_mgr); s('f-it',c.it);
   s('f-sales',c.sales); s('f-dist',c.distributor);
-  s('f-onsite',c.onsite_name); s('f-req',c.requirements);
+  s('f-onsite',c.onsite_name); s('f-onsite-phone',c.onsite_phone); s('f-req',c.requirements);
   FNS.forEach(f=>{const e=document.getElementById('f-'+f.key);if(e)e.checked=c[f.key]===true;});
   document.getElementById('form-status').textContent = 'Editing: '+c.hospital;
   showPage('entry', document.getElementById('nav-entry'));
@@ -2242,7 +2274,8 @@ async function saveEntry() {
   const eid = g('eid');
   const record = {
     id: eid||(Date.now().toString(36)),
-    r2:g('f-r2'),r3:g('f-r3')||null,country:g('f-country'),hospital:g('f-hospital'),
+    r2:g('f-r2'),r3:g('f-r3')||null,country:g('f-country'),city:g('f-city')||null,
+    customer_id:g('f-cust-id')||null,channel_id:g('f-chan-id')||null,hospital:g('f-hospital'),
     phase:g('f-phase'),risk:g('f-risk')||null,
     install_date:g('f-idate')||null,activate_date:g('f-adate')||null,
     sla_days:gn('f-sla'),labor:gn('f-labor'),
@@ -2250,15 +2283,19 @@ async function saveEntry() {
     reagent_rev:gn('f-rev'),model:g('f-model')||'MT 8000',
     biochem_model:g('f-bcm')||null,biochem_qty:gn('f-bcq'),
     ia_model:g('f-iam')||null,ia_qty:gn('f-iaq'),
-    nodes:gn('f-nodes'),sn:g('f-sn')||null,
+    nodes:gn('f-nodes'),sn:g('f-sn')||null,device_sn:g('f-dev-sn')||null,
     daily_bc:gn('f-dbc'),daily_ia:gn('f-dia'),daily_coag:gn('f-dcoag'),daily_hema:gn('f-dhema'),
     lis_vendor:g('f-lis')||null,competitor:g('f-cmp')||null,tube_brand:g('f-tube')||null,
     io:gn('f-io'),bulk:gn('f-bulk'),centri_mod:gn('f-centri'),centrifuge:g('f-centri-brand')||null,
     decap:gn('f-decap'),integ_mod:gn('f-integ'),fridge:gn('f-fridge'),
     coag:String(gn('f-coag')||0),hema:gb('f-hema'),
+    iot_connected:gb('f-iot'),middleware_ver:g('f-mw-ver')||null,
+    srv_cpu:g('f-srv-cpu')||null,srv_ram:g('f-srv-ram')||null,srv_hdd:g('f-srv-hdd')||null,
+    srv_ssd:g('f-srv-ssd')||null,srv_raid1:gb('f-srv-raid1'),srv_network:g('f-srv-net')||null,
+    srv_other:g('f-srv-other')||null,
     pm:g('f-pm'),ka_mgr:g('f-ka')||null,it:g('f-it')||null,
     sales:g('f-sales')||null,distributor:g('f-dist')||null,
-    onsite_name:g('f-onsite')||null,onsite:!!g('f-onsite'),
+    onsite_name:g('f-onsite')||null,onsite_phone:g('f-onsite-phone')||null,onsite:!!g('f-onsite'),
     requirements:g('f-req')||null,
   };
   FNS.forEach(f=>record[f.key]=gc('f-'+f.key));
@@ -2820,4 +2857,4 @@ function injectRealtimeDot() {
 })();
 </script>
 </body>
-</html>
+</html>
