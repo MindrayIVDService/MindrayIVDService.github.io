@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="/auth.js"></script>
+<title>Mindray IVD · SLA Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<script>
+MRAuth.requireLogin({
+  platform: "SLA",
+  onSuccess: function(user) {
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:40px;color:#6B7280">' +
+      'SLA Dashboard placeholder — replace this file with the real SLA Dashboard dashboard when built. ' +
+      'Logged in as ' + user.username + ' (' + user.label + ').</p>';
+  }
+});
+</script>
+</body>
+</html>

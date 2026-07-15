@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="/auth.js"></script>
+<title>Mindray IVD · Knowledge Base</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<script>
+MRAuth.requireLogin({
+  platform: "KB",
+  onSuccess: function(user) {
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:40px;color:#6B7280">' +
+      'Knowledge Base placeholder — replace this file with the actual search/case-browsing shell ' +
+      '(TN/SN/AN fault case library) once built. This page fetches its content at runtime from the ' +
+      'content git repo via jsDelivr, per the earlier architecture design — it does not need its own ' +
+      'build step when new cases are added.</p>';
+  }
+});
+</script>
+</body>
+</html>
