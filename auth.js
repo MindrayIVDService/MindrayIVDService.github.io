@@ -38,21 +38,21 @@
   //           account sees; other platforms can ignore this field, or
   //           adopt the same convention if useful.
   const ACCOUNTS = {
-    'MRHQIVD':  { pass: 'HjATXrZPYJ', region: 'ALL', label: 'HQ · 总部',            platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRINIVD':  { pass: 'gVVTCABfNw', region: 'IN',  label: 'India · 印度',          platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MREUIVD':  { pass: 'Du6B6bT2Xw', region: 'EU',  label: 'Europe · 欧洲',         platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRAPIVD':  { pass: 'h6M472dbh7', region: 'AP',  label: 'APAC · 亚太',           platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRCAIVD':  { pass: 'dyG5h7ZSTs', region: 'CA',  label: 'Central Asia · 中亚',   platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRLAIVD':  { pass: '7mpfcqHJae', region: 'LA',  label: 'LATAM · 拉美',          platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRMEAIVD': { pass: 'RvefhdpYau', region: 'MEA', label: 'MEA · 中东非',          platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRRUSIVD': { pass: 'Bx7zAxvgAf', region: 'RUS', label: 'Russia · 俄罗斯',       platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
+    'MRHQIVD':  { pass: 'Thomas', region: 'ALL', label: 'HQ · 总部', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
+    'MRINIVD':  { pass: 'Vallal', region: 'IN', label: 'India · 印度', platforms: ['TLA', 'QE', 'RTS'] },
+    'MREUIVD':  { pass: 'Tom', region: 'EU', label: 'Europe · 欧洲', platforms: ['TLA', 'QE', 'RTS'] },
+    'MRAPIVD':  { pass: 'Reed', region: 'AP', label: 'APAC · 亚太', platforms: ['TLA', 'QE', 'RTS'] },
+    'MRCAIVD':  { pass: 'Ace', region: 'CA', label: 'Central Asia · 中亚', platforms: ['TLA', 'QE', 'RTS'] },
+    'MRLAIVD':  { pass: 'Manuel', region: 'LA', label: 'LATAM · 拉美', platforms: ['TLA', 'QE', 'RTS'] },
+    'MRMEAIVD':  { pass: 'Rain', region: 'MEA', label: 'MEA · 中东非', platforms: ['TLA', 'QE', 'RTS'] },
+    'MRRUSIVD':  { pass: 'Evgeniy', region: 'RUS', label: 'Russia · 俄罗斯', platforms: ['TLA', 'QE', 'RTS'] },
   };
 
   const PLATFORM_LABELS = {
     TLA: 'TLA Project Management Platform · TLA项目管理平台',
-    QE:  'QE Management Platform · QE管理平台',
+    QE: 'QE Management Platform · QE管理平台',
     RTS: 'RTS Monthly Dashboard · RTS月度数据平台',
-    KB:  'Knowledge Base · 知识库平台',
+    KB: 'Knowledge Base · 知识库平台',
     NPI: 'NPI · 新产品导入',
     SUP: 'Online Support · 在线支持业务',
     TRN: 'Training & Enablement · 培训赋能',
