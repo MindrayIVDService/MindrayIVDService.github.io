@@ -173,7 +173,7 @@
 
     <div class="rail-group">1 · 故障解决</div>
     <div class="rail-nav">
-      <button class="rail-item" data-nav="update"><span class="rail-dot"></span>技术更新 TN/SN/AN</button>
+      <button class="rail-item" data-nav="update"><span class="rail-dot"></span>技术更新 TN/SN/AN/FST</button>
       <button class="rail-item" data-nav="cases"><span class="rail-dot"></span>故障案例库</button>
       <button class="rail-item" data-nav="qe"><span class="rail-dot"></span>QE 结论方案</button>
       <button class="rail-item" data-nav="guide"><span class="rail-dot"></span>场景化故障指南</button>
@@ -216,7 +216,7 @@
           <div class="pillar-modules">
             <div class="pillar-mod" data-nav="update">
               <span class="status-badge status-live">已接入 95 条</span>
-              <div class="pillar-mod-name">技术更新 TN/SN/AN</div>
+              <div class="pillar-mod-name">技术更新 TN/SN/AN/FST</div>
               <div class="pillar-mod-desc">仪器更改历史，按机型看时间线</div>
             </div>
             <div class="pillar-mod" data-nav="cases">
@@ -324,13 +324,14 @@
       <section class="page" id="page-update">
         <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 技术更新</div>
         <div class="page-title">技术更新</div>
-        <div class="page-sub">TN 技术通知 · SN 服务通知 · FST 现场服务提示，共 95 条</div>
+        <div class="page-sub">TN 技术通知 · SN 服务通知 · AN 警示通告 · FST 现场服务提示</div>
         <div class="filter-bar" id="update-line-filter"></div>
         <div class="filter-bar" id="update-model-filter"></div>
         <div class="filter-bar">
           <span class="filter-chip sel" data-type="ALL">全部类型</span>
           <span class="filter-chip" data-type="TN">TN 技术通知</span>
           <span class="filter-chip" data-type="SN">SN 服务通知</span>
+          <span class="filter-chip" data-type="AN">AN 警示通告</span>
           <span class="filter-chip" data-type="FST">FST 现场提示</span>
           <span class="filter-count" id="update-result-count"></span>
         </div>
@@ -559,7 +560,7 @@ const MODELS_BY_LINE = {
   'TLA':['MT 8000']
 };
 const BADGE_STYLE = {
-  TN:['var(--pl)','var(--pd)'], SN:['var(--wal)','var(--wa)'],
+  TN:['var(--pl)','var(--pd)'], SN:['var(--wal)','var(--wa)'], AN:['var(--erl)','var(--er)'],
   FST:['var(--pl)','var(--pd)'], FAQ:['var(--pul)','var(--pu)'],
   CASE:['var(--okl)','var(--ok)']
 };
@@ -752,7 +753,7 @@ function makeModuleController(prefix, category, typeStyle){
     render
   };
 }
-const updateController = makeModuleController('update', 'UPDATE', {TN:BADGE_STYLE.TN, SN:BADGE_STYLE.SN, FST:BADGE_STYLE.FST});
+const updateController = makeModuleController('update', 'UPDATE', {TN:BADGE_STYLE.TN, SN:BADGE_STYLE.SN, AN:BADGE_STYLE.AN, FST:BADGE_STYLE.FST});
 const casesController = makeModuleController('cases', 'CASE', {CASE:BADGE_STYLE.CASE, FAQ:BADGE_STYLE.FAQ});
 function renderUpdatePage(model){ if(model) updateController.setModelFilter(model); else updateController.render(); }
 function renderCasesPage(model){ if(model) casesController.setModelFilter(model); else casesController.render(); }
