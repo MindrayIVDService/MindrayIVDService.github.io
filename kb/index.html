@@ -221,12 +221,12 @@
           </div>
           <div class="pillar-modules">
             <div class="pillar-mod" data-nav="update">
-              <span class="status-badge status-live" data-i18n="status_update">已接入 95 条</span>
+              <span class="status-badge status-live" id="badge-update-count">已接入 95 条</span>
               <div class="pillar-mod-name" data-i18n="nav_update">技术更新 TN/SN/AN/FST</div>
               <div class="pillar-mod-desc" data-i18n="mod_update_desc">仪器更改历史，按机型看时间线</div>
             </div>
             <div class="pillar-mod" data-nav="cases">
-              <span class="status-badge status-live" data-i18n="status_cases">已接入 56 条</span>
+              <span class="status-badge status-live" id="badge-cases-count">已接入 56 条</span>
               <div class="pillar-mod-name" data-i18n="nav_cases">故障案例库</div>
               <div class="pillar-mod-desc" data-i18n="mod_cases_desc">产线+机型+症状+故障代码+根因+失效模式+维修技能+修复时长</div>
             </div>
@@ -286,7 +286,7 @@
         <div class="section">
           <div class="section-head">
             <div class="section-title" data-i18n="sec_quick_search">支柱一快速检索</div>
-            <div class="section-sub" data-i18n="sec_quick_search_sub">存量导入 151 条</div>
+            <div class="section-sub" id="sec-quick-search-sub" data-i18n="sec_quick_search_sub">存量导入 151 条</div>
           </div>
           <div class="card search-card">
             <div class="query-bar">
@@ -306,11 +306,11 @@
             </div>
           </div>
           <div class="stat-grid" style="margin-top:16px;">
-            <div class="stat-card"><div class="stat-label" data-i18n="stat_tn">TN 技术通知</div><div class="stat-value">57</div><div class="stat-bar"><i style="width:100%"></i></div></div>
-            <div class="stat-card"><div class="stat-label" data-i18n="stat_sn">SN 服务通知</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
-            <div class="stat-card"><div class="stat-label" data-i18n="stat_fst">FST 现场提示</div><div class="stat-value">16</div><div class="stat-bar"><i style="width:28%"></i></div></div>
-            <div class="stat-card"><div class="stat-label" data-i18n="stat_faq">FAQ 常见问题</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
-            <div class="stat-card"><div class="stat-label" data-i18n="stat_case">故障案例</div><div class="stat-value">34</div><div class="stat-bar"><i style="width:60%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_tn">TN 技术通知</div><div class="stat-value" id="stat-val-TN">57</div><div class="stat-bar"><i id="stat-bar-TN" style="width:100%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_sn">SN 服务通知</div><div class="stat-value" id="stat-val-SN">22</div><div class="stat-bar"><i id="stat-bar-SN" style="width:39%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_fst">FST 现场提示</div><div class="stat-value" id="stat-val-FST">16</div><div class="stat-bar"><i id="stat-bar-FST" style="width:28%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_faq">FAQ 常见问题</div><div class="stat-value" id="stat-val-FAQ">22</div><div class="stat-bar"><i id="stat-bar-FAQ" style="width:39%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_case">故障案例</div><div class="stat-value" id="stat-val-CASE">34</div><div class="stat-bar"><i id="stat-bar-CASE" style="width:60%"></i></div></div>
           </div>
           <div class="line-grid" id="home-line-grid" style="margin-top:16px;">
             <div class="line-item active" data-line="Biochemistry"><div class="line-name" data-i18n="line_bio">生化</div><div class="line-count">19条·8机型</div></div>
@@ -584,7 +584,7 @@ const ISSUE_CATEGORIES_EN = {
 /* ======================================================================
    多语言支持：LANG 状态 + I18N 字典 + t()取词 + applyStaticI18n()刷新静态文本
    ====================================================================== */
-let LANG = localStorage.getItem('kb_lang') || 'zh';
+let LANG = localStorage.getItem('kb_lang') || 'en';
 
 const I18N = {
   zh: {
@@ -601,7 +601,7 @@ const I18N = {
     pillar1_name:'故障解决 Fault Resolution', pillar1_sub:'现场遇到故障时的第一入口',
     pillar2_name:'物料支持 Parts & Materials', pillar2_sub:'现场配件/工装/物料查找',
     pillar3_name:'业务指导 Service Operation Center', pillar3_sub:'流程规范与服务策略',
-    status_update:'已接入 95 条', status_cases:'已接入 56 条', status_pending:'框架占位',
+    status_update:'已接入 {n} 条', status_cases:'已接入 {n} 条', status_pending:'框架占位',
     mod_update_desc:'仪器更改历史，按机型看时间线',
     mod_cases_desc:'产线+机型+症状+故障代码+根因+失效模式+维修技能+修复时长',
     mod_qe_desc:'VIP问题：症状/根因/临时方案/最终方案',
@@ -610,7 +610,7 @@ const I18N = {
     mod_parts_lookup_desc:'按编码或图片查找物料对应关系',
     mod_ops_docs_desc:'上升流程/资质方案/工程师工作手册/培训材料',
     mod_ops_visual_desc:'QE上升流程图、产品服务策略画布、成长路径图',
-    sec_quick_search:'支柱一快速检索', sec_quick_search_sub:'存量导入 151 条',
+    sec_quick_search:'支柱一快速检索', sec_quick_search_sub:'存量导入 {n} 条',
     search_placeholder:'例如 反应杯损坏 / 软件升级 / 呼吸灯黄色', btn_search:'检索',
     real_examples:'真实样例：',
     stat_tn:'TN 技术通知', stat_sn:'SN 服务通知', stat_fst:'FST 现场提示', stat_faq:'FAQ 常见问题', stat_case:'故障案例',
@@ -664,7 +664,7 @@ const I18N = {
     pillar1_name:'Fault Resolution', pillar1_sub:'First stop when facing a fault in the field',
     pillar2_name:'Parts & Materials', pillar2_sub:'Field parts / tooling / material lookup',
     pillar3_name:'Service Operation Center', pillar3_sub:'Process standards and service strategy',
-    status_update:'95 records connected', status_cases:'56 records connected', status_pending:'Framework placeholder',
+    status_update:'{n} records connected', status_cases:'{n} records connected', status_pending:'Framework placeholder',
     mod_update_desc:'Instrument change history, timeline by model',
     mod_cases_desc:'Line + model + symptom + fault code + root cause + failure mode + repair skill + MTTR',
     mod_qe_desc:'VIP issues: symptom / root cause / interim fix / permanent fix',
@@ -673,7 +673,7 @@ const I18N = {
     mod_parts_lookup_desc:'Find parts by part number or image',
     mod_ops_docs_desc:'Escalation process / qualification schemes / engineer handbook / training materials',
     mod_ops_visual_desc:'QE escalation flowchart, product service strategy canvas, career growth path',
-    sec_quick_search:'Pillar 1 Quick Search', sec_quick_search_sub:'151 legacy records imported',
+    sec_quick_search:'Pillar 1 Quick Search', sec_quick_search_sub:'{n} legacy records imported',
     search_placeholder:'e.g. reaction cup damage / software upgrade / yellow indicator light', btn_search:'Search',
     real_examples:'Real examples: ',
     stat_tn:'TN Technical News', stat_sn:'SN Service News', stat_fst:'FST Field Tips', stat_faq:'FAQ', stat_case:'Fault Cases',
@@ -731,6 +731,30 @@ function applyStaticI18n(){
   document.getElementById('lang-zh').classList.toggle('active', LANG==='zh');
   document.getElementById('lang-en').classList.toggle('active', LANG==='en');
   document.documentElement.lang = (LANG==='zh' ? 'zh-CN' : 'en');
+  updateStatusBadges();
+}
+
+// 首页"已接入N条"这两个徽章 + 五个统计卡片 + "存量导入N条"文案，全部实时从KB_ENTRIES算，
+// 不再是写死的数字——以后不管合并多少批新数据进来，这里永远自动跟真实条数对得上
+function updateStatusBadges(){
+  const updateCount = KB_ENTRIES.filter(e => e.category === 'UPDATE').length;
+  const caseCount = KB_ENTRIES.filter(e => e.category === 'CASE').length;
+  document.getElementById('badge-update-count').textContent = t('status_update').replace('{n}', updateCount);
+  document.getElementById('badge-cases-count').textContent = t('status_cases').replace('{n}', caseCount);
+
+  const subtypeCounts = {};
+  KB_ENTRIES.forEach(e=>{ subtypeCounts[e.subtype] = (subtypeCounts[e.subtype]||0) + 1; });
+  const maxCount = Math.max(1, ...Object.values(subtypeCounts));
+  ['TN','SN','FST','FAQ','CASE'].forEach(st=>{
+    const n = subtypeCounts[st] || 0;
+    const valEl = document.getElementById('stat-val-'+st);
+    const barEl = document.getElementById('stat-bar-'+st);
+    if(valEl) valEl.textContent = n;
+    if(barEl) barEl.style.width = Math.round(n / maxCount * 100) + '%';
+  });
+
+  const subEl = document.getElementById('sec-quick-search-sub');
+  if(subEl) subEl.textContent = t('sec_quick_search_sub').replace('{n}', KB_ENTRIES.length);
 }
 
 function setLang(lang){
