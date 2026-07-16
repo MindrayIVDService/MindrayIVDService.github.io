@@ -1,23 +1,889 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script src="/auth.js"></script>
-<title>Mindray IVD · Knowledge Base</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>国际区 IVD 服务知识生态</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --p:#0066CC;--pd:#004FA3;--pl:#EBF3FF;--pm:#3385D6;
+    --s50:#F8FAFC;--s100:#F1F5F9;--s200:#E2E8F0;--s300:#CBD5E1;
+    --s400:#94A3B8;--s500:#64748B;--s600:#475569;--s700:#334155;
+    --s800:#1E293B;--s900:#0F172A;
+    --ok:#10B981;--okl:#D1FAE5;--wa:#F59E0B;--wal:#FEF3C7;
+    --er:#EF4444;--erl:#FEE2E2;--wh:#fff;
+    --pu:#5B21B6;--pul:#F3F0FF;--co:#C2410C;--col:#FFF7ED;
+    --r:8px;--sbw:220px;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
+    --font:'Inter',-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--s50);color:var(--s900);font-size:13px;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  .shell{display:flex;min-height:100vh;}
+
+  .rail{width:var(--sbw);flex-shrink:0;background:var(--s900);display:flex;flex-direction:column;padding:16px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .rail-logo{padding:0 18px 14px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .rail-logo b{font-size:13.5px;font-weight:700;color:#fff;}
+  .rail-logo div{font-size:9px;color:rgba(255,255,255,.4);margin-top:4px;letter-spacing:.02em;}
+  .rail-group{font-size:9px;font-weight:700;letter-spacing:.05em;color:rgba(255,255,255,.3);text-transform:uppercase;margin:16px 18px 6px;}
+  .rail-nav{display:flex;flex-direction:column;gap:1px;padding:0 8px;}
+  .rail-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;font-size:11.5px;color:rgba(255,255,255,.55);cursor:pointer;border:none;border-left:2px solid transparent;background:none;text-align:left;width:100%;font-family:inherit;font-weight:500;transition:all .12s;}
+  .rail-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
+  .rail-item.active{background:rgba(0,102,204,.3);color:#fff;border-left-color:#60A5FA;font-weight:600;}
+  .rail-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.6;flex-shrink:0;}
+  .rail-home{font-size:12px;padding:0 8px;}
+  .rail-home .rail-item{padding:9px 10px;}
+  .rail-foot{margin-top:auto;font-size:9px;color:rgba(255,255,255,.3);padding:12px 18px 2px;border-top:1px solid rgba(255,255,255,.07);line-height:1.7;}
+
+  .main{flex:1;min-width:0;}
+  .topbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--s200);background:var(--wh);font-size:11.5px;color:var(--s500);position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+  .topbar-right{display:flex;align-items:center;gap:14px;}
+  .content{padding:20px 20px 48px;max-width:1160px;}
+
+  .page{display:none;}
+  .page.active{display:block;}
+
+  .breadcrumb{font-size:10.5px;color:var(--s400);margin-bottom:6px;font-weight:500;}
+  .breadcrumb span.link{cursor:pointer;}
+  .breadcrumb span.link:hover{color:var(--p);}
+  .page-title{font-size:15px;font-weight:700;margin:0 0 3px;color:var(--s900);}
+  .page-sub{font-size:10.5px;color:var(--s500);margin-bottom:16px;font-weight:500;}
+
+  .card{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);}
+  .search-card{padding:14px 16px;}
+  .query-bar{display:flex;align-items:stretch;border:1.5px solid var(--s200);border-radius:var(--r);overflow:hidden;}
+  .query-slot{display:flex;align-items:center;padding:0 14px;}
+  .query-slot.model{width:180px;flex-shrink:0;background:var(--s50);border-right:1px solid var(--s200);}
+  .query-slot.model select{width:100%;border:none;background:transparent;font-size:12.5px;font-weight:600;padding:11px 0;appearance:none;cursor:pointer;color:var(--s800);}
+  .query-slot.term{flex:1;min-width:0;}
+  .query-slot.term input{width:100%;border:none;outline:none;font-size:13px;padding:11px 0;background:transparent;color:var(--s900);}
+  .query-slot.term input::placeholder{color:var(--s400);}
+  .query-submit{flex-shrink:0;width:80px;background:var(--p);color:#fff;border:none;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .query-submit:hover{background:var(--pd);}
+  .query-examples{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap;font-size:10.5px;color:var(--s500);align-items:center;font-weight:500;}
+  .example-chip{border:1.5px solid var(--s200);border-radius:20px;padding:3px 10px;background:var(--wh);cursor:pointer;color:var(--s600);font-weight:500;}
+  .example-chip:hover{border-color:var(--p);color:var(--p);}
+
+  .section{margin-top:20px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
+  .section-title{font-size:11px;font-weight:700;color:var(--s800);}
+  .section-sub{font-size:9.5px;color:var(--s400);font-weight:500;}
+
+  .line-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  .line-item{background:var(--wh);border-radius:var(--r);padding:10px 8px;cursor:pointer;text-align:center;box-shadow:var(--shadow);border-top:3px solid var(--s200);}
+  .line-item.active{border-top-color:var(--p);background:var(--pl);}
+  .line-name{font-size:11px;font-weight:600;color:var(--s800);}
+  .line-count{font-size:9px;color:var(--s400);margin-top:2px;font-weight:500;}
+
+  .model-row{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;padding:12px;background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);}
+  .model-chip{font-size:10.5px;padding:3px 10px;border-radius:20px;border:1.5px solid var(--s200);color:var(--s600);cursor:pointer;background:var(--wh);font-weight:500;}
+  .model-chip.sel{background:var(--p);color:#fff;border-color:var(--p);font-weight:600;}
+
+  .pillar-card{background:var(--wh);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .pillar-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .pillar-num{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+  .pillar-name{font-size:13px;font-weight:700;color:var(--s900);}
+  .pillar-sub{font-size:10px;color:var(--s400);margin-left:auto;font-weight:500;}
+  .pillar-modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+  .pillar-mod{border:1px solid var(--s200);border-radius:6px;padding:11px 12px;cursor:pointer;}
+  .pillar-mod:hover{border-color:var(--p);}
+  .pillar-mod-name{font-size:12px;font-weight:700;margin-bottom:4px;color:var(--s800);}
+  .pillar-mod-desc{font-size:10.5px;color:var(--s500);line-height:1.5;}
+  .status-badge{font-size:8.5px;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:6px;}
+  .status-live{background:var(--okl);color:#065F46;}
+  .status-pending{background:var(--s100);color:var(--s500);}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+  .stat-card{background:var(--wh);border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow);border-top:3px solid var(--s200);}
+  .stat-label{font-size:9px;font-weight:700;color:var(--s500);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-value{font-size:20px;font-weight:800;margin-top:2px;color:var(--s900);}
+  .stat-bar{margin-top:6px;height:3px;border-radius:2px;background:var(--s100);overflow:hidden;}
+  .stat-bar i{display:block;height:100%;background:var(--p);border-radius:2px;}
+
+  .feed{background:var(--wh);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
+  .feed-row{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--wh);border-bottom:1px solid var(--s100);font-size:11px;cursor:pointer;}
+  .feed-row:hover{background:#FAFBFF;}
+  .feed-row:last-child{border-bottom:none;}
+  .feed-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;flex-shrink:0;width:32px;text-align:center;}
+  .feed-model{color:var(--s500);flex-shrink:0;width:150px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .feed-text{flex:1;color:var(--s700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .feed-date{color:var(--s400);font-size:10.5px;flex-shrink:0;width:66px;text-align:right;font-weight:500;}
+  .feed-tag{font-size:9px;color:var(--s500);background:var(--s100);padding:2px 7px;border-radius:5px;flex-shrink:0;font-weight:600;}
+
+  .filter-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .filter-chip{font-size:10.5px;padding:3px 10px;border-radius:20px;border:1.5px solid var(--s200);color:var(--s600);cursor:pointer;background:var(--wh);font-weight:500;}
+  .filter-chip:hover{border-color:var(--p);color:var(--p);}
+  .filter-chip.sel{background:var(--p);color:#fff;border-color:var(--p);font-weight:600;}
+  .filter-count{font-size:10px;color:var(--s400);margin-left:auto;font-weight:500;}
+
+  .empty-state{padding:32px 20px;text-align:center;color:var(--s400);font-size:11.5px;}
+  .detail-panel{padding:14px 16px;font-size:11.5px;color:var(--s600);line-height:1.7;white-space:pre-line;}
+  .detail-panel b{color:var(--s900);}
+  .placeholder-card{padding:24px;}
+  .placeholder-title{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--s800);}
+  .placeholder-body{font-size:11.5px;color:var(--s600);line-height:1.8;}
+  .placeholder-body code{background:var(--s100);padding:1px 6px;border-radius:4px;color:var(--s700);}
+  .field-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+  .field-tag{font-size:10px;background:var(--s100);color:var(--s600);padding:3px 9px;border-radius:5px;font-weight:600;}
+
+  .edit-toggle{font-size:10.5px;color:var(--p);cursor:pointer;background:none;border:none;padding:0;font-family:inherit;margin-top:8px;font-weight:600;}
+  .edit-toggle:hover{color:var(--pd);text-decoration:underline;}
+  .edit-form{margin-top:12px;padding-top:12px;border-top:1px solid var(--s100);display:none;}
+  .edit-form.open{display:block;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .form-field{display:flex;flex-direction:column;gap:3px;}
+  .form-field.full{grid-column:1 / -1;}
+  .form-field label{font-size:9.5px;color:var(--s500);font-weight:600;}
+  .form-field input,.form-field select,.form-field textarea{
+    border:1.5px solid var(--s200);border-radius:6px;padding:6px 9px;font-size:11.5px;font-family:inherit;color:var(--s900);background:var(--wh);
+  }
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:none;border-color:var(--p);}
+  .form-field textarea{resize:vertical;min-height:44px;}
+  .form-actions{display:flex;align-items:center;gap:10px;margin-top:10px;}
+  .btn-primary{background:var(--p);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:11.5px;font-weight:700;cursor:pointer;}
+  .btn-primary:hover{background:var(--pd);}
+  .btn-primary:disabled{background:var(--s300);cursor:not-allowed;}
+  .btn-secondary{background:var(--wh);color:var(--s600);border:1.5px solid var(--s200);border-radius:6px;padding:7px 14px;font-size:11.5px;font-weight:600;cursor:pointer;}
+  .submit-msg{font-size:10.5px;font-weight:600;}
+  .submit-msg.ok{color:var(--ok);}
+  .submit-msg.err{color:var(--er);}
+  .add-case-btn{background:var(--p);color:#fff;border:none;border-radius:20px;padding:6px 14px;font-size:10.5px;font-weight:700;cursor:pointer;margin-left:auto;}
+  .add-case-btn:hover{background:var(--pd);}
+
+  @media (max-width:900px){
+    .rail{display:none;}
+    .line-grid{grid-template-columns:repeat(4,1fr);}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .content{padding:16px 14px 40px;}
+    .feed-model{width:90px;}
+  }
+</style>
 </head>
 <body>
+<div class="shell">
+
+  <nav class="rail">
+    <div class="rail-logo"><b>IVD 服务知识生态</b><div>Service Knowledge Ecosystem</div></div>
+    <button class="rail-item rail-home active" data-nav="home"><span class="rail-dot"></span>总览首页</button>
+
+    <div class="rail-group">1 · 故障解决</div>
+    <div class="rail-nav">
+      <button class="rail-item" data-nav="update"><span class="rail-dot"></span>技术更新 TN/SN/AN</button>
+      <button class="rail-item" data-nav="cases"><span class="rail-dot"></span>故障案例库</button>
+      <button class="rail-item" data-nav="qe"><span class="rail-dot"></span>QE 结论方案</button>
+      <button class="rail-item" data-nav="guide"><span class="rail-dot"></span>场景化故障指南</button>
+    </div>
+
+    <div class="rail-group">2 · 物料支持</div>
+    <div class="rail-nav">
+      <button class="rail-item" data-nav="parts-kits"><span class="rail-dot"></span>物料清单 / 维护包 / 工装</button>
+      <button class="rail-item" data-nav="parts-lookup"><span class="rail-dot"></span>物料编码 + 图片查询</button>
+    </div>
+
+    <div class="rail-group">3 · 业务指导</div>
+    <div class="rail-nav">
+      <button class="rail-item" data-nav="ops-docs"><span class="rail-dot"></span>业务文档归档库</button>
+      <button class="rail-item" data-nav="ops-visual"><span class="rail-dot"></span>流程 / 策略可视化</button>
+    </div>
+
+    <div class="rail-foot">支柱一已接入真实存量数据(151条)<br>支柱二/三为框架占位，待逐步建设</div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div>国际区 · 用服工程师</div>
+      <div class="topbar-right"><span>中文</span><span>English</span></div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ 总览首页 ============ -->
+      <section class="page active" id="page-home">
+        <div class="page-title">IVD 服务知识生态</div>
+        <div class="page-sub">故障解决 · 物料支持 · 业务指导，三大支柱统一入口</div>
+
+        <div class="pillar-card">
+          <div class="pillar-head">
+            <div class="pillar-num" style="background:var(--pl);color:var(--pd)">1</div>
+            <div class="pillar-name">故障解决 Fault Resolution</div>
+            <div class="pillar-sub">现场遇到故障时的第一入口</div>
+          </div>
+          <div class="pillar-modules">
+            <div class="pillar-mod" data-nav="update">
+              <span class="status-badge status-live">已接入 95 条</span>
+              <div class="pillar-mod-name">技术更新 TN/SN/AN</div>
+              <div class="pillar-mod-desc">仪器更改历史，按机型看时间线</div>
+            </div>
+            <div class="pillar-mod" data-nav="cases">
+              <span class="status-badge status-live">已接入 56 条</span>
+              <div class="pillar-mod-name">故障案例库</div>
+              <div class="pillar-mod-desc">产线+机型+症状+故障代码+根因+失效模式+维修技能+修复时长</div>
+            </div>
+            <div class="pillar-mod" data-nav="qe">
+              <span class="status-badge status-pending">框架占位</span>
+              <div class="pillar-mod-name">QE 结论方案</div>
+              <div class="pillar-mod-desc">VIP问题：症状/根因/临时方案/最终方案</div>
+            </div>
+            <div class="pillar-mod" data-nav="guide">
+              <span class="status-badge status-pending">框架占位</span>
+              <div class="pillar-mod-name">场景化故障处理指南</div>
+              <div class="pillar-mod-desc">可能原因+检查顺序+解决方案，引导式排查</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-head">
+            <div class="pillar-num" style="background:var(--col);color:var(--co)">2</div>
+            <div class="pillar-name">物料支持 Parts &amp; Materials</div>
+            <div class="pillar-sub">现场配件/工装/物料查找</div>
+          </div>
+          <div class="pillar-modules">
+            <div class="pillar-mod" data-nav="parts-kits">
+              <span class="status-badge status-pending">框架占位</span>
+              <div class="pillar-mod-name">物料清单 / 维护包 / 工装</div>
+              <div class="pillar-mod-desc">服务营销物料、维护包、推荐物料、整合物料包</div>
+            </div>
+            <div class="pillar-mod" data-nav="parts-lookup">
+              <span class="status-badge status-pending">框架占位</span>
+              <div class="pillar-mod-name">物料编码 + 图片查询</div>
+              <div class="pillar-mod-desc">按编码或图片查找物料对应关系</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-head">
+            <div class="pillar-num" style="background:var(--pul);color:var(--pu)">3</div>
+            <div class="pillar-name">业务指导 Service Operation Center</div>
+            <div class="pillar-sub">流程规范与服务策略</div>
+          </div>
+          <div class="pillar-modules">
+            <div class="pillar-mod" data-nav="ops-docs">
+              <span class="status-badge status-pending">框架占位</span>
+              <div class="pillar-mod-name">业务文档归档库</div>
+              <div class="pillar-mod-desc">上升流程/资质方案/工程师工作手册/培训材料</div>
+            </div>
+            <div class="pillar-mod" data-nav="ops-visual">
+              <span class="status-badge status-pending">框架占位</span>
+              <div class="pillar-mod-name">流程 / 策略可视化</div>
+              <div class="pillar-mod-desc">QE上升流程图、产品服务策略画布、成长路径图</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">支柱一快速检索</div>
+            <div class="section-sub">存量导入 151 条</div>
+          </div>
+          <div class="card search-card">
+            <div class="query-bar">
+              <div class="query-slot model">
+                <select id="home-model-select"><option>BS-2800M</option></select>
+              </div>
+              <div class="query-slot term">
+                <input type="text" id="home-search-term" placeholder="例如 反应杯损坏 / 软件升级 / 呼吸灯黄色">
+              </div>
+              <button class="query-submit" id="home-go-search">检索</button>
+            </div>
+            <div class="query-examples">
+              <span>真实样例：</span>
+              <span class="example-chip" data-model="BS-2800M" data-term="搅拌杆">BS-2800M · 搅拌杆弯曲</span>
+              <span class="example-chip" data-model="CX-6000" data-term="软件">CX-6000 · 软件升级</span>
+              <span class="example-chip" data-model="SC120" data-term="卡死">SC120 · 软件卡死</span>
+            </div>
+          </div>
+          <div class="stat-grid" style="margin-top:16px;">
+            <div class="stat-card"><div class="stat-label">TN 技术通知</div><div class="stat-value">57</div><div class="stat-bar"><i style="width:100%"></i></div></div>
+            <div class="stat-card"><div class="stat-label">SN 服务通知</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
+            <div class="stat-card"><div class="stat-label">FST 现场提示</div><div class="stat-value">16</div><div class="stat-bar"><i style="width:28%"></i></div></div>
+            <div class="stat-card"><div class="stat-label">FAQ 常见问题</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
+            <div class="stat-card"><div class="stat-label">故障案例</div><div class="stat-value">34</div><div class="stat-bar"><i style="width:60%"></i></div></div>
+          </div>
+          <div class="line-grid" id="home-line-grid" style="margin-top:16px;">
+            <div class="line-item active" data-line="Biochemistry"><div class="line-name">生化</div><div class="line-count">19条·8机型</div></div>
+            <div class="line-item" data-line="CLIA"><div class="line-name">化学发光</div><div class="line-count">20条·8机型</div></div>
+            <div class="line-item" data-line="Hematology"><div class="line-name">血液</div><div class="line-count">47条·11机型</div></div>
+            <div class="line-item" data-line="Coagulation"><div class="line-name">凝血</div><div class="line-count">4条·3机型</div></div>
+            <div class="line-item" data-line="Urinalysis"><div class="line-name">尿液</div><div class="line-count">12条·3机型</div></div>
+            <div class="line-item" data-line="Microbiology"><div class="line-name">微生物</div><div class="line-count">8条·3机型</div></div>
+            <div class="line-item" data-line="TLA"><div class="line-name">流水线</div><div class="line-count">0条·1机型</div></div>
+          </div>
+          <div class="model-row" id="home-model-row"></div>
+          <div class="feed" id="home-feed" style="margin-top:12px;"></div>
+        </div>
+      </section>
+
+      <!-- ============ 技术更新 ============ -->
+      <section class="page" id="page-update">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 技术更新</div>
+        <div class="page-title">技术更新</div>
+        <div class="page-sub">TN 技术通知 · SN 服务通知 · FST 现场服务提示，共 95 条</div>
+        <div class="filter-bar" id="update-line-filter"></div>
+        <div class="filter-bar" id="update-model-filter"></div>
+        <div class="filter-bar">
+          <span class="filter-chip sel" data-type="ALL">全部类型</span>
+          <span class="filter-chip" data-type="TN">TN 技术通知</span>
+          <span class="filter-chip" data-type="SN">SN 服务通知</span>
+          <span class="filter-chip" data-type="FST">FST 现场提示</span>
+          <span class="filter-count" id="update-result-count"></span>
+        </div>
+        <div class="feed" id="update-list"></div>
+        <div class="card" id="update-detail" style="display:none;margin-top:16px;"><div class="detail-panel" id="update-detail-body"></div></div>
+      </section>
+
+      <!-- ============ 故障案例库 ============ -->
+      <section class="page" id="page-cases">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 故障案例库</div>
+        <div class="page-title">故障案例库</div>
+        <div class="page-sub">一线实际处理过的故障案例与常见问答，共 56 条 · 已按新schema打上产线+机型+问题分类+故障代码字段（失效模式/维修技能/修复时长为占位，待补录）</div>
+        <div class="filter-bar" id="cases-line-filter"></div>
+        <div class="filter-bar" id="cases-model-filter"></div>
+        <div class="filter-bar">
+          <span class="filter-chip sel" data-type="ALL">全部类型</span>
+          <span class="filter-chip" data-type="CASE">故障案例</span>
+          <span class="filter-chip" data-type="FAQ">FAQ</span>
+          <span class="filter-count" id="cases-result-count"></span>
+          <button class="add-case-btn" id="add-case-btn">+ 新增故障案例</button>
+        </div>
+
+        <div class="card" id="add-case-form" style="display:none;padding:18px;margin-bottom:16px;">
+          <div class="section-title" style="margin-bottom:12px;">新增故障案例</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>产品线</label>
+              <select id="new-line"></select>
+            </div>
+            <div class="form-field">
+              <label>机型</label>
+              <select id="new-model"></select>
+            </div>
+            <div class="form-field full">
+              <label>故障现象</label>
+              <textarea id="new-symptom" placeholder="例如：BS-2800M搅拌杆弯曲，导致反应杯损坏"></textarea>
+            </div>
+            <div class="form-field full">
+              <label>排查步骤</label>
+              <textarea id="new-steps"></textarea>
+            </div>
+            <div class="form-field full">
+              <label>根因</label>
+              <textarea id="new-root-cause"></textarea>
+            </div>
+            <div class="form-field">
+              <label>问题分类</label>
+              <select id="new-issue-class"></select>
+            </div>
+            <div class="form-field">
+              <label>故障代码（逗号分隔，没有就留空）</label>
+              <input type="text" id="new-fault-codes" placeholder="如 A51160, SV08">
+            </div>
+            <div class="form-field">
+              <label>失效模式</label>
+              <input type="text" id="new-failure-mode">
+            </div>
+            <div class="form-field">
+              <label>维修技能要求</label>
+              <input type="text" id="new-repair-skill">
+            </div>
+            <div class="form-field">
+              <label>平均修复时长（小时）</label>
+              <input type="number" step="0.5" id="new-mttr">
+            </div>
+            <div class="form-field">
+              <label>提交人</label>
+              <input type="text" id="new-submitted-by" placeholder="姓名/工号">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" id="new-case-submit">提交</button>
+            <button class="btn-secondary" id="new-case-cancel">取消</button>
+            <span class="submit-msg" id="new-case-msg"></span>
+          </div>
+        </div>
+
+        <div class="feed" id="cases-list"></div>
+        <div class="card" id="cases-detail" style="display:none;margin-top:16px;">
+          <div class="detail-panel" id="cases-detail-body"></div>
+          <div style="padding:0 18px 18px;">
+            <button class="edit-toggle" id="cases-edit-toggle" style="display:none;">补充 / 修改这条记录</button>
+            <div class="edit-form" id="cases-edit-form">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>问题分类</label>
+                  <select id="edit-issue-class"></select>
+                </div>
+                <div class="form-field">
+                  <label>故障代码（逗号分隔）</label>
+                  <input type="text" id="edit-fault-codes">
+                </div>
+                <div class="form-field">
+                  <label>失效模式</label>
+                  <input type="text" id="edit-failure-mode">
+                </div>
+                <div class="form-field">
+                  <label>维修技能要求</label>
+                  <input type="text" id="edit-repair-skill">
+                </div>
+                <div class="form-field">
+                  <label>平均修复时长（小时）</label>
+                  <input type="number" step="0.5" id="edit-mttr">
+                </div>
+                <div class="form-field">
+                  <label>提交人</label>
+                  <input type="text" id="edit-submitted-by" placeholder="姓名/工号">
+                </div>
+                <div class="form-field full">
+                  <label>备注</label>
+                  <textarea id="edit-note" placeholder="例如：现场实测修复时长约1.5小时"></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="btn-primary" id="edit-case-submit">提交补充</button>
+                <button class="btn-secondary" id="edit-case-cancel">取消</button>
+                <span class="submit-msg" id="edit-case-msg"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ QE 结论方案 ============ -->
+      <section class="page" id="page-qe">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / QE 结论方案</div>
+        <div class="page-title">QE 结论方案</div>
+        <div class="page-sub">VIP 问题脱敏后的处理方案</div>
+        <div class="card placeholder-card">
+          <div class="placeholder-title">框架占位 · 待接入</div>
+          <div class="placeholder-body">
+            跟旧版"QE结论"最大的区别是拆成两段：先有<b>临时方案</b>（现场先止血，让设备能用），再有<b>最终方案</b>（根治，可能是下一次TN/SN里的变更）。
+            原始VIP记录要先过脱敏流程（去客户名/订单号，按"症状-根因-临时方案-最终方案"四段式重写）才能入库，原始记录仍留在QE平台。
+            <div class="field-tags">
+              <span class="field-tag">症状 Symptom</span>
+              <span class="field-tag">根因 Root Cause</span>
+              <span class="field-tag">临时方案 Interim Fix</span>
+              <span class="field-tag">最终方案 Permanent Fix</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 场景化故障指南 ============ -->
+      <section class="page" id="page-guide">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 场景化故障处理指南</div>
+        <div class="page-title">场景化故障处理指南</div>
+        <div class="page-sub">按症状引导式排查，跟故障案例库的"回顾型"内容不是一回事</div>
+        <div class="card placeholder-card">
+          <div class="placeholder-title">框架占位 · 需要单独设计交互</div>
+          <div class="placeholder-body">
+            这个模块跟故障案例库的区别：案例库是"这个问题以前怎么解决的"，这里是"遇到这类症状该按什么顺序排查"——本质是一棵决策树，不是一篇文章。
+            界面上大概率是"选症状 → 系统列出几个可能原因，按检查优先级排好 → 逐条给出检查方法 → 定位后跳到对应处理方案"，跟前面几个"筛选+列表"页面是完全不同的交互形态。
+            <div class="field-tags">
+              <span class="field-tag">可能原因 Possible Causes</span>
+              <span class="field-tag">检查顺序 Check Sequence</span>
+              <span class="field-tag">解决方案 Resolution</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 物料清单/维护包/工装 ============ -->
+      <section class="page" id="page-parts-kits">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 物料支持 / 物料清单</div>
+        <div class="page-title">物料清单 / 维护包 / 工装</div>
+        <div class="page-sub">服务营销物料清单 · 维护包 · 工装 · 推荐物料清单 · 整合物料包</div>
+        <div class="card placeholder-card">
+          <div class="placeholder-title">框架占位 · 待建设</div>
+          <div class="placeholder-body">这几类本质都是"按机型/场景打包好的物料清单"，界面上大概率跟技术更新类似——按产线/机型筛选，列表展示每个清单包含哪些物料条目。</div>
+        </div>
+      </section>
+
+      <!-- ============ 物料编码+图片查询 ============ -->
+      <section class="page" id="page-parts-lookup">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 物料支持 / 编码图片查询</div>
+        <div class="page-title">物料编码 + 图片查询</div>
+        <div class="page-sub">按编码或图片查找物料对应关系</div>
+        <div class="card placeholder-card">
+          <div class="placeholder-title">框架占位 · 需要先定图片存储方案</div>
+          <div class="placeholder-body">这是第一个真正涉及"图片"存储的模块，量大的话直接堆进git仓库会拖慢构建，要先定下来是压缩存缩略图，还是用图床/CDN只在库里存链接。</div>
+        </div>
+      </section>
+
+      <!-- ============ 业务文档归档库 ============ -->
+      <section class="page" id="page-ops-docs">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 业务指导 / 业务文档归档库</div>
+        <div class="page-title">业务文档归档库</div>
+        <div class="page-sub">问题上升流程文档 · 资质方案清单 · 资质方案获取规则 · TLA产品服务策略 · 工程师工作手册 · 培训材料</div>
+        <div class="card placeholder-card">
+          <div class="placeholder-title">框架占位 · 待建设</div>
+          <div class="placeholder-body">
+            这块是稳定的参考文档，更新频率低，界面上适合"按类别浏览"而不是强搜索——培训材料（安装/维护指南、产品培训PPT）暂时也归到这里，跟工作手册、资质方案放一起，等内容多了再单独拆出来也不迟。
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 流程/策略可视化 ============ -->
+      <section class="page" id="page-ops-visual">
+        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 业务指导 / 流程策略可视化</div>
+        <div class="page-title">流程 / 策略可视化</div>
+        <div class="page-sub">QE上升流程图 · 产线服务策略画布 · 新员工成长路径图</div>
+        <div class="card placeholder-card">
+          <div class="placeholder-title">框架占位 · 手工设计页面，非批量生成</div>
+          <div class="placeholder-body">
+            这几个是精心设计的独立页面，不是从统一schema批量跑出来的：QE上升流程图是流程图；产线服务策略画布要展示定位/核心价值/DFS设计优化/赋能策略/服务产品(安装维护维修)/服务成本(保修策略/分包策略/成本&故障率&时长频率目标)/资质方案(面授or自学)；成长路径图是新员工能力进阶展示。每个都值得单独拉出来细化。
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
 <script>
-MRAuth.requireLogin({
-  platform: "KB",
-  onSuccess: function(user) {
-    document.body.innerHTML = '<p style="font-family:sans-serif;padding:40px;color:#6B7280">' +
-      'Knowledge Base placeholder — replace this file with the actual search/case-browsing shell ' +
-      '(TN/SN/AN fault case library) once built. This page fetches its content at runtime from the ' +
-      'content git repo via jsDelivr, per the earlier architecture design — it does not need its own ' +
-      'build step when new cases are added.</p>';
+const PRODUCT_LINES = ['Biochemistry','CLIA','Hematology','Coagulation','Urinalysis','Microbiology','TLA'];
+const LINE_LABEL = {Biochemistry:'生化',CLIA:'化学发光',Hematology:'血液',Coagulation:'凝血',Urinalysis:'尿液',Microbiology:'微生物',TLA:'流水线'};
+const MODELS_BY_LINE = {
+  'Biochemistry':['BS-600M/BS-620M','BS-430/BS-450','BS-230/240/240Pro','BS-1000M','Other/Common','BS-2800M','BS-5000M','BS-2000'],
+  'CLIA':['CL-1000I','CL-2600I','CL-900I','CL-2000I','CL-8000I','CL-6000I','CL-9000I','Other/Common'],
+  'Hematology':['BC-700','GLYCOHEMOGLOBIN','BC-6000','BC-6800 PLUS','BC-7600','CAL TRACK','MC-80','SC120','TM-1000','Other/Common','FLOW CYTOMETER'],
+  'Coagulation':['CX-6000','CX-9000','Other/Common'],
+  'Urinalysis':['EU PRO','EU 8600','Other/Common'],
+  'Microbiology':['AF-600','FA-N','Other/Common'],
+  'TLA':['MT 8000']
+};
+const BADGE_STYLE = {
+  TN:['var(--pl)','var(--pd)'], SN:['var(--wal)','var(--wa)'],
+  FST:['var(--pl)','var(--pd)'], FAQ:['var(--pul)','var(--pu)'],
+  CASE:['var(--okl)','var(--ok)']
+};
+const ISSUE_CATEGORIES = ['开箱不合格','备件来料不良','批次性故障','液路问题','机械问题','软件问题','硬件问题','附件问题','试剂问题','客户使用问题','临床问题','工程师能力问题','数据分析','严重事件'];
+
+/* ======== Supabase：待合并编辑队列 ========
+   把下面两个换成你自己Supabase项目的值（Project Settings -> API）。
+   用的是 anon public key，只有"插入"权限（见 kb_edit_queue.sql 的 RLS 策略），
+   不会暴露读取/修改别人提交内容的能力。 */
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
+let supabaseClient = null;
+try{
+  if(window.supabase && !SUPABASE_URL.includes('YOUR-PROJECT')){
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){ console.warn('Supabase未配置，补录功能暂不可用', e); }
+
+function fillSelect(sel, options, placeholder){
+  sel.innerHTML = (placeholder ? `<option value="">${placeholder}</option>` : '') +
+    options.map(o=>`<option value="${o}">${o}</option>`).join('');
+}
+
+function navigate(page, opts){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target = document.getElementById('page-'+page);
+  if(!target) return;
+  target.classList.add('active');
+  document.querySelectorAll('.rail-item').forEach(r=>r.classList.remove('active'));
+  const railBtn = document.querySelector('.rail-item[data-nav="'+page+'"]');
+  if(railBtn) railBtn.classList.add('active');
+  window.scrollTo(0,0);
+  if(page==='update') renderUpdatePage(opts && opts.model);
+  if(page==='cases') renderCasesPage(opts && opts.model);
+}
+document.querySelectorAll('[data-nav]').forEach(el=>{
+  el.addEventListener('click', ()=> navigate(el.dataset.nav));
+});
+
+const homeLineItems = document.querySelectorAll('#home-line-grid .line-item');
+const homeModelRow = document.getElementById('home-model-row');
+const homeModelSelect = document.getElementById('home-model-select');
+const homeFeed = document.getElementById('home-feed');
+
+function renderHomeModels(line){
+  const models = MODELS_BY_LINE[line] || [];
+  homeModelRow.innerHTML = models.map(m=>`<div class="model-chip${m==='BS-2800M'?' sel':''}">${m}</div>`).join('');
+  homeModelSelect.innerHTML = models.map(m=>`<option${m==='BS-2800M'?' selected':''}>${m}</option>`).join('');
+  bindHomeModelChips();
+  const selected = models.includes('BS-2800M') ? 'BS-2800M' : models[0];
+  selectHomeModel(selected);
+}
+function bindHomeModelChips(){
+  document.querySelectorAll('#home-model-row .model-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('#home-model-row .model-chip').forEach(c=>c.classList.remove('sel'));
+      chip.classList.add('sel');
+      selectHomeModel(chip.textContent);
+    });
+  });
+}
+function selectHomeModel(model){
+  homeModelSelect.value = model;
+  const items = KB_ENTRIES.filter(e => (e.models||[]).includes(model));
+  if(items.length===0){ homeFeed.innerHTML = '<div class="empty-state">该机型暂无记录</div>'; return; }
+  homeFeed.innerHTML = items.slice(0,6).map(e=>{
+    const [bg,color] = BADGE_STYLE[e.subtype] || ['var(--s100)','var(--s600)'];
+    return `<div class="feed-row">
+      <span class="feed-badge" style="background:${bg};color:${color}">${e.subtype}</span>
+      <span class="feed-model">${(e.models||[]).join(', ')}</span>
+      <span class="feed-text">${e.title}</span>
+      <span class="feed-date">${e.date ? e.date.slice(0,10) : '存量导入'}</span>
+    </div>`;
+  }).join('');
+}
+homeLineItems.forEach(item=>{
+  item.addEventListener('click', ()=>{
+    homeLineItems.forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    renderHomeModels(item.dataset.line);
+  });
+});
+document.querySelectorAll('.example-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.getElementById('home-search-term').value = chip.dataset.term;
+    homeModelSelect.value = chip.dataset.model;
+  });
+});
+document.getElementById('home-go-search').addEventListener('click', ()=>{
+  navigate('cases', {model: homeModelSelect.value});
+});
+
+function makeModuleController(prefix, category, typeStyle){
+  let state = { line: null, model: null, type: 'ALL' };
+  const items = KB_ENTRIES.filter(e => e.category === category);
+
+  function renderLineFilter(){
+    const el = document.getElementById(prefix+'-line-filter');
+    el.innerHTML = '<span class="filter-chip' + (!state.line?' sel':'') + '" data-line="">全部产线</span>' +
+      PRODUCT_LINES.map(l => `<span class="filter-chip${state.line===l?' sel':''}" data-line="${l}">${LINE_LABEL[l]}</span>`).join('');
+    el.querySelectorAll('.filter-chip').forEach(c=>{
+      c.addEventListener('click', ()=>{ state.line = c.dataset.line || null; state.model=null; render(); });
+    });
+  }
+  function renderModelFilter(){
+    const el = document.getElementById(prefix+'-model-filter');
+    if(!state.line){ el.innerHTML=''; return; }
+    const models = [...new Set(items.filter(e=>e.product_line===state.line).flatMap(e=>e.models||[]))];
+    el.innerHTML = '<span class="filter-chip' + (!state.model?' sel':'') + '" data-model="">全部机型</span>' +
+      models.map(m => `<span class="filter-chip${state.model===m?' sel':''}" data-model="${m}">${m}</span>`).join('');
+    el.querySelectorAll('.filter-chip').forEach(c=>{
+      c.addEventListener('click', ()=>{ state.model = c.dataset.model || null; render(); });
+    });
+  }
+  document.querySelectorAll('#page-'+prefix+' [data-type]').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      document.querySelectorAll('#page-'+prefix+' [data-type]').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');
+      state.type = c.dataset.type;
+      render();
+    });
+  });
+
+  function filtered(){
+    return items.filter(e =>
+      (!state.line || e.product_line===state.line) &&
+      (!state.model || (e.models||[]).includes(state.model)) &&
+      (state.type==='ALL' || e.subtype===state.type)
+    );
+  }
+  function showDetail(e){
+    document.getElementById(prefix+'-detail').style.display='block';
+    let body = `<b>${e.title}</b><br><br>机型：${(e.models||[]).join(', ')}`;
+    if(e.ref_no) body += ` ｜ 编号：${e.ref_no}`;
+    if(e.issue_class) body += ` ｜ 问题分类：${e.issue_class}`;
+    if(e.date) body += ` ｜ 日期：${e.date.slice(0,10)}`;
+    body += `<br><br>${e.summary}`;
+    if(e.category === 'CASE' && e.subtype === 'CASE'){
+      body += `<br><br><b>故障代码</b>：${(e.fault_codes&&e.fault_codes.length) ? e.fault_codes.join(', ') : '待补充'}`;
+      body += `　<b>失效模式</b>：${e.failure_mode || '待补充'}`;
+      body += `　<b>维修技能</b>：${e.repair_skill || '待补充'}`;
+      body += `　<b>平均修复时长</b>：${e.mttr_hours ? e.mttr_hours+'h' : '待补充'}`;
+    }
+    document.getElementById(prefix+'-detail-body').innerHTML = body;
+    document.getElementById(prefix+'-detail').scrollIntoView({behavior:'smooth', block:'nearest'});
+    if(prefix === 'cases'){
+      currentCaseEntry = (e.category === 'CASE' && e.subtype === 'CASE') ? e : null;
+      const toggle = document.getElementById('cases-edit-toggle');
+      const form = document.getElementById('cases-edit-form');
+      toggle.style.display = currentCaseEntry ? 'inline-block' : 'none';
+      form.classList.remove('open');
+      if(currentCaseEntry){
+        document.getElementById('edit-issue-class').value = currentCaseEntry.issue_class || '';
+        document.getElementById('edit-fault-codes').value = (currentCaseEntry.fault_codes||[]).join(', ');
+        document.getElementById('edit-failure-mode').value = currentCaseEntry.failure_mode || '';
+        document.getElementById('edit-repair-skill').value = currentCaseEntry.repair_skill || '';
+        document.getElementById('edit-mttr').value = currentCaseEntry.mttr_hours || '';
+      }
+    }
+  }
+  function render(){
+    renderLineFilter();
+    renderModelFilter();
+    const list = filtered();
+    document.getElementById(prefix+'-result-count').textContent = list.length + ' 条结果';
+    const el = document.getElementById(prefix+'-list');
+    if(list.length===0){ el.innerHTML = '<div class="empty-state">没有匹配的记录</div>'; return; }
+    el.innerHTML = list.map((e,i)=>{
+      const [bg,color] = typeStyle[e.subtype] || ['var(--s100)','var(--s600)'];
+      const rightCol = e.date ? `<span class="feed-date">${e.date.slice(0,10)}</span>` : `<span class="feed-tag">${e.issue_class || ''}</span>`;
+      return `<div class="feed-row" data-idx="${i}">
+        <span class="feed-badge" style="background:${bg};color:${color}">${e.subtype}</span>
+        <span class="feed-model">${(e.models||[]).join(', ')}</span>
+        <span class="feed-text">${e.title}</span>
+        ${rightCol}
+      </div>`;
+    }).join('');
+    el.querySelectorAll('.feed-row').forEach((row,i)=>{
+      row.addEventListener('click', ()=> showDetail(list[i]));
+    });
+  }
+  return {
+    setModelFilter(model){
+      if(!model) return;
+      const found = items.find(e => (e.models||[]).includes(model));
+      state.line = found ? found.product_line : null;
+      state.model = model;
+      render();
+    },
+    render
+  };
+}
+const updateController = makeModuleController('update', 'UPDATE', {TN:BADGE_STYLE.TN, SN:BADGE_STYLE.SN, FST:BADGE_STYLE.FST});
+const casesController = makeModuleController('cases', 'CASE', {CASE:BADGE_STYLE.CASE, FAQ:BADGE_STYLE.FAQ});
+function renderUpdatePage(model){ if(model) updateController.setModelFilter(model); else updateController.render(); }
+function renderCasesPage(model){ if(model) casesController.setModelFilter(model); else casesController.render(); }
+
+/* ======== 补录：编辑已有案例 ======== */
+let currentCaseEntry = null;
+document.getElementById('cases-edit-toggle').addEventListener('click', ()=>{
+  document.getElementById('cases-edit-form').classList.toggle('open');
+});
+document.getElementById('edit-case-cancel').addEventListener('click', ()=>{
+  document.getElementById('cases-edit-form').classList.remove('open');
+});
+fillSelect(document.getElementById('edit-issue-class'), ISSUE_CATEGORIES, '不修改');
+document.getElementById('edit-case-submit').addEventListener('click', async ()=>{
+  const msg = document.getElementById('edit-case-msg');
+  if(!currentCaseEntry){ return; }
+  if(!supabaseClient){
+    msg.className = 'submit-msg err';
+    msg.textContent = 'Supabase未配置，请先在代码里填入SUPABASE_URL/SUPABASE_ANON_KEY';
+    return;
+  }
+  const patch = {};
+  const issueClass = document.getElementById('edit-issue-class').value;
+  const faultCodesRaw = document.getElementById('edit-fault-codes').value.trim();
+  const failureMode = document.getElementById('edit-failure-mode').value.trim();
+  const repairSkill = document.getElementById('edit-repair-skill').value.trim();
+  const mttr = document.getElementById('edit-mttr').value;
+  if(issueClass) patch.issue_class = issueClass;
+  if(faultCodesRaw) patch.fault_codes = faultCodesRaw.split(',').map(s=>s.trim()).filter(Boolean);
+  if(failureMode) patch.failure_mode = failureMode;
+  if(repairSkill) patch.repair_skill = repairSkill;
+  if(mttr) patch.mttr_hours = parseFloat(mttr);
+  if(Object.keys(patch).length === 0){
+    msg.className = 'submit-msg err';
+    msg.textContent = '至少填一个要补充的字段';
+    return;
+  }
+  const btn = document.getElementById('edit-case-submit');
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('kb_edit_queue').insert({
+    action: 'update',
+    entry_id: currentCaseEntry.id,
+    entry_category: currentCaseEntry.category,
+    entry_subtype: currentCaseEntry.subtype,
+    patch,
+    submitted_by: document.getElementById('edit-submitted-by').value.trim() || null,
+    note: document.getElementById('edit-note').value.trim() || null
+  });
+  btn.disabled = false;
+  if(error){
+    msg.className = 'submit-msg err';
+    msg.textContent = '提交失败：' + error.message;
+  }else{
+    msg.className = 'submit-msg ok';
+    msg.textContent = '已提交，等待同步进知识库';
+    setTimeout(()=>{ document.getElementById('cases-edit-form').classList.remove('open'); msg.textContent=''; }, 1500);
   }
 });
+
+/* ======== 新增故障案例 ======== */
+fillSelect(document.getElementById('new-line'), PRODUCT_LINES.map(l=>LINE_LABEL[l]+' / '+l));
+document.getElementById('new-line').addEventListener('change', updateNewModelOptions);
+function updateNewModelOptions(){
+  const raw = document.getElementById('new-line').value;
+  const line = raw.split(' / ').pop();
+  fillSelect(document.getElementById('new-model'), MODELS_BY_LINE[line] || []);
+}
+updateNewModelOptions();
+fillSelect(document.getElementById('new-issue-class'), ISSUE_CATEGORIES, '选择分类');
+
+document.getElementById('add-case-btn').addEventListener('click', ()=>{
+  document.getElementById('add-case-form').style.display = 'block';
+  document.getElementById('add-case-form').scrollIntoView({behavior:'smooth'});
+});
+document.getElementById('new-case-cancel').addEventListener('click', ()=>{
+  document.getElementById('add-case-form').style.display = 'none';
+});
+document.getElementById('new-case-submit').addEventListener('click', async ()=>{
+  const msg = document.getElementById('new-case-msg');
+  if(!supabaseClient){
+    msg.className = 'submit-msg err';
+    msg.textContent = 'Supabase未配置，请先在代码里填入SUPABASE_URL/SUPABASE_ANON_KEY';
+    return;
+  }
+  const lineRaw = document.getElementById('new-line').value;
+  const line = lineRaw.split(' / ').pop();
+  const model = document.getElementById('new-model').value;
+  const symptom = document.getElementById('new-symptom').value.trim();
+  if(!model || !symptom){
+    msg.className = 'submit-msg err';
+    msg.textContent = '机型和故障现象是必填的';
+    return;
+  }
+  const faultCodesRaw = document.getElementById('new-fault-codes').value.trim();
+  const patch = {
+    product_line: line,
+    models: [model],
+    symptom,
+    steps: document.getElementById('new-steps').value.trim(),
+    root_cause: document.getElementById('new-root-cause').value.trim(),
+    issue_class: document.getElementById('new-issue-class').value || null,
+    fault_codes: faultCodesRaw ? faultCodesRaw.split(',').map(s=>s.trim()).filter(Boolean) : [],
+    failure_mode: document.getElementById('new-failure-mode').value.trim() || null,
+    repair_skill: document.getElementById('new-repair-skill').value.trim() || null,
+    mttr_hours: document.getElementById('new-mttr').value ? parseFloat(document.getElementById('new-mttr').value) : null
+  };
+  const btn = document.getElementById('new-case-submit');
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('kb_edit_queue').insert({
+    action: 'create',
+    entry_id: null,
+    entry_category: 'CASE',
+    entry_subtype: 'CASE',
+    patch,
+    submitted_by: document.getElementById('new-submitted-by').value.trim() || null,
+    note: null
+  });
+  btn.disabled = false;
+  if(error){
+    msg.className = 'submit-msg err';
+    msg.textContent = '提交失败：' + error.message;
+  }else{
+    msg.className = 'submit-msg ok';
+    msg.textContent = '已提交，等待同步进知识库（同步后才会出现在列表里）';
+    setTimeout(()=>{ document.getElementById('add-case-form').style.display='none'; msg.textContent=''; }, 1800);
+  }
+});
+
+renderHomeModels('Biochemistry');
+updateController.render();
+casesController.render();
 </script>
 </body>
 </html>
