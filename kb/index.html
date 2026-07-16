@@ -42,7 +42,10 @@
 
   .main{flex:1;min-width:0;}
   .topbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--s200);background:var(--wh);font-size:11.5px;color:var(--s500);position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05);}
-  .topbar-right{display:flex;align-items:center;gap:14px;}
+  .topbar-right{display:flex;align-items:center;gap:6px;}
+  .lang-btn{border:1px solid var(--s200);background:var(--wh);color:var(--s500);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:inherit;}
+  .lang-btn:hover{border-color:var(--p);color:var(--p);}
+  .lang-btn.active{background:var(--p);color:#fff;border-color:var(--p);}
   .content{padding:20px 20px 48px;max-width:1160px;}
 
   .page{display:none;}
@@ -168,71 +171,74 @@
 <div class="shell">
 
   <nav class="rail">
-    <div class="rail-logo"><b>IVD 服务知识生态</b><div>Service Knowledge Ecosystem</div></div>
-    <button class="rail-item rail-home active" data-nav="home"><span class="rail-dot"></span>总览首页</button>
+    <div class="rail-logo"><b data-i18n="brand_title">IVD 服务知识生态</b><div data-i18n="brand_sub">Service Knowledge Ecosystem</div></div>
+    <button class="rail-item rail-home active" data-nav="home"><span class="rail-dot"></span><span data-i18n="nav_home">总览首页</span></button>
 
-    <div class="rail-group">1 · 故障解决</div>
+    <div class="rail-group" data-i18n="rail_group_1">1 · 故障解决</div>
     <div class="rail-nav">
-      <button class="rail-item" data-nav="update"><span class="rail-dot"></span>技术更新 TN/SN/AN/FST</button>
-      <button class="rail-item" data-nav="cases"><span class="rail-dot"></span>故障案例库</button>
-      <button class="rail-item" data-nav="qe"><span class="rail-dot"></span>QE 结论方案</button>
-      <button class="rail-item" data-nav="guide"><span class="rail-dot"></span>场景化故障指南</button>
+      <button class="rail-item" data-nav="update"><span class="rail-dot"></span><span data-i18n="nav_update">技术更新 TN/SN/AN/FST</span></button>
+      <button class="rail-item" data-nav="cases"><span class="rail-dot"></span><span data-i18n="nav_cases">故障案例库</span></button>
+      <button class="rail-item" data-nav="qe"><span class="rail-dot"></span><span data-i18n="nav_qe">QE 结论方案</span></button>
+      <button class="rail-item" data-nav="guide"><span class="rail-dot"></span><span data-i18n="nav_guide">场景化故障指南</span></button>
     </div>
 
-    <div class="rail-group">2 · 物料支持</div>
+    <div class="rail-group" data-i18n="rail_group_2">2 · 物料支持</div>
     <div class="rail-nav">
-      <button class="rail-item" data-nav="parts-kits"><span class="rail-dot"></span>物料清单 / 维护包 / 工装</button>
-      <button class="rail-item" data-nav="parts-lookup"><span class="rail-dot"></span>物料编码 + 图片查询</button>
+      <button class="rail-item" data-nav="parts-kits"><span class="rail-dot"></span><span data-i18n="nav_parts_kits">物料清单 / 维护包 / 工装</span></button>
+      <button class="rail-item" data-nav="parts-lookup"><span class="rail-dot"></span><span data-i18n="nav_parts_lookup">物料编码 + 图片查询</span></button>
     </div>
 
-    <div class="rail-group">3 · 业务指导</div>
+    <div class="rail-group" data-i18n="rail_group_3">3 · 业务指导</div>
     <div class="rail-nav">
-      <button class="rail-item" data-nav="ops-docs"><span class="rail-dot"></span>业务文档归档库</button>
-      <button class="rail-item" data-nav="ops-visual"><span class="rail-dot"></span>流程 / 策略可视化</button>
+      <button class="rail-item" data-nav="ops-docs"><span class="rail-dot"></span><span data-i18n="nav_ops_docs">业务文档归档库</span></button>
+      <button class="rail-item" data-nav="ops-visual"><span class="rail-dot"></span><span data-i18n="nav_ops_visual">流程 / 策略可视化</span></button>
     </div>
 
-    <div class="rail-foot">支柱一已接入真实存量数据(151条)<br>支柱二/三为框架占位，待逐步建设</div>
+    <div class="rail-foot" data-i18n="rail_foot">支柱一已接入真实存量数据(151条)<br>支柱二/三为框架占位，待逐步建设</div>
   </nav>
 
   <div class="main">
     <div class="topbar">
-      <div>国际区 · 用服工程师</div>
-      <div class="topbar-right"><span>中文</span><span>English</span></div>
+      <div data-i18n="topbar_left">国际区 · 用服工程师</div>
+      <div class="topbar-right">
+        <button class="lang-btn" id="lang-zh" onclick="setLang('zh')">中文</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')">English</button>
+      </div>
     </div>
 
     <div class="content">
 
       <!-- ============ 总览首页 ============ -->
       <section class="page active" id="page-home">
-        <div class="page-title">IVD 服务知识生态</div>
-        <div class="page-sub">故障解决 · 物料支持 · 业务指导，三大支柱统一入口</div>
+        <div class="page-title" data-i18n="home_title">IVD 服务知识生态</div>
+        <div class="page-sub" data-i18n="home_sub">故障解决 · 物料支持 · 业务指导，三大支柱统一入口</div>
 
         <div class="pillar-card">
           <div class="pillar-head">
             <div class="pillar-num" style="background:var(--pl);color:var(--pd)">1</div>
-            <div class="pillar-name">故障解决 Fault Resolution</div>
-            <div class="pillar-sub">现场遇到故障时的第一入口</div>
+            <div class="pillar-name" data-i18n="pillar1_name">故障解决 Fault Resolution</div>
+            <div class="pillar-sub" data-i18n="pillar1_sub">现场遇到故障时的第一入口</div>
           </div>
           <div class="pillar-modules">
             <div class="pillar-mod" data-nav="update">
-              <span class="status-badge status-live">已接入 95 条</span>
-              <div class="pillar-mod-name">技术更新 TN/SN/AN/FST</div>
-              <div class="pillar-mod-desc">仪器更改历史，按机型看时间线</div>
+              <span class="status-badge status-live" data-i18n="status_update">已接入 95 条</span>
+              <div class="pillar-mod-name" data-i18n="nav_update">技术更新 TN/SN/AN/FST</div>
+              <div class="pillar-mod-desc" data-i18n="mod_update_desc">仪器更改历史，按机型看时间线</div>
             </div>
             <div class="pillar-mod" data-nav="cases">
-              <span class="status-badge status-live">已接入 56 条</span>
-              <div class="pillar-mod-name">故障案例库</div>
-              <div class="pillar-mod-desc">产线+机型+症状+故障代码+根因+失效模式+维修技能+修复时长</div>
+              <span class="status-badge status-live" data-i18n="status_cases">已接入 56 条</span>
+              <div class="pillar-mod-name" data-i18n="nav_cases">故障案例库</div>
+              <div class="pillar-mod-desc" data-i18n="mod_cases_desc">产线+机型+症状+故障代码+根因+失效模式+维修技能+修复时长</div>
             </div>
             <div class="pillar-mod" data-nav="qe">
-              <span class="status-badge status-pending">框架占位</span>
-              <div class="pillar-mod-name">QE 结论方案</div>
-              <div class="pillar-mod-desc">VIP问题：症状/根因/临时方案/最终方案</div>
+              <span class="status-badge status-pending" data-i18n="status_pending">框架占位</span>
+              <div class="pillar-mod-name" data-i18n="nav_qe">QE 结论方案</div>
+              <div class="pillar-mod-desc" data-i18n="mod_qe_desc">VIP问题：症状/根因/临时方案/最终方案</div>
             </div>
             <div class="pillar-mod" data-nav="guide">
-              <span class="status-badge status-pending">框架占位</span>
-              <div class="pillar-mod-name">场景化故障处理指南</div>
-              <div class="pillar-mod-desc">可能原因+检查顺序+解决方案，引导式排查</div>
+              <span class="status-badge status-pending" data-i18n="status_pending">框架占位</span>
+              <div class="pillar-mod-name" data-i18n="mod_guide_name">场景化故障处理指南</div>
+              <div class="pillar-mod-desc" data-i18n="mod_guide_desc">可能原因+检查顺序+解决方案，引导式排查</div>
             </div>
           </div>
         </div>
@@ -240,19 +246,19 @@
         <div class="pillar-card">
           <div class="pillar-head">
             <div class="pillar-num" style="background:var(--col);color:var(--co)">2</div>
-            <div class="pillar-name">物料支持 Parts &amp; Materials</div>
-            <div class="pillar-sub">现场配件/工装/物料查找</div>
+            <div class="pillar-name" data-i18n="pillar2_name">物料支持 Parts &amp; Materials</div>
+            <div class="pillar-sub" data-i18n="pillar2_sub">现场配件/工装/物料查找</div>
           </div>
           <div class="pillar-modules">
             <div class="pillar-mod" data-nav="parts-kits">
-              <span class="status-badge status-pending">框架占位</span>
-              <div class="pillar-mod-name">物料清单 / 维护包 / 工装</div>
-              <div class="pillar-mod-desc">服务营销物料、维护包、推荐物料、整合物料包</div>
+              <span class="status-badge status-pending" data-i18n="status_pending">框架占位</span>
+              <div class="pillar-mod-name" data-i18n="nav_parts_kits">物料清单 / 维护包 / 工装</div>
+              <div class="pillar-mod-desc" data-i18n="mod_parts_kits_desc">服务营销物料、维护包、推荐物料、整合物料包</div>
             </div>
             <div class="pillar-mod" data-nav="parts-lookup">
-              <span class="status-badge status-pending">框架占位</span>
-              <div class="pillar-mod-name">物料编码 + 图片查询</div>
-              <div class="pillar-mod-desc">按编码或图片查找物料对应关系</div>
+              <span class="status-badge status-pending" data-i18n="status_pending">框架占位</span>
+              <div class="pillar-mod-name" data-i18n="nav_parts_lookup">物料编码 + 图片查询</div>
+              <div class="pillar-mod-desc" data-i18n="mod_parts_lookup_desc">按编码或图片查找物料对应关系</div>
             </div>
           </div>
         </div>
@@ -260,27 +266,27 @@
         <div class="pillar-card">
           <div class="pillar-head">
             <div class="pillar-num" style="background:var(--pul);color:var(--pu)">3</div>
-            <div class="pillar-name">业务指导 Service Operation Center</div>
-            <div class="pillar-sub">流程规范与服务策略</div>
+            <div class="pillar-name" data-i18n="pillar3_name">业务指导 Service Operation Center</div>
+            <div class="pillar-sub" data-i18n="pillar3_sub">流程规范与服务策略</div>
           </div>
           <div class="pillar-modules">
             <div class="pillar-mod" data-nav="ops-docs">
-              <span class="status-badge status-pending">框架占位</span>
-              <div class="pillar-mod-name">业务文档归档库</div>
-              <div class="pillar-mod-desc">上升流程/资质方案/工程师工作手册/培训材料</div>
+              <span class="status-badge status-pending" data-i18n="status_pending">框架占位</span>
+              <div class="pillar-mod-name" data-i18n="nav_ops_docs">业务文档归档库</div>
+              <div class="pillar-mod-desc" data-i18n="mod_ops_docs_desc">上升流程/资质方案/工程师工作手册/培训材料</div>
             </div>
             <div class="pillar-mod" data-nav="ops-visual">
-              <span class="status-badge status-pending">框架占位</span>
-              <div class="pillar-mod-name">流程 / 策略可视化</div>
-              <div class="pillar-mod-desc">QE上升流程图、产品服务策略画布、成长路径图</div>
+              <span class="status-badge status-pending" data-i18n="status_pending">框架占位</span>
+              <div class="pillar-mod-name" data-i18n="nav_ops_visual">流程 / 策略可视化</div>
+              <div class="pillar-mod-desc" data-i18n="mod_ops_visual_desc">QE上升流程图、产品服务策略画布、成长路径图</div>
             </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-head">
-            <div class="section-title">支柱一快速检索</div>
-            <div class="section-sub">存量导入 151 条</div>
+            <div class="section-title" data-i18n="sec_quick_search">支柱一快速检索</div>
+            <div class="section-sub" data-i18n="sec_quick_search_sub">存量导入 151 条</div>
           </div>
           <div class="card search-card">
             <div class="query-bar">
@@ -288,32 +294,32 @@
                 <select id="home-model-select"><option>BS-2800M</option></select>
               </div>
               <div class="query-slot term">
-                <input type="text" id="home-search-term" placeholder="例如 反应杯损坏 / 软件升级 / 呼吸灯黄色">
+                <input type="text" id="home-search-term" data-i18n-placeholder="search_placeholder" placeholder="例如 反应杯损坏 / 软件升级 / 呼吸灯黄色">
               </div>
-              <button class="query-submit" id="home-go-search">检索</button>
+              <button class="query-submit" id="home-go-search" data-i18n="btn_search">检索</button>
             </div>
             <div class="query-examples">
-              <span>真实样例：</span>
+              <span data-i18n="real_examples">真实样例：</span>
               <span class="example-chip" data-model="BS-2800M" data-term="搅拌杆">BS-2800M · 搅拌杆弯曲</span>
               <span class="example-chip" data-model="CX-6000" data-term="软件">CX-6000 · 软件升级</span>
               <span class="example-chip" data-model="SC120" data-term="卡死">SC120 · 软件卡死</span>
             </div>
           </div>
           <div class="stat-grid" style="margin-top:16px;">
-            <div class="stat-card"><div class="stat-label">TN 技术通知</div><div class="stat-value">57</div><div class="stat-bar"><i style="width:100%"></i></div></div>
-            <div class="stat-card"><div class="stat-label">SN 服务通知</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
-            <div class="stat-card"><div class="stat-label">FST 现场提示</div><div class="stat-value">16</div><div class="stat-bar"><i style="width:28%"></i></div></div>
-            <div class="stat-card"><div class="stat-label">FAQ 常见问题</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
-            <div class="stat-card"><div class="stat-label">故障案例</div><div class="stat-value">34</div><div class="stat-bar"><i style="width:60%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_tn">TN 技术通知</div><div class="stat-value">57</div><div class="stat-bar"><i style="width:100%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_sn">SN 服务通知</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_fst">FST 现场提示</div><div class="stat-value">16</div><div class="stat-bar"><i style="width:28%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_faq">FAQ 常见问题</div><div class="stat-value">22</div><div class="stat-bar"><i style="width:39%"></i></div></div>
+            <div class="stat-card"><div class="stat-label" data-i18n="stat_case">故障案例</div><div class="stat-value">34</div><div class="stat-bar"><i style="width:60%"></i></div></div>
           </div>
           <div class="line-grid" id="home-line-grid" style="margin-top:16px;">
-            <div class="line-item active" data-line="Biochemistry"><div class="line-name">生化</div><div class="line-count">19条·8机型</div></div>
-            <div class="line-item" data-line="CLIA"><div class="line-name">化学发光</div><div class="line-count">20条·8机型</div></div>
-            <div class="line-item" data-line="Hematology"><div class="line-name">血液</div><div class="line-count">47条·11机型</div></div>
-            <div class="line-item" data-line="Coagulation"><div class="line-name">凝血</div><div class="line-count">4条·3机型</div></div>
-            <div class="line-item" data-line="Urinalysis"><div class="line-name">尿液</div><div class="line-count">12条·3机型</div></div>
-            <div class="line-item" data-line="Microbiology"><div class="line-name">微生物</div><div class="line-count">8条·3机型</div></div>
-            <div class="line-item" data-line="TLA"><div class="line-name">流水线</div><div class="line-count">0条·1机型</div></div>
+            <div class="line-item active" data-line="Biochemistry"><div class="line-name" data-i18n="line_bio">生化</div><div class="line-count">19条·8机型</div></div>
+            <div class="line-item" data-line="CLIA"><div class="line-name" data-i18n="line_clia">化学发光</div><div class="line-count">20条·8机型</div></div>
+            <div class="line-item" data-line="Hematology"><div class="line-name" data-i18n="line_hema">血液</div><div class="line-count">47条·11机型</div></div>
+            <div class="line-item" data-line="Coagulation"><div class="line-name" data-i18n="line_coag">凝血</div><div class="line-count">4条·3机型</div></div>
+            <div class="line-item" data-line="Urinalysis"><div class="line-name" data-i18n="line_urine">尿液</div><div class="line-count">12条·3机型</div></div>
+            <div class="line-item" data-line="Microbiology"><div class="line-name" data-i18n="line_micro">微生物</div><div class="line-count">8条·3机型</div></div>
+            <div class="line-item" data-line="TLA"><div class="line-name" data-i18n="line_tla">流水线</div><div class="line-count">0条·1机型</div></div>
           </div>
           <div class="model-row" id="home-model-row"></div>
           <div class="feed" id="home-feed" style="margin-top:12px;"></div>
@@ -322,17 +328,17 @@
 
       <!-- ============ 技术更新 ============ -->
       <section class="page" id="page-update">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 技术更新</div>
-        <div class="page-title">技术更新</div>
-        <div class="page-sub">TN 技术通知 · SN 服务通知 · AN 警示通告 · FST 现场服务提示</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar1_short">故障解决</span> / <span data-i18n="nav_update">技术更新 TN/SN/AN/FST</span></div>
+        <div class="page-title" data-i18n="update_title">技术更新</div>
+        <div class="page-sub" data-i18n="update_sub">TN 技术通知 · SN 服务通知 · AN 警示通告 · FST 现场服务提示</div>
         <div class="filter-bar" id="update-line-filter"></div>
         <div class="filter-bar" id="update-model-filter"></div>
         <div class="filter-bar">
-          <span class="filter-chip sel" data-type="ALL">全部类型</span>
-          <span class="filter-chip" data-type="TN">TN 技术通知</span>
-          <span class="filter-chip" data-type="SN">SN 服务通知</span>
-          <span class="filter-chip" data-type="AN">AN 警示通告</span>
-          <span class="filter-chip" data-type="FST">FST 现场提示</span>
+          <span class="filter-chip sel" data-type="ALL" data-i18n="filter_all_types">全部类型</span>
+          <span class="filter-chip" data-type="TN" data-i18n="type_tn">TN 技术通知</span>
+          <span class="filter-chip" data-type="SN" data-i18n="type_sn">SN 服务通知</span>
+          <span class="filter-chip" data-type="AN" data-i18n="type_an">AN 警示通告</span>
+          <span class="filter-chip" data-type="FST" data-i18n="type_fst">FST 现场提示</span>
           <span class="filter-count" id="update-result-count"></span>
         </div>
         <div class="feed" id="update-list"></div>
@@ -341,70 +347,70 @@
 
       <!-- ============ 故障案例库 ============ -->
       <section class="page" id="page-cases">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 故障案例库</div>
-        <div class="page-title">故障案例库</div>
-        <div class="page-sub">一线实际处理过的故障案例与常见问答，共 56 条 · 已按新schema打上产线+机型+问题分类+故障代码字段（失效模式/维修技能/修复时长为占位，待补录）</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar1_short">故障解决</span> / <span data-i18n="nav_cases">故障案例库</span></div>
+        <div class="page-title" data-i18n="cases_title">故障案例库</div>
+        <div class="page-sub" data-i18n="cases_sub">一线实际处理过的故障案例与常见问答，共 56 条 · 已按新schema打上产线+机型+问题分类+故障代码字段（失效模式/维修技能/修复时长为占位，待补录）</div>
         <div class="filter-bar" id="cases-line-filter"></div>
         <div class="filter-bar" id="cases-model-filter"></div>
         <div class="filter-bar">
-          <span class="filter-chip sel" data-type="ALL">全部类型</span>
-          <span class="filter-chip" data-type="CASE">故障案例</span>
-          <span class="filter-chip" data-type="FAQ">FAQ</span>
+          <span class="filter-chip sel" data-type="ALL" data-i18n="filter_all_types">全部类型</span>
+          <span class="filter-chip" data-type="CASE" data-i18n="type_case">故障案例</span>
+          <span class="filter-chip" data-type="FAQ" data-i18n="type_faq">FAQ</span>
           <span class="filter-count" id="cases-result-count"></span>
-          <button class="add-case-btn" id="add-case-btn">+ 新增故障案例</button>
+          <button class="add-case-btn" id="add-case-btn" data-i18n="btn_add_case">+ 新增故障案例</button>
         </div>
 
         <div class="card" id="add-case-form" style="display:none;padding:18px;margin-bottom:16px;">
-          <div class="section-title" style="margin-bottom:12px;">新增故障案例</div>
+          <div class="section-title" style="margin-bottom:12px;" data-i18n="form_add_case_title">新增故障案例</div>
           <div class="form-grid">
             <div class="form-field">
-              <label>产品线</label>
+              <label data-i18n="lbl_product_line">产品线</label>
               <select id="new-line"></select>
             </div>
             <div class="form-field">
-              <label>机型</label>
+              <label data-i18n="lbl_model">机型</label>
               <select id="new-model"></select>
             </div>
             <div class="form-field full">
-              <label>故障现象</label>
-              <textarea id="new-symptom" placeholder="例如：BS-2800M搅拌杆弯曲，导致反应杯损坏"></textarea>
+              <label data-i18n="lbl_symptom">故障现象</label>
+              <textarea id="new-symptom" data-i18n-placeholder="ph_symptom" placeholder="例如：BS-2800M搅拌杆弯曲，导致反应杯损坏"></textarea>
             </div>
             <div class="form-field full">
-              <label>排查步骤</label>
+              <label data-i18n="lbl_steps">排查步骤</label>
               <textarea id="new-steps"></textarea>
             </div>
             <div class="form-field full">
-              <label>根因</label>
+              <label data-i18n="lbl_root_cause">根因</label>
               <textarea id="new-root-cause"></textarea>
             </div>
             <div class="form-field">
-              <label>问题分类</label>
+              <label data-i18n="lbl_issue_class">问题分类</label>
               <select id="new-issue-class"></select>
             </div>
             <div class="form-field">
-              <label>故障代码（逗号分隔，没有就留空）</label>
-              <input type="text" id="new-fault-codes" placeholder="如 A51160, SV08">
+              <label data-i18n="lbl_fault_codes_new">故障代码（逗号分隔，没有就留空）</label>
+              <input type="text" id="new-fault-codes" data-i18n-placeholder="ph_fault_codes" placeholder="如 A51160, SV08">
             </div>
             <div class="form-field">
-              <label>失效模式</label>
+              <label data-i18n="lbl_failure_mode">失效模式</label>
               <input type="text" id="new-failure-mode">
             </div>
             <div class="form-field">
-              <label>维修技能要求</label>
+              <label data-i18n="lbl_repair_skill">维修技能要求</label>
               <input type="text" id="new-repair-skill">
             </div>
             <div class="form-field">
-              <label>平均修复时长（小时）</label>
+              <label data-i18n="lbl_mttr">平均修复时长（小时）</label>
               <input type="number" step="0.5" id="new-mttr">
             </div>
             <div class="form-field">
-              <label>提交人</label>
-              <input type="text" id="new-submitted-by" placeholder="姓名/工号">
+              <label data-i18n="lbl_submitted_by">提交人</label>
+              <input type="text" id="new-submitted-by" data-i18n-placeholder="ph_submitted_by" placeholder="姓名/工号">
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn-primary" id="new-case-submit">提交</button>
-            <button class="btn-secondary" id="new-case-cancel">取消</button>
+            <button class="btn-primary" id="new-case-submit" data-i18n="btn_submit">提交</button>
+            <button class="btn-secondary" id="new-case-cancel" data-i18n="btn_cancel">取消</button>
             <span class="submit-msg" id="new-case-msg"></span>
           </div>
         </div>
@@ -413,41 +419,41 @@
         <div class="card" id="cases-detail" style="display:none;margin-top:16px;">
           <div class="detail-panel" id="cases-detail-body"></div>
           <div style="padding:0 18px 18px;">
-            <button class="edit-toggle" id="cases-edit-toggle" style="display:none;">补充 / 修改这条记录</button>
+            <button class="edit-toggle" id="cases-edit-toggle" style="display:none;" data-i18n="btn_edit_toggle">补充 / 修改这条记录</button>
             <div class="edit-form" id="cases-edit-form">
               <div class="form-grid">
                 <div class="form-field">
-                  <label>问题分类</label>
+                  <label data-i18n="lbl_issue_class">问题分类</label>
                   <select id="edit-issue-class"></select>
                 </div>
                 <div class="form-field">
-                  <label>故障代码（逗号分隔）</label>
+                  <label data-i18n="lbl_fault_codes_edit">故障代码（逗号分隔）</label>
                   <input type="text" id="edit-fault-codes">
                 </div>
                 <div class="form-field">
-                  <label>失效模式</label>
+                  <label data-i18n="lbl_failure_mode">失效模式</label>
                   <input type="text" id="edit-failure-mode">
                 </div>
                 <div class="form-field">
-                  <label>维修技能要求</label>
+                  <label data-i18n="lbl_repair_skill">维修技能要求</label>
                   <input type="text" id="edit-repair-skill">
                 </div>
                 <div class="form-field">
-                  <label>平均修复时长（小时）</label>
+                  <label data-i18n="lbl_mttr">平均修复时长（小时）</label>
                   <input type="number" step="0.5" id="edit-mttr">
                 </div>
                 <div class="form-field">
-                  <label>提交人</label>
-                  <input type="text" id="edit-submitted-by" placeholder="姓名/工号">
+                  <label data-i18n="lbl_submitted_by">提交人</label>
+                  <input type="text" id="edit-submitted-by" data-i18n-placeholder="ph_submitted_by" placeholder="姓名/工号">
                 </div>
                 <div class="form-field full">
-                  <label>备注</label>
-                  <textarea id="edit-note" placeholder="例如：现场实测修复时长约1.5小时"></textarea>
+                  <label data-i18n="lbl_note">备注</label>
+                  <textarea id="edit-note" data-i18n-placeholder="ph_note" placeholder="例如：现场实测修复时长约1.5小时"></textarea>
                 </div>
               </div>
               <div class="form-actions">
-                <button class="btn-primary" id="edit-case-submit">提交补充</button>
-                <button class="btn-secondary" id="edit-case-cancel">取消</button>
+                <button class="btn-primary" id="edit-case-submit" data-i18n="btn_submit_edit">提交补充</button>
+                <button class="btn-secondary" id="edit-case-cancel" data-i18n="btn_cancel">取消</button>
                 <span class="submit-msg" id="edit-case-msg"></span>
               </div>
             </div>
@@ -457,12 +463,12 @@
 
       <!-- ============ QE 结论方案 ============ -->
       <section class="page" id="page-qe">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / QE 结论方案</div>
-        <div class="page-title">QE 结论方案</div>
-        <div class="page-sub">VIP 问题脱敏后的处理方案</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar1_short">故障解决</span> / <span data-i18n="nav_qe">QE 结论方案</span></div>
+        <div class="page-title" data-i18n="nav_qe">QE 结论方案</div>
+        <div class="page-sub" data-i18n="qe_sub">VIP 问题脱敏后的处理方案</div>
         <div class="card placeholder-card">
-          <div class="placeholder-title">框架占位 · 待接入</div>
-          <div class="placeholder-body">
+          <div class="placeholder-title" data-i18n="ph_pending_notlinked">框架占位 · 待接入</div>
+          <div class="placeholder-body" data-i18n="qe_body">
             跟旧版"QE结论"最大的区别是拆成两段：先有<b>临时方案</b>（现场先止血，让设备能用），再有<b>最终方案</b>（根治，可能是下一次TN/SN里的变更）。
             原始VIP记录要先过脱敏流程（去客户名/订单号，按"症状-根因-临时方案-最终方案"四段式重写）才能入库，原始记录仍留在QE平台。
             <div class="field-tags">
@@ -477,12 +483,12 @@
 
       <!-- ============ 场景化故障指南 ============ -->
       <section class="page" id="page-guide">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 故障解决 / 场景化故障处理指南</div>
-        <div class="page-title">场景化故障处理指南</div>
-        <div class="page-sub">按症状引导式排查，跟故障案例库的"回顾型"内容不是一回事</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar1_short">故障解决</span> / <span data-i18n="mod_guide_name">场景化故障处理指南</span></div>
+        <div class="page-title" data-i18n="mod_guide_name">场景化故障处理指南</div>
+        <div class="page-sub" data-i18n="guide_sub">按症状引导式排查，跟故障案例库的"回顾型"内容不是一回事</div>
         <div class="card placeholder-card">
-          <div class="placeholder-title">框架占位 · 需要单独设计交互</div>
-          <div class="placeholder-body">
+          <div class="placeholder-title" data-i18n="ph_pending_ux">框架占位 · 需要单独设计交互</div>
+          <div class="placeholder-body" data-i18n="guide_body">
             这个模块跟故障案例库的区别：案例库是"这个问题以前怎么解决的"，这里是"遇到这类症状该按什么顺序排查"——本质是一棵决策树，不是一篇文章。
             界面上大概率是"选症状 → 系统列出几个可能原因，按检查优先级排好 → 逐条给出检查方法 → 定位后跳到对应处理方案"，跟前面几个"筛选+列表"页面是完全不同的交互形态。
             <div class="field-tags">
@@ -496,34 +502,34 @@
 
       <!-- ============ 物料清单/维护包/工装 ============ -->
       <section class="page" id="page-parts-kits">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 物料支持 / 物料清单</div>
-        <div class="page-title">物料清单 / 维护包 / 工装</div>
-        <div class="page-sub">服务营销物料清单 · 维护包 · 工装 · 推荐物料清单 · 整合物料包</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar2_short">物料支持</span> / <span data-i18n="nav_parts_kits">物料清单 / 维护包 / 工装</span></div>
+        <div class="page-title" data-i18n="nav_parts_kits">物料清单 / 维护包 / 工装</div>
+        <div class="page-sub" data-i18n="parts_kits_sub">服务营销物料清单 · 维护包 · 工装 · 推荐物料清单 · 整合物料包</div>
         <div class="card placeholder-card">
-          <div class="placeholder-title">框架占位 · 待建设</div>
-          <div class="placeholder-body">这几类本质都是"按机型/场景打包好的物料清单"，界面上大概率跟技术更新类似——按产线/机型筛选，列表展示每个清单包含哪些物料条目。</div>
+          <div class="placeholder-title" data-i18n="ph_pending_build">框架占位 · 待建设</div>
+          <div class="placeholder-body" data-i18n="parts_kits_body">这几类本质都是"按机型/场景打包好的物料清单"，界面上大概率跟技术更新类似——按产线/机型筛选，列表展示每个清单包含哪些物料条目。</div>
         </div>
       </section>
 
       <!-- ============ 物料编码+图片查询 ============ -->
       <section class="page" id="page-parts-lookup">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 物料支持 / 编码图片查询</div>
-        <div class="page-title">物料编码 + 图片查询</div>
-        <div class="page-sub">按编码或图片查找物料对应关系</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar2_short">物料支持</span> / <span data-i18n="nav_parts_lookup">物料编码 + 图片查询</span></div>
+        <div class="page-title" data-i18n="nav_parts_lookup">物料编码 + 图片查询</div>
+        <div class="page-sub" data-i18n="parts_lookup_sub">按编码或图片查找物料对应关系</div>
         <div class="card placeholder-card">
-          <div class="placeholder-title">框架占位 · 需要先定图片存储方案</div>
-          <div class="placeholder-body">这是第一个真正涉及"图片"存储的模块，量大的话直接堆进git仓库会拖慢构建，要先定下来是压缩存缩略图，还是用图床/CDN只在库里存链接。</div>
+          <div class="placeholder-title" data-i18n="ph_pending_storage">框架占位 · 需要先定图片存储方案</div>
+          <div class="placeholder-body" data-i18n="parts_lookup_body">这是第一个真正涉及"图片"存储的模块，量大的话直接堆进git仓库会拖慢构建，要先定下来是压缩存缩略图，还是用图床/CDN只在库里存链接。</div>
         </div>
       </section>
 
       <!-- ============ 业务文档归档库 ============ -->
       <section class="page" id="page-ops-docs">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 业务指导 / 业务文档归档库</div>
-        <div class="page-title">业务文档归档库</div>
-        <div class="page-sub">问题上升流程文档 · 资质方案清单 · 资质方案获取规则 · TLA产品服务策略 · 工程师工作手册 · 培训材料</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar3_short">业务指导</span> / <span data-i18n="nav_ops_docs">业务文档归档库</span></div>
+        <div class="page-title" data-i18n="nav_ops_docs">业务文档归档库</div>
+        <div class="page-sub" data-i18n="ops_docs_sub">问题上升流程文档 · 资质方案清单 · 资质方案获取规则 · TLA产品服务策略 · 工程师工作手册 · 培训材料</div>
         <div class="card placeholder-card">
-          <div class="placeholder-title">框架占位 · 待建设</div>
-          <div class="placeholder-body">
+          <div class="placeholder-title" data-i18n="ph_pending_build">框架占位 · 待建设</div>
+          <div class="placeholder-body" data-i18n="ops_docs_body">
             这块是稳定的参考文档，更新频率低，界面上适合"按类别浏览"而不是强搜索——培训材料（安装/维护指南、产品培训PPT）暂时也归到这里，跟工作手册、资质方案放一起，等内容多了再单独拆出来也不迟。
           </div>
         </div>
@@ -531,12 +537,12 @@
 
       <!-- ============ 流程/策略可视化 ============ -->
       <section class="page" id="page-ops-visual">
-        <div class="breadcrumb"><span class="link" data-nav="home">首页</span> / 业务指导 / 流程策略可视化</div>
-        <div class="page-title">流程 / 策略可视化</div>
-        <div class="page-sub">QE上升流程图 · 产线服务策略画布 · 新员工成长路径图</div>
+        <div class="breadcrumb"><span class="link" data-nav="home" data-i18n="nav_home_short">首页</span> / <span data-i18n="pillar3_short">业务指导</span> / <span data-i18n="nav_ops_visual">流程 / 策略可视化</span></div>
+        <div class="page-title" data-i18n="nav_ops_visual">流程 / 策略可视化</div>
+        <div class="page-sub" data-i18n="ops_visual_sub">QE上升流程图 · 产线服务策略画布 · 新员工成长路径图</div>
         <div class="card placeholder-card">
-          <div class="placeholder-title">框架占位 · 手工设计页面，非批量生成</div>
-          <div class="placeholder-body">
+          <div class="placeholder-title" data-i18n="ph_pending_manual">框架占位 · 手工设计页面，非批量生成</div>
+          <div class="placeholder-body" data-i18n="ops_visual_body">
             这几个是精心设计的独立页面，不是从统一schema批量跑出来的：QE上升流程图是流程图；产线服务策略画布要展示定位/核心价值/DFS设计优化/赋能策略/服务产品(安装维护维修)/服务成本(保修策略/分包策略/成本&故障率&时长频率目标)/资质方案(面授or自学)；成长路径图是新员工能力进阶展示。每个都值得单独拉出来细化。
           </div>
         </div>
@@ -549,7 +555,7 @@
 <script src="data.js"></script>
 <script>
 const PRODUCT_LINES = ['Biochemistry','CLIA','Hematology','Coagulation','Urinalysis','Microbiology','TLA'];
-const LINE_LABEL = {Biochemistry:'生化',CLIA:'化学发光',Hematology:'血液',Coagulation:'凝血',Urinalysis:'尿液',Microbiology:'微生物',TLA:'流水线'};
+const LINE_LABEL_KEY = {Biochemistry:'line_bio',CLIA:'line_clia',Hematology:'line_hema',Coagulation:'line_coag',Urinalysis:'line_urine',Microbiology:'line_micro',TLA:'line_tla'};
 const MODELS_BY_LINE = {
   'Biochemistry':['BS-600M/BS-620M','BS-430/BS-450','BS-230/240/240Pro','BS-1000M','Other/Common','BS-2800M','BS-5000M','BS-2000'],
   'CLIA':['CL-1000I','CL-2600I','CL-900I','CL-2000I','CL-8000I','CL-6000I','CL-9000I','Other/Common'],
@@ -565,6 +571,183 @@ const BADGE_STYLE = {
   CASE:['var(--okl)','var(--ok)']
 };
 const ISSUE_CATEGORIES = ['开箱不合格','备件来料不良','批次性故障','液路问题','机械问题','软件问题','硬件问题','附件问题','试剂问题','客户使用问题','临床问题','工程师能力问题','数据分析','严重事件'];
+// 问题分类的英文对照，仅用于界面显示；提交/存储时仍用左边的中文标准写法，
+// 跟受控词表(issue_class)保持一致，不会因为界面语言切换导致数据里出现两种语言的值
+const ISSUE_CATEGORIES_EN = {
+  '开箱不合格':'Out-of-box Failure (Equipment)', '备件来料不良':'Incoming Part Defect',
+  '批次性故障':'Batch Failure', '液路问题':'Fluidic Issue', '机械问题':'Mechanical Issue',
+  '软件问题':'Software Issue', '硬件问题':'Hardware Issue', '附件问题':'Accessory Issue',
+  '试剂问题':'Reagent Issue', '客户使用问题':'Customer Operation Issue', '临床问题':'Clinical Issue',
+  '工程师能力问题':'Engineer Competency Issue', '数据分析':'Data Analysis', '严重事件':'Serious Event'
+};
+
+/* ======================================================================
+   多语言支持：LANG 状态 + I18N 字典 + t()取词 + applyStaticI18n()刷新静态文本
+   ====================================================================== */
+let LANG = localStorage.getItem('kb_lang') || 'zh';
+
+const I18N = {
+  zh: {
+    brand_title:'IVD 服务知识生态', brand_sub:'Service Knowledge Ecosystem',
+    nav_home:'总览首页', nav_home_short:'首页',
+    rail_group_1:'1 · 故障解决', rail_group_2:'2 · 物料支持', rail_group_3:'3 · 业务指导',
+    pillar1_short:'故障解决', pillar2_short:'物料支持', pillar3_short:'业务指导',
+    nav_update:'技术更新 TN/SN/AN/FST', nav_cases:'故障案例库', nav_qe:'QE 结论方案',
+    nav_guide:'场景化故障指南', nav_parts_kits:'物料清单 / 维护包 / 工装',
+    nav_parts_lookup:'物料编码 + 图片查询', nav_ops_docs:'业务文档归档库', nav_ops_visual:'流程 / 策略可视化',
+    rail_foot:'支柱一已接入真实存量数据(151条)<br>支柱二/三为框架占位，待逐步建设',
+    topbar_left:'国际区 · 用服工程师',
+    home_title:'IVD 服务知识生态', home_sub:'故障解决 · 物料支持 · 业务指导，三大支柱统一入口',
+    pillar1_name:'故障解决 Fault Resolution', pillar1_sub:'现场遇到故障时的第一入口',
+    pillar2_name:'物料支持 Parts & Materials', pillar2_sub:'现场配件/工装/物料查找',
+    pillar3_name:'业务指导 Service Operation Center', pillar3_sub:'流程规范与服务策略',
+    status_update:'已接入 95 条', status_cases:'已接入 56 条', status_pending:'框架占位',
+    mod_update_desc:'仪器更改历史，按机型看时间线',
+    mod_cases_desc:'产线+机型+症状+故障代码+根因+失效模式+维修技能+修复时长',
+    mod_qe_desc:'VIP问题：症状/根因/临时方案/最终方案',
+    mod_guide_name:'场景化故障处理指南', mod_guide_desc:'可能原因+检查顺序+解决方案，引导式排查',
+    mod_parts_kits_desc:'服务营销物料、维护包、推荐物料、整合物料包',
+    mod_parts_lookup_desc:'按编码或图片查找物料对应关系',
+    mod_ops_docs_desc:'上升流程/资质方案/工程师工作手册/培训材料',
+    mod_ops_visual_desc:'QE上升流程图、产品服务策略画布、成长路径图',
+    sec_quick_search:'支柱一快速检索', sec_quick_search_sub:'存量导入 151 条',
+    search_placeholder:'例如 反应杯损坏 / 软件升级 / 呼吸灯黄色', btn_search:'检索',
+    real_examples:'真实样例：',
+    stat_tn:'TN 技术通知', stat_sn:'SN 服务通知', stat_fst:'FST 现场提示', stat_faq:'FAQ 常见问题', stat_case:'故障案例',
+    line_bio:'生化', line_clia:'化学发光', line_hema:'血液', line_coag:'凝血', line_urine:'尿液', line_micro:'微生物', line_tla:'流水线',
+    update_title:'技术更新', update_sub:'TN 技术通知 · SN 服务通知 · AN 警示通告 · FST 现场服务提示',
+    filter_all_types:'全部类型', type_tn:'TN 技术通知', type_sn:'SN 服务通知', type_an:'AN 警示通告', type_fst:'FST 现场提示',
+    cases_title:'故障案例库',
+    cases_sub:'一线实际处理过的故障案例与常见问答 · 已按新schema打上产线+机型+问题分类+故障代码字段（失效模式/维修技能/修复时长为占位，待补录）',
+    type_case:'故障案例', type_faq:'FAQ', btn_add_case:'+ 新增故障案例',
+    form_add_case_title:'新增故障案例',
+    lbl_product_line:'产品线', lbl_model:'机型', lbl_symptom:'故障现象', lbl_steps:'排查步骤', lbl_root_cause:'根因',
+    lbl_issue_class:'问题分类', lbl_fault_codes_new:'故障代码（逗号分隔，没有就留空）', lbl_fault_codes_edit:'故障代码（逗号分隔）',
+    lbl_failure_mode:'失效模式', lbl_repair_skill:'维修技能要求', lbl_mttr:'平均修复时长（小时）',
+    lbl_submitted_by:'提交人', lbl_note:'备注',
+    ph_symptom:'例如：BS-2800M搅拌杆弯曲，导致反应杯损坏', ph_fault_codes:'如 A51160, SV08',
+    ph_submitted_by:'姓名/工号', ph_note:'例如：现场实测修复时长约1.5小时',
+    btn_submit:'提交', btn_cancel:'取消', btn_edit_toggle:'补充 / 修改这条记录', btn_submit_edit:'提交补充',
+    qe_sub:'VIP 问题脱敏后的处理方案', ph_pending_notlinked:'框架占位 · 待接入',
+    qe_body:'跟旧版"QE结论"最大的区别是拆成两段：先有<b>临时方案</b>（现场先止血，让设备能用），再有<b>最终方案</b>（根治，可能是下一次TN/SN里的变更）。原始VIP记录要先过脱敏流程（去客户名/订单号，按"症状-根因-临时方案-最终方案"四段式重写）才能入库，原始记录仍留在QE平台。',
+    guide_sub:'按症状引导式排查，跟故障案例库的"回顾型"内容不是一回事', ph_pending_ux:'框架占位 · 需要单独设计交互',
+    guide_body:'这个模块跟故障案例库的区别：案例库是"这个问题以前怎么解决的"，这里是"遇到这类症状该按什么顺序排查"——本质是一棵决策树，不是一篇文章。界面上大概率是"选症状 → 系统列出几个可能原因，按检查优先级排好 → 逐条给出检查方法 → 定位后跳到对应处理方案"，跟前面几个"筛选+列表"页面是完全不同的交互形态。',
+    parts_kits_sub:'服务营销物料清单 · 维护包 · 工装 · 推荐物料清单 · 整合物料包', ph_pending_build:'框架占位 · 待建设',
+    parts_kits_body:'这几类本质都是"按机型/场景打包好的物料清单"，界面上大概率跟技术更新类似——按产线/机型筛选，列表展示每个清单包含哪些物料条目。',
+    parts_lookup_sub:'按编码或图片查找物料对应关系', ph_pending_storage:'框架占位 · 需要先定图片存储方案',
+    parts_lookup_body:'这是第一个真正涉及"图片"存储的模块，量大的话直接堆进git仓库会拖慢构建，要先定下来是压缩存缩略图，还是用图床/CDN只在库里存链接。',
+    ops_docs_sub:'问题上升流程文档 · 资质方案清单 · 资质方案获取规则 · TLA产品服务策略 · 工程师工作手册 · 培训材料',
+    ops_docs_body:'这块是稳定的参考文档，更新频率低，界面上适合"按类别浏览"而不是强搜索——培训材料（安装/维护指南、产品培训PPT）暂时也归到这里，跟工作手册、资质方案放一起，等内容多了再单独拆出来也不迟。',
+    ops_visual_sub:'QE上升流程图 · 产线服务策略画布 · 新员工成长路径图', ph_pending_manual:'框架占位 · 手工设计页面，非批量生成',
+    ops_visual_body:'这几个是精心设计的独立页面，不是从统一schema批量跑出来的：QE上升流程图是流程图；产线服务策略画布要展示定位/核心价值/DFS设计优化/赋能策略/服务产品(安装维护维修)/服务成本(保修策略/分包策略/成本&故障率&时长频率目标)/资质方案(面授or自学)；成长路径图是新员工能力进阶展示。每个都值得单独拉出来细化。',
+    all_lines:'全部产线', all_models:'全部机型', empty_model:'该机型暂无记录', empty_list:'没有匹配的记录',
+    legacy_import:'存量导入', results_suffix:' 条结果', items_suffix:' 条',
+    dl_model:'机型', dl_ref:'编号', dl_issue_class:'问题分类', dl_date:'日期',
+    dl_fault_codes:'故障代码', dl_failure_mode:'失效模式', dl_repair_skill:'维修技能', dl_mttr:'平均修复时长', dl_pending:'待补充',
+    msg_supabase_off:'Supabase未配置，请先在代码里填入SUPABASE_URL/SUPABASE_ANON_KEY',
+    msg_edit_fail:'提交失败：', msg_edit_ok:'已提交，等待同步进知识库',
+    msg_new_fail:'提交失败：', msg_new_ok:'已提交，等待同步进知识库（同步后才会出现在列表里）',
+    msg_need_field:'至少填一个要补充的字段', msg_need_required:'机型和故障现象是必填的',
+    opt_all_lines_dropdown:'选择分类',
+  },
+  en: {
+    brand_title:'IVD Service Knowledge Ecosystem', brand_sub:'Service Knowledge Ecosystem',
+    nav_home:'Home', nav_home_short:'Home',
+    rail_group_1:'1 · Fault Resolution', rail_group_2:'2 · Parts & Materials', rail_group_3:'3 · Service Operation Center',
+    pillar1_short:'Fault Resolution', pillar2_short:'Parts & Materials', pillar3_short:'Service Ops',
+    nav_update:'Technical Updates TN/SN/AN/FST', nav_cases:'Case Library', nav_qe:'QE Conclusions',
+    nav_guide:'Guided Troubleshooting', nav_parts_kits:'Parts Kits / Maintenance Kits / Tooling',
+    nav_parts_lookup:'Part Number + Image Lookup', nav_ops_docs:'Business Document Archive', nav_ops_visual:'Process / Strategy Visuals',
+    rail_foot:'Pillar 1 connected to real legacy data (151 records)<br>Pillars 2/3 are framework placeholders, being built out',
+    topbar_left:'International · Service Engineers',
+    home_title:'IVD Service Knowledge Ecosystem', home_sub:'Fault Resolution · Parts & Materials · Service Operations — unified entry point for all three pillars',
+    pillar1_name:'Fault Resolution', pillar1_sub:'First stop when facing a fault in the field',
+    pillar2_name:'Parts & Materials', pillar2_sub:'Field parts / tooling / material lookup',
+    pillar3_name:'Service Operation Center', pillar3_sub:'Process standards and service strategy',
+    status_update:'95 records connected', status_cases:'56 records connected', status_pending:'Framework placeholder',
+    mod_update_desc:'Instrument change history, timeline by model',
+    mod_cases_desc:'Line + model + symptom + fault code + root cause + failure mode + repair skill + MTTR',
+    mod_qe_desc:'VIP issues: symptom / root cause / interim fix / permanent fix',
+    mod_guide_name:'Guided Troubleshooting', mod_guide_desc:'Possible causes + check sequence + resolution, guided walkthrough',
+    mod_parts_kits_desc:'Service marketing materials, maintenance kits, recommended parts, bundled kits',
+    mod_parts_lookup_desc:'Find parts by part number or image',
+    mod_ops_docs_desc:'Escalation process / qualification schemes / engineer handbook / training materials',
+    mod_ops_visual_desc:'QE escalation flowchart, product service strategy canvas, career growth path',
+    sec_quick_search:'Pillar 1 Quick Search', sec_quick_search_sub:'151 legacy records imported',
+    search_placeholder:'e.g. reaction cup damage / software upgrade / yellow indicator light', btn_search:'Search',
+    real_examples:'Real examples: ',
+    stat_tn:'TN Technical News', stat_sn:'SN Service News', stat_fst:'FST Field Tips', stat_faq:'FAQ', stat_case:'Fault Cases',
+    line_bio:'Biochemistry', line_clia:'CLIA', line_hema:'Hematology', line_coag:'Coagulation', line_urine:'Urinalysis', line_micro:'Microbiology', line_tla:'TLA',
+    update_title:'Technical Updates', update_sub:'TN Technical News · SN Service News · AN Advisory Notice · FST Field Service Tips',
+    filter_all_types:'All Types', type_tn:'TN Technical News', type_sn:'SN Service News', type_an:'AN Advisory Notice', type_fst:'FST Field Tips',
+    cases_title:'Case Library',
+    cases_sub:'Real field-resolved cases and common Q&A · tagged with line + model + issue category + fault code (failure mode/repair skill/MTTR pending)',
+    type_case:'Fault Case', type_faq:'FAQ', btn_add_case:'+ Add Fault Case',
+    form_add_case_title:'Add New Fault Case',
+    lbl_product_line:'Product Line', lbl_model:'Model', lbl_symptom:'Symptom', lbl_steps:'Troubleshooting Steps', lbl_root_cause:'Root Cause',
+    lbl_issue_class:'Issue Category', lbl_fault_codes_new:'Fault Codes (comma-separated, leave blank if none)', lbl_fault_codes_edit:'Fault Codes (comma-separated)',
+    lbl_failure_mode:'Failure Mode', lbl_repair_skill:'Required Repair Skill', lbl_mttr:'Average Repair Time (hours)',
+    lbl_submitted_by:'Submitted By', lbl_note:'Note',
+    ph_symptom:'e.g. BS-2800M stirring rod bent, damaging reaction cups', ph_fault_codes:'e.g. A51160, SV08',
+    ph_submitted_by:'Name / Employee ID', ph_note:'e.g. Measured repair time on-site ~1.5 hours',
+    btn_submit:'Submit', btn_cancel:'Cancel', btn_edit_toggle:'Add / Edit details', btn_submit_edit:'Submit Update',
+    qe_sub:'De-identified resolution for VIP issues', ph_pending_notlinked:'Framework placeholder · Not yet connected',
+    qe_body:'The main difference from the old "QE Conclusions" is splitting into two stages: an <b>Interim Fix</b> (stop the bleeding on-site, get the instrument running) and a <b>Permanent Fix</b> (root-cause resolution, possibly a future TN/SN change). Raw VIP records must first go through a de-identification process (remove customer name/order number, rewrite as symptom–root cause–interim fix–permanent fix) before entering the KB. Original records stay on the QE platform.',
+    guide_sub:'Symptom-guided troubleshooting — different from the "retrospective" content in the Case Library', ph_pending_ux:'Framework placeholder · Needs custom interaction design',
+    guide_body:'The difference from the Case Library: the Case Library is "how this was solved before"; this module is "what order to check things in when you see this symptom" — essentially a decision tree, not an article. The UI will likely be "pick a symptom → system lists possible causes ranked by check priority → step-by-step check methods → jump to the matching resolution once located" — a completely different interaction pattern from the filter+list pages elsewhere.',
+    parts_kits_sub:'Service marketing material lists · maintenance kits · tooling · recommended parts · bundled kits', ph_pending_build:'Framework placeholder · To be built',
+    parts_kits_body:'These categories are all essentially "material lists bundled by model/scenario" — the UI will likely resemble Technical Updates: filter by line/model, list showing what materials each kit contains.',
+    parts_lookup_sub:'Find parts by part number or image', ph_pending_storage:'Framework placeholder · Image storage strategy needs deciding first',
+    parts_lookup_body:'This is the first module that genuinely involves image storage. At scale, dumping images straight into the git repo will slow builds — need to decide upfront whether to store compressed thumbnails, or use an image host/CDN and only keep links in the repo.',
+    ops_docs_sub:'Escalation process docs · qualification scheme list · qualification access rules · TLA product service strategy · engineer handbook · training materials',
+    ops_docs_body:'These are stable reference documents updated infrequently — the UI is better suited to "browse by category" than heavy search. Training materials (install/maintenance guides, product training decks) are temporarily grouped here alongside handbooks and qualification schemes; can be split out separately once content grows.',
+    ops_visual_sub:'QE escalation flowchart · product line service strategy canvas · new-hire growth path', ph_pending_manual:'Framework placeholder · Hand-designed pages, not batch-generated',
+    ops_visual_body:'These are carefully designed standalone pages, not generated from a uniform schema: the QE escalation flowchart is a process diagram; the product line service strategy canvas covers positioning / core value / DFS design optimization / enablement strategy / service products (install, maintain, repair) / service cost (warranty strategy, outsourcing strategy, cost & failure rate & time/frequency targets) / qualification schemes (instructor-led or self-study); the growth path shows new-hire competency progression. Each one deserves to be fleshed out on its own.',
+    all_lines:'All Lines', all_models:'All Models', empty_model:'No records for this model', empty_list:'No matching records',
+    legacy_import:'Legacy import', results_suffix:' results', items_suffix:' items',
+    dl_model:'Model', dl_ref:'Ref No.', dl_issue_class:'Issue Category', dl_date:'Date',
+    dl_fault_codes:'Fault Codes', dl_failure_mode:'Failure Mode', dl_repair_skill:'Repair Skill', dl_mttr:'Avg. Repair Time', dl_pending:'Pending',
+    msg_supabase_off:'Supabase not configured — set SUPABASE_URL/SUPABASE_ANON_KEY in the code first',
+    msg_edit_fail:'Submit failed: ', msg_edit_ok:'Submitted, awaiting sync into the knowledge base',
+    msg_new_fail:'Submit failed: ', msg_new_ok:'Submitted, awaiting sync into the knowledge base (will appear in the list after sync)',
+    msg_need_field:'Fill in at least one field to submit', msg_need_required:'Model and Symptom are required',
+    opt_all_lines_dropdown:'Select category',
+  }
+};
+
+function t(key){
+  return (I18N[LANG] && I18N[LANG][key]) || I18N.zh[key] || key;
+}
+
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    if(I18N.zh[k] !== undefined) el.innerHTML = t(k);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const k = el.getAttribute('data-i18n-placeholder');
+    if(I18N.zh[k] !== undefined) el.placeholder = t(k);
+  });
+  document.getElementById('lang-zh').classList.toggle('active', LANG==='zh');
+  document.getElementById('lang-en').classList.toggle('active', LANG==='en');
+  document.documentElement.lang = (LANG==='zh' ? 'zh-CN' : 'en');
+}
+
+function setLang(lang){
+  LANG = lang;
+  localStorage.setItem('kb_lang', lang);
+  applyStaticI18n();
+  // 动态渲染部分（首页产线机型/技术更新页/案例库页）重新跑一遍render，确保筛选器默认文案、
+  // 详情面板字段标签、空状态提示这些"JS拼出来的文字"也跟着语言切换刷新
+  renderHomeModels(currentHomeLine || 'Biochemistry');
+  if(typeof updateController !== 'undefined') updateController.render();
+  if(typeof casesController !== 'undefined') casesController.render();
+  if(typeof initNewLineSelect === 'function') initNewLineSelect();
+  if(typeof initNewIssueClassSelect === 'function') initNewIssueClassSelect();
+  if(typeof initEditIssueClassSelect === 'function') initEditIssueClassSelect();
+  if(typeof updateNewModelOptions === 'function') updateNewModelOptions();
+}
+
 
 /* ======== Supabase：待合并编辑队列 ========
    把下面两个换成你自己Supabase项目的值（Project Settings -> API）。
@@ -582,6 +765,13 @@ try{
 function fillSelect(sel, options, placeholder){
   sel.innerHTML = (placeholder ? `<option value="">${placeholder}</option>` : '') +
     options.map(o=>`<option value="${o}">${o}</option>`).join('');
+}
+
+// value跟label分离：value固定用中文标准写法（跟受控词表issue_class保持一致，不受界面语言影响），
+// label按当前界面语言显示，避免语言切换导致提交上去的数据出现两种语言混杂
+function fillSelectPairs(sel, valueLabelPairs, placeholder){
+  sel.innerHTML = (placeholder ? `<option value="">${placeholder}</option>` : '') +
+    valueLabelPairs.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
 }
 
 function navigate(page, opts){
@@ -604,8 +794,10 @@ const homeLineItems = document.querySelectorAll('#home-line-grid .line-item');
 const homeModelRow = document.getElementById('home-model-row');
 const homeModelSelect = document.getElementById('home-model-select');
 const homeFeed = document.getElementById('home-feed');
+let currentHomeLine = 'Biochemistry';
 
 function renderHomeModels(line){
+  currentHomeLine = line;
   const models = MODELS_BY_LINE[line] || [];
   homeModelRow.innerHTML = models.map(m=>`<div class="model-chip${m==='BS-2800M'?' sel':''}">${m}</div>`).join('');
   homeModelSelect.innerHTML = models.map(m=>`<option${m==='BS-2800M'?' selected':''}>${m}</option>`).join('');
@@ -625,14 +817,14 @@ function bindHomeModelChips(){
 function selectHomeModel(model){
   homeModelSelect.value = model;
   const items = KB_ENTRIES.filter(e => (e.models||[]).includes(model));
-  if(items.length===0){ homeFeed.innerHTML = '<div class="empty-state">该机型暂无记录</div>'; return; }
+  if(items.length===0){ homeFeed.innerHTML = `<div class="empty-state">${t('empty_model')}</div>`; return; }
   homeFeed.innerHTML = items.slice(0,6).map(e=>{
     const [bg,color] = BADGE_STYLE[e.subtype] || ['var(--s100)','var(--s600)'];
     return `<div class="feed-row">
       <span class="feed-badge" style="background:${bg};color:${color}">${e.subtype}</span>
       <span class="feed-model">${(e.models||[]).join(', ')}</span>
       <span class="feed-text">${e.title}</span>
-      <span class="feed-date">${e.date ? e.date.slice(0,10) : '存量导入'}</span>
+      <span class="feed-date">${e.date ? e.date.slice(0,10) : t('legacy_import')}</span>
     </div>`;
   }).join('');
 }
@@ -659,8 +851,8 @@ function makeModuleController(prefix, category, typeStyle){
 
   function renderLineFilter(){
     const el = document.getElementById(prefix+'-line-filter');
-    el.innerHTML = '<span class="filter-chip' + (!state.line?' sel':'') + '" data-line="">全部产线</span>' +
-      PRODUCT_LINES.map(l => `<span class="filter-chip${state.line===l?' sel':''}" data-line="${l}">${LINE_LABEL[l]}</span>`).join('');
+    el.innerHTML = '<span class="filter-chip' + (!state.line?' sel':'') + '" data-line="">' + t('all_lines') + '</span>' +
+      PRODUCT_LINES.map(l => `<span class="filter-chip${state.line===l?' sel':''}" data-line="${l}">${t(LINE_LABEL_KEY[l])}</span>`).join('');
     el.querySelectorAll('.filter-chip').forEach(c=>{
       c.addEventListener('click', ()=>{ state.line = c.dataset.line || null; state.model=null; render(); });
     });
@@ -669,7 +861,7 @@ function makeModuleController(prefix, category, typeStyle){
     const el = document.getElementById(prefix+'-model-filter');
     if(!state.line){ el.innerHTML=''; return; }
     const models = [...new Set(items.filter(e=>e.product_line===state.line).flatMap(e=>e.models||[]))];
-    el.innerHTML = '<span class="filter-chip' + (!state.model?' sel':'') + '" data-model="">全部机型</span>' +
+    el.innerHTML = '<span class="filter-chip' + (!state.model?' sel':'') + '" data-model="">' + t('all_models') + '</span>' +
       models.map(m => `<span class="filter-chip${state.model===m?' sel':''}" data-model="${m}">${m}</span>`).join('');
     el.querySelectorAll('.filter-chip').forEach(c=>{
       c.addEventListener('click', ()=>{ state.model = c.dataset.model || null; render(); });
@@ -693,16 +885,16 @@ function makeModuleController(prefix, category, typeStyle){
   }
   function showDetail(e){
     document.getElementById(prefix+'-detail').style.display='block';
-    let body = `<b>${e.title}</b><br><br>机型：${(e.models||[]).join(', ')}`;
-    if(e.ref_no) body += ` ｜ 编号：${e.ref_no}`;
-    if(e.issue_class) body += ` ｜ 问题分类：${e.issue_class}`;
-    if(e.date) body += ` ｜ 日期：${e.date.slice(0,10)}`;
+    let body = `<b>${e.title}</b><br><br>${t('dl_model')}: ${(e.models||[]).join(', ')}`;
+    if(e.ref_no) body += ` ｜ ${t('dl_ref')}: ${e.ref_no}`;
+    if(e.issue_class) body += ` ｜ ${t('dl_issue_class')}: ${e.issue_class}`;
+    if(e.date) body += ` ｜ ${t('dl_date')}: ${e.date.slice(0,10)}`;
     body += `<br><br>${e.summary}`;
     if(e.category === 'CASE' && e.subtype === 'CASE'){
-      body += `<br><br><b>故障代码</b>：${(e.fault_codes&&e.fault_codes.length) ? e.fault_codes.join(', ') : '待补充'}`;
-      body += `　<b>失效模式</b>：${e.failure_mode || '待补充'}`;
-      body += `　<b>维修技能</b>：${e.repair_skill || '待补充'}`;
-      body += `　<b>平均修复时长</b>：${e.mttr_hours ? e.mttr_hours+'h' : '待补充'}`;
+      body += `<br><br><b>${t('dl_fault_codes')}</b>: ${(e.fault_codes&&e.fault_codes.length) ? e.fault_codes.join(', ') : t('dl_pending')}`;
+      body += `　<b>${t('dl_failure_mode')}</b>: ${e.failure_mode || t('dl_pending')}`;
+      body += `　<b>${t('dl_repair_skill')}</b>: ${e.repair_skill || t('dl_pending')}`;
+      body += `　<b>${t('dl_mttr')}</b>: ${e.mttr_hours ? e.mttr_hours+'h' : t('dl_pending')}`;
     }
     document.getElementById(prefix+'-detail-body').innerHTML = body;
     document.getElementById(prefix+'-detail').scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -725,9 +917,9 @@ function makeModuleController(prefix, category, typeStyle){
     renderLineFilter();
     renderModelFilter();
     const list = filtered();
-    document.getElementById(prefix+'-result-count').textContent = list.length + ' 条结果';
+    document.getElementById(prefix+'-result-count').textContent = list.length + t('results_suffix');
     const el = document.getElementById(prefix+'-list');
-    if(list.length===0){ el.innerHTML = '<div class="empty-state">没有匹配的记录</div>'; return; }
+    if(list.length===0){ el.innerHTML = `<div class="empty-state">${t('empty_list')}</div>`; return; }
     el.innerHTML = list.map((e,i)=>{
       const [bg,color] = typeStyle[e.subtype] || ['var(--s100)','var(--s600)'];
       const rightCol = e.date ? `<span class="feed-date">${e.date.slice(0,10)}</span>` : `<span class="feed-tag">${e.issue_class || ''}</span>`;
@@ -766,13 +958,16 @@ document.getElementById('cases-edit-toggle').addEventListener('click', ()=>{
 document.getElementById('edit-case-cancel').addEventListener('click', ()=>{
   document.getElementById('cases-edit-form').classList.remove('open');
 });
-fillSelect(document.getElementById('edit-issue-class'), ISSUE_CATEGORIES, '不修改');
+function initEditIssueClassSelect(){
+  fillSelectPairs(document.getElementById('edit-issue-class'), ISSUE_CATEGORIES.map(c=>[c, LANG==='en' ? ISSUE_CATEGORIES_EN[c] : c]), LANG==='en' ? 'Leave unchanged' : '不修改');
+}
+initEditIssueClassSelect();
 document.getElementById('edit-case-submit').addEventListener('click', async ()=>{
   const msg = document.getElementById('edit-case-msg');
   if(!currentCaseEntry){ return; }
   if(!supabaseClient){
     msg.className = 'submit-msg err';
-    msg.textContent = 'Supabase未配置，请先在代码里填入SUPABASE_URL/SUPABASE_ANON_KEY';
+    msg.textContent = t('msg_supabase_off');
     return;
   }
   const patch = {};
@@ -788,7 +983,7 @@ document.getElementById('edit-case-submit').addEventListener('click', async ()=>
   if(mttr) patch.mttr_hours = parseFloat(mttr);
   if(Object.keys(patch).length === 0){
     msg.className = 'submit-msg err';
-    msg.textContent = '至少填一个要补充的字段';
+    msg.textContent = t('msg_need_field');
     return;
   }
   const btn = document.getElementById('edit-case-submit');
@@ -805,24 +1000,29 @@ document.getElementById('edit-case-submit').addEventListener('click', async ()=>
   btn.disabled = false;
   if(error){
     msg.className = 'submit-msg err';
-    msg.textContent = '提交失败：' + error.message;
+    msg.textContent = t('msg_edit_fail') + error.message;
   }else{
     msg.className = 'submit-msg ok';
-    msg.textContent = '已提交，等待同步进知识库';
+    msg.textContent = t('msg_edit_ok');
     setTimeout(()=>{ document.getElementById('cases-edit-form').classList.remove('open'); msg.textContent=''; }, 1500);
   }
 });
 
 /* ======== 新增故障案例 ======== */
-fillSelect(document.getElementById('new-line'), PRODUCT_LINES.map(l=>LINE_LABEL[l]+' / '+l));
+function initNewLineSelect(){
+  fillSelectPairs(document.getElementById('new-line'), PRODUCT_LINES.map(l=>[l, t(LINE_LABEL_KEY[l])]));
+}
+initNewLineSelect();
 document.getElementById('new-line').addEventListener('change', updateNewModelOptions);
 function updateNewModelOptions(){
-  const raw = document.getElementById('new-line').value;
-  const line = raw.split(' / ').pop();
+  const line = document.getElementById('new-line').value;
   fillSelect(document.getElementById('new-model'), MODELS_BY_LINE[line] || []);
 }
 updateNewModelOptions();
-fillSelect(document.getElementById('new-issue-class'), ISSUE_CATEGORIES, '选择分类');
+function initNewIssueClassSelect(){
+  fillSelectPairs(document.getElementById('new-issue-class'), ISSUE_CATEGORIES.map(c=>[c, LANG==='en' ? ISSUE_CATEGORIES_EN[c] : c]), t('opt_all_lines_dropdown'));
+}
+initNewIssueClassSelect();
 
 document.getElementById('add-case-btn').addEventListener('click', ()=>{
   document.getElementById('add-case-form').style.display = 'block';
@@ -835,16 +1035,15 @@ document.getElementById('new-case-submit').addEventListener('click', async ()=>{
   const msg = document.getElementById('new-case-msg');
   if(!supabaseClient){
     msg.className = 'submit-msg err';
-    msg.textContent = 'Supabase未配置，请先在代码里填入SUPABASE_URL/SUPABASE_ANON_KEY';
+    msg.textContent = t('msg_supabase_off');
     return;
   }
-  const lineRaw = document.getElementById('new-line').value;
-  const line = lineRaw.split(' / ').pop();
+  const line = document.getElementById('new-line').value;
   const model = document.getElementById('new-model').value;
   const symptom = document.getElementById('new-symptom').value.trim();
   if(!model || !symptom){
     msg.className = 'submit-msg err';
-    msg.textContent = '机型和故障现象是必填的';
+    msg.textContent = t('msg_need_required');
     return;
   }
   const faultCodesRaw = document.getElementById('new-fault-codes').value.trim();
@@ -874,14 +1073,15 @@ document.getElementById('new-case-submit').addEventListener('click', async ()=>{
   btn.disabled = false;
   if(error){
     msg.className = 'submit-msg err';
-    msg.textContent = '提交失败：' + error.message;
+    msg.textContent = t('msg_new_fail') + error.message;
   }else{
     msg.className = 'submit-msg ok';
-    msg.textContent = '已提交，等待同步进知识库（同步后才会出现在列表里）';
+    msg.textContent = t('msg_new_ok');
     setTimeout(()=>{ document.getElementById('add-case-form').style.display='none'; msg.textContent=''; }, 1800);
   }
 });
 
+applyStaticI18n();
 renderHomeModels('Biochemistry');
 updateController.render();
 casesController.render();
