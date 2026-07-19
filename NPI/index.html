@@ -189,7 +189,7 @@ tr:hover td{background:var(--s50)}
 .tbl-compact th, .tbl-compact td{padding:5px 6px;font-size:11px}
 .leaflet-tooltip{max-width:1200px!important;min-width:320px!important;width:auto!important;white-space:normal!important;font-size:11.5px;line-height:1.7;font-family:'Inter',sans-serif;padding:8px 10px!important}
 .leaflet-tooltip b{font-size:12.5px}
-.b-filter-bar{position:sticky;top:0;z-index:80;background:var(--s50);padding:10px 0 4px;margin:-18px 0 12px;border-bottom:1px solid var(--s200)}
+.b-filter-bar{position:sticky;top:0;z-index:80;background:var(--s50);padding:10px 0 4px;margin:-13px 0 12px;border-bottom:1px solid var(--s200)}
 .b-filter-bar .tbl-toolbar{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:6px;padding:8px 12px}
 .map-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--s400);gap:8px;text-align:center;padding:20px}
 .map-placeholder .mp-ic{font-size:30px}
@@ -294,6 +294,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="ni" onclick="nav('eos',this)"><span class="ni-ic">🌗</span><span class="ni-text"><span class="ni-en">EOL / EOS Management</span><span class="ni-cn">停产停服管理</span></span><span class="ni-sub">planned</span></div>
     <div class="sb-sec">Reference</div>
     <div class="ni" onclick="nav('mcmap',this)"><span class="ni-ic">📖</span><span class="ni-text"><span class="ni-en">Model / Course Mapping</span><span class="ni-cn">机型资质课程底表</span></span></div>
+    <div class="ni" onclick="nav('team',this)"><span class="ni-ic">🧑‍🤝‍🧑</span><span class="ni-text"><span class="ni-en">Team Coverage</span><span class="ni-cn">团队分工</span></span></div>
   </div>
   <div class="sb-footer">
     <div class="sb-info">
@@ -367,7 +368,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="hidden-note" id="pl-readonly-note" style="display:none;margin-bottom:10px">🔒 Read-only for your account — only HQ can edit this table. 仅HQ账号可编辑此表。</div>
   <div class="krow" id="pl-kpi"></div>
   <div class="cg" style="grid-template-columns:1fr">
-    <div class="card"><div class="ct">Product Timeline<span class="en">产品时间轴</span><span class="sub">Launch month (bubble) · readiness % (color)</span></div><div class="ec-md" id="pl-ec-timeline"></div></div>
+    <div class="card"><div class="ct">Product Timeline<span class="en">产品时间轴</span><span class="sub">Launch month (bubble) · readiness % (color)</span></div><div class="ec-md" id="pl-ec-timeline" style="height:320px"></div></div>
   </div>
   <div class="legend">
     <span><i class="dot" style="background:var(--ok)"></i>Done 已完成</span>
@@ -408,7 +409,7 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="fg" id="b-subline-filters"></div>
       <span class="flbl" style="margin-left:14px">Model</span>
       <select id="b-model" style="padding:5px 8px;border:1px solid var(--s200);border-radius:6px;font-size:11px;font-weight:600;min-width:200px"></select>
-      <label class="toolbar-toggle" style="margin-left:14px"><input type="checkbox" id="b-new-only" onchange="onBFilterChange()"> New only</label>
+      <label class="toolbar-toggle" style="margin-left:14px"><input type="checkbox" id="b-new-only" checked onchange="onBFilterChange()"> New only</label>
     </div>
   </div>
 
@@ -465,7 +466,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="hidden-note" id="lf-readonly-note" style="display:none;margin-bottom:10px">🔒 Read-only for your account — only HQ can edit this table. 仅HQ账号可编辑此表。</div>
   <div class="krow krow5" id="lf-kpi"></div>
   <div class="cg" style="grid-template-columns:1fr">
-    <div class="card"><div class="ct">New Model Launch Timeline<span class="en">新机型上市时间轴</span><span class="sub">Bubble size = cumulative Out qty (rolling 2y) 气泡大小=近2年累计出库台数</span></div><div class="ec-md" id="lf-ec-timeline"></div></div>
+    <div class="card"><div class="ct">New Model Launch Timeline<span class="en">新机型上市时间轴</span><span class="sub">Bubble size = cumulative Out qty (rolling 2y) 气泡大小=近2年累计出库台数</span></div><div class="ec-md" id="lf-ec-timeline" style="height:320px"></div></div>
   </div>
   <div class="cg cg3">
     <div class="card"><div class="ct">Stage Mix<span class="en">生命周期阶段占比</span></div><div class="ec-sm" id="lf-ec-donut"></div></div>
@@ -557,10 +558,13 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Region</span>
       <div class="fg" id="bplus-region-filters"></div>
+      <select id="bplus-region3" style="display:none;font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700)" onchange="setBPlusRegion3(this.value)"></select>
     </div>
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Sub-Line</span>
       <div class="fg" id="bplus-subline-filters"></div>
+      <span class="flbl" style="margin-left:10px">Model</span>
+      <select id="bplus-model" style="font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700);max-width:220px" onchange="setBPlusModel(this.value)"></select>
     </div>
   </div>
 
@@ -652,10 +656,13 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Region</span>
       <div class="fg" id="qplus-region-filters"></div>
+      <select id="qplus-region3" style="display:none;font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700)" onchange="setQPlusRegion3(this.value)"></select>
     </div>
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Sub-Line</span>
       <div class="fg" id="qplus-subline-filters"></div>
+      <span class="flbl" style="margin-left:10px">Model</span>
+      <select id="qplus-model" style="font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700);max-width:220px" onchange="setQPlusModel(this.value)"></select>
     </div>
   </div>
 
@@ -847,6 +854,39 @@ details.dcx summary:hover{color:var(--pd)}
   </div>
 </div>
 
+<!-- ========================================================================
+     PAGE: TEAM COVERAGE — GTS ownership + RTS region/sub-line assignment.
+     Pure reference/maintenance tables, HQ-edit-only. No auto-assignment
+     logic — first-unit ownership stays a manual call for now (per explicit
+     scope decision: the "who gets the region's first unit" rule was judged
+     too fragile to automate reliably from Out Date ordering alone).
+     ======================================================================== -->
+<div id="p-team" class="page">
+  <div class="ph"><h2>🧑‍🤝‍🧑 Reference · Team Coverage <span class="en">团队分工</span></h2></div>
+  <div class="ph-sub" style="margin-bottom:12px">Who owns what — a maintenance reference, not an automated assignment engine. GTS owns by MCSR Category; RTS coverage is either a whole Region II (leave Region III blank) or specific Region III(s), each with the sub-line(s) that RTS actually covers. 谁负责什么的维护表，不做自动首台分配——GTS按机型大类负责；RTS覆盖范围可以是整个二级区域（三级区域留空），也可以是具体的几个三级区域，各自搭配负责的子产线。</div>
+  <div class="hidden-note" id="team-readonly-note" style="display:none;margin-bottom:10px">🔒 Read-only for your account — only HQ can edit these tables. 仅HQ账号可编辑此表。</div>
+
+  <div class="tbl-wrap" style="margin-bottom:16px">
+    <div class="tbl-toolbar" style="flex-wrap:wrap">
+      <h3>GTS Ownership<span class="en">GTS负责人</span></h3>
+      <input type="text" class="tsearch" id="gts-search" placeholder="🔍 Search category / name 搜索大类或姓名" oninput="renderGtsTable()" style="margin-left:auto">
+      <button class="btn btn-p" id="gts-add-btn" onclick="openGtsModal()">+ Add Row 新增一行</button>
+    </div>
+    <div class="tbl-scroll" style="max-height:420px"><table><thead><tr id="gts-thead"></tr></thead><tbody id="gts-tbody"></tbody></table></div>
+    <div class="hidden-note" id="gts-cnt" style="padding:8px 14px"></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <div class="tbl-toolbar" style="flex-wrap:wrap">
+      <h3>RTS Coverage Assignment<span class="en">RTS覆盖分工</span></h3>
+      <input type="text" class="tsearch" id="rts-search" placeholder="🔍 Search name / region 搜索姓名或区域" oninput="renderRtsTable()" style="margin-left:auto">
+      <button class="btn btn-p" id="rts-add-btn" onclick="openRtsModal()">+ Add Row 新增一行</button>
+    </div>
+    <div class="tbl-scroll" style="max-height:420px"><table><thead><tr id="rts-thead"></tr></thead><tbody id="rts-tbody"></tbody></table></div>
+    <div class="hidden-note" id="rts-cnt" style="padding:8px 14px"></div>
+  </div>
+</div>
+
 </div><!--/main-->
 
 <div class="modal-bg" id="modal-bg">
@@ -951,6 +991,51 @@ details.dcx summary:hover{color:var(--pd)}
   </div>
 </div>
 
+<div class="modal-bg" id="gtsmodal-bg">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="gtsmodal-title">Edit GTS Ownership 编辑GTS负责</h3><span class="x" onclick="closeGtsModal()">✕</span></div>
+    <div class="modal-bd">
+      <div class="field"><label>MCSR Category 机型大类 *</label>
+        <select id="gts-category"></select>
+        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Sourced from Reference master table 来源于机型-资质课程底表</div>
+      </div>
+      <div class="field"><label>GTS Name GTS姓名 *</label><input type="text" id="gts-name" placeholder="e.g. 张三"></div>
+      <div class="field"><label>Notes 备注</label><textarea id="gts-notes" placeholder="Optional — e.g. backup GTS, handoff date... 可选，如备用GTS、交接时间等"></textarea></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gy" id="gts-archive-btn" style="margin-right:auto;display:none" onclick="archiveGtsRow()">Archive 归档隐藏</button>
+      <button class="btn btn-gy" onclick="closeGtsModal()">Cancel 取消</button>
+      <button class="btn btn-p" onclick="saveGtsRow()">Save 保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="rtsmodal-bg">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="rtsmodal-title">Edit RTS Coverage 编辑RTS覆盖</h3><span class="x" onclick="closeRtsModal()">✕</span></div>
+    <div class="modal-bd">
+      <div class="field"><label>RTS Engineer RTS工程师 *</label>
+        <select id="rts-engineer"></select>
+        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">From RTS Score roster 来源于RTS Score花名册 · home base shown in parentheses 括号内为主场区域</div>
+      </div>
+      <div class="field"><label>Region II 二级区域 *</label><select id="rts-region2"></select></div>
+      <div class="field"><label>Region III 三级区域</label>
+        <input type="text" id="rts-region3" placeholder="Leave blank = whole Region II 留空=整个二级区域">
+        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Fill in only if this RTS covers a specific Region III (not the whole Region II) 仅当只负责某个具体三级区域时填写</div>
+      </div>
+      <div class="field"><label>Sub-Lines 负责子产线 *</label>
+        <div id="rts-sublines" style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 0"></div>
+      </div>
+      <div class="field"><label>Notes 备注</label><textarea id="rts-notes" placeholder="Optional 可选"></textarea></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-gy" id="rts-archive-btn" style="margin-right:auto;display:none" onclick="archiveRtsRow()">Archive 归档隐藏</button>
+      <button class="btn btn-gy" onclick="closeRtsModal()">Cancel 取消</button>
+      <button class="btn btn-p" onclick="saveRtsRow()">Save 保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="fumodal-bg">
   <div class="modal">
     <div class="modal-hd"><h3 id="fumodal-title">First-Unit Support 首台套支持</h3><span class="x" onclick="closeFuModal()">✕</span></div>
@@ -1019,7 +1104,7 @@ const PRODUCTS_SEED = [{"name_en":"CL-9000i","name_cn":"","sub_line":"CLIA","own
 // browsers block fetch() of local files for security. If you need a
 // double-click-to-open local copy, use an earlier single-file build instead.
 // ============================================================================
-let COVERAGE_MAP = null, MCSRE_DATA = null, F2F_DATA = null, QE_DATA = null, FTFR_AGG = null, EQUIPMENT = null;
+let COVERAGE_MAP = null, MCSRE_DATA = null, F2F_DATA = null, QE_DATA = null, FTFR_AGG = null, EQUIPMENT = null, RTS_ROSTER = null;
 const DATA_BASE = (() => {
   // Resolve relative to this script's own location so the page works whether
   // it's served from a domain root or a sub-path (e.g. GitHub Pages project sites).
@@ -1047,7 +1132,7 @@ async function loadExternalData(){
       '两种正确预览方式：①直接访问 GitHub Pages 发布后的正式网址；②本地预览时在此文件夹下起一个临时服务器，例如运行 `python3 -m http.server 8000` 后访问 http://localhost:8000/ （或用 VS Code 的 Live Server 插件）。'
     );
   }
-  const files = ['coverage_map','mcsre','f2f','qe','ftfr_agg','equipment'];
+  const files = ['coverage_map','mcsre','f2f','qe','ftfr_agg','equipment','rts_roster'];
   const settled = await Promise.allSettled(files.map(f =>
     fetch(DATA_BASE + 'data/' + f + '.json').then(r => {
       if(!r.ok) throw new Error(f + '.json → HTTP ' + r.status + ' at ' + (DATA_BASE + 'data/' + f + '.json'));
@@ -1059,7 +1144,7 @@ async function loadExternalData(){
     throw new Error('Failed to load: ' + failed.map(x=>`${x.f}.json (${x.s.reason && x.s.reason.message || x.s.reason})`).join('; ')
       + ' — tried base URL: ' + DATA_BASE + 'data/');
   }
-  [COVERAGE_MAP, MCSRE_DATA, F2F_DATA, QE_DATA, FTFR_AGG, EQUIPMENT] = settled.map(s=>s.value);
+  [COVERAGE_MAP, MCSRE_DATA, F2F_DATA, QE_DATA, FTFR_AGG, EQUIPMENT, RTS_ROSTER] = settled.map(s=>s.value);
 }
 
 const MC_ROWS_SEED = [{"sub_line":"Hematology","model":"BC-1800","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-1900","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2900","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2100","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2300","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2600","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2600Vet","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2800","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-2800Vet","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3000","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3000PLUS","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3200","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3000CT","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3300","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3600","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-3600CT","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-10","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-11E","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-11","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-20","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-20S","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-21","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-21S","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-30","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-30S","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-31","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-31S","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-30E","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-10E","mcsr_category":"Classic 3-DIFF Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_3Diff_Program (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5100","mcsr_category":"BC-53 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5300","mcsr_category":"BC-53 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5300Vet","mcsr_category":"BC-53 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5180","mcsr_category":"BC-53 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5380","mcsr_category":"BC-53 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5390FDA","mcsr_category":"BC-53 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5000","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5150","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5120","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5130","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5140","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5160","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5170","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5000Vet","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"HT5","mcsr_category":"BC-5000 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_5000series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5200","mcsr_category":"BC-5800 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-5800series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5500","mcsr_category":"BC-5800 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-5800series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5600","mcsr_category":"BC-5800 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-5800series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5800","mcsr_category":"BC-5800 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-5800series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5390","mcsr_category":"BC-5390 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5310","mcsr_category":"BC-5390 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_BC-53series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5180CRP","mcsr_category":"BC-53crp Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_53CRPseries_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5390 CRP","mcsr_category":"BC-53crp Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_53CRPseries_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5310 CRP","mcsr_category":"BC-53crp Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_53CRPseries_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-5100CRP","mcsr_category":"BC-53crp Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_53CRPseries_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-6000","mcsr_category":"BC-6000 Series","mcst_name":"BC-6200","km":true,"new_product":false,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6200","mcsr_category":"BC-6000 Series","mcst_name":"BC-6200","km":true,"new_product":false,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6000PLUS","mcsr_category":"BC-6000 Series","mcst_name":"BC-6200","km":true,"new_product":false,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6100","mcsr_category":"BC-6000 Series","mcst_name":"BC-6200","km":true,"new_product":false,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6100PLUS","mcsr_category":"BC-6000 Series","mcst_name":"BC-6200","km":true,"new_product":false,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6600","mcsr_category":"BC-6800 Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_BC-6800_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6700","mcsr_category":"BC-6800 Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_BC-6800_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6800","mcsr_category":"BC-6800 Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_BC-6800_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6900","mcsr_category":"BC-6800 Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_BC-6800_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"CAL 3000","mcsr_category":"CAL 8000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CAL 3000 SYSTEM","mcsr_category":"CAL 8000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CAL 8000","mcsr_category":"CAL 8000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CAL8000 SYSTEM","mcsr_category":"CAL 8000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CRP-M100","mcsr_category":"CAL 8000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CAL 9000","mcsr_category":"CAL 9000 Series","mcst_name":"Hema Line","km":true,"new_product":true,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"SC-120","mcsr_category":"SC120","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"H50","mcsr_category":"Glycohemoglobin Series","mcst_name":"Glycohemoglobin Series","km":true,"new_product":false,"mcsr_course_name":"HA_HPLC_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_HPLC_MCST","notes":""},{"sub_line":"Hematology","model":"H50P","mcsr_category":"Glycohemoglobin Series","mcst_name":"Glycohemoglobin Series","km":true,"new_product":false,"mcsr_course_name":"HA_HPLC_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_HPLC_MCST","notes":""},{"sub_line":"Hematology","model":"H-120","mcsr_category":"Glycohemoglobin Series","mcst_name":"Glycohemoglobin Series","km":true,"new_product":false,"mcsr_course_name":"HA_HPLC_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_HPLC_MCST","notes":""},{"sub_line":"Hematology","model":"H-120P","mcsr_category":"Glycohemoglobin Series","mcst_name":"Glycohemoglobin Series","km":true,"new_product":false,"mcsr_course_name":"HA_HPLC_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_HPLC_MCST","notes":""},{"sub_line":"Hematology","model":"Bricyte E6","mcsr_category":"Flow Cytometer Series","mcst_name":"Flow Cytometer","km":true,"new_product":false,"mcsr_course_name":"HA_FLow Cytometer_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_FLow Cytometer_MCST","notes":""},{"sub_line":"Hematology","model":"Bricyte MX","mcsr_category":"Flow Cytometer Series","mcst_name":"Flow Cytometer","km":true,"new_product":false,"mcsr_course_name":"HA_FLow Cytometer_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_FLow Cytometer_MCST","notes":""},{"sub_line":"Hematology","model":"Bricyte MC","mcsr_category":"Flow Cytometer Series","mcst_name":"Flow Cytometer","km":true,"new_product":false,"mcsr_course_name":"HA_FLow Cytometer_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_FLow Cytometer_MCST","notes":""},{"sub_line":"Hematology","model":"Bricyte MS","mcsr_category":"Flow Cytometer Series","mcst_name":"Flow Cytometer","km":true,"new_product":false,"mcsr_course_name":"HA_FLow Cytometer_Program(oral exam)","learning_type":"oral exam","mcst_course_name":"HA_FLow Cytometer_MCST","notes":""},{"sub_line":"Hematology","model":"CAL 6000","mcsr_category":"CAL 6000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CAL6000 SYSTEM","mcsr_category":"CAL 6000 Series Track","mcst_name":"Hema Line","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"CAL 7000","mcsr_category":"CAL 7000 Series","mcst_name":"Hema Line","km":true,"new_product":true,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6600PLUS","mcsr_category":"BC-6800 Plus Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_High Speed Hema Analyzer_BC-6800 Plus_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6700PLUS","mcsr_category":"BC-6800 Plus Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_High Speed Hema Analyzer_BC-6800 Plus_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"BC-6800PLUS","mcsr_category":"BC-6800 Plus Series","mcst_name":"BC-6800","km":true,"new_product":false,"mcsr_course_name":"HA_High Speed Hema Analyzer_BC-6800 Plus_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_High Speed Hema Analyzer_BC-6800_MCST","notes":""},{"sub_line":"Hematology","model":"BC-700series","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-700[B]","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-700[R]","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-720[R]","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-760[B]","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-780[R]","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-760[R]","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-760[R] CS","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-760[B] CS","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-770[B] CS","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-770[R] CS","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-780[B] CS","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"BC-780[R] CS","mcsr_category":"BC-700 series","mcst_name":"BC-700","km":true,"new_product":false,"mcsr_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Low Speed Hema Analyzer_BC-700_MCST","notes":""},{"sub_line":"Hematology","model":"MC-80 Series","mcsr_category":"MC-80 Series","mcst_name":"MC-80","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"MC-80","mcsr_category":"MC-80 Series","mcst_name":"MC-80","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"MC-82","mcsr_category":"MC-80 Series","mcst_name":"MC-80","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"MC-120i","mcsr_category":"MC-80 Series","mcst_name":"MC-80","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"MC-100i","mcsr_category":"MC-80 Series","mcst_name":"MC-80","km":true,"new_product":false,"mcsr_course_name":"HA_Hema line_SC-120/MC-80_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Hema line_MCST","notes":""},{"sub_line":"Hematology","model":"BC-7300[B] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7300[NR] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7300[NR] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7300[N] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7300[N] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7300[R] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[NR] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[B] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[NR] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[N] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[N] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[R] CRP","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[B] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7500[R] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7600[NR] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"BC-7600[N] CS","mcsr_category":"BC-7500 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"HA_BC-7500CRP_Program（self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"CR-30[H]","mcsr_category":"CR-30[H]","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_CR-30[H]_Program","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"CR-30[C]","mcsr_category":"CR-30[H]","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_CR-30[H]_Program","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"CR-30[I]","mcsr_category":"CR-30[H]","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"HA_CR-30[H]_Program","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Hematology","model":"TM-1000","mcsr_category":"TM-1000","mcst_name":"TM-1000","km":true,"new_product":false,"mcsr_course_name":"HA_TM-1000_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_TM-1000_MCST","notes":""},{"sub_line":"Hematology","model":"BC-7600","mcsr_category":"BC-7600 Series","mcst_name":"BC-7600","km":true,"new_product":true,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-7800","mcsr_category":"BC-7600 Series","mcst_name":"BC-7600","km":true,"new_product":true,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"Hematology","model":"BC-7900","mcsr_category":"BC-7600 Series","mcst_name":"BC-7600","km":true,"new_product":true,"mcsr_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCSR","learning_type":"face-to-face","mcst_course_name":"HA_Mid Speed Hema Analyzer_BC-6000/BC-7600_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-1000i","mcsr_category":"CL-1000i Series","mcst_name":"Low Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Low Speed Immuno_CL-900i/CL-1200i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Low Speed Immuno_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-1200i","mcsr_category":"CL-1000i Series","mcst_name":"Low Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Low Speed Immuno_CL-900i/CL-1200i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Low Speed Immuno_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-2000i","mcsr_category":"CL-2000i Series","mcst_name":"High Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Mid Speed Immuno_CL-2000i/CL-2600i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-2200i","mcsr_category":"CL-2000i Series","mcst_name":"High Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Mid Speed Immuno_CL-2000i/CL-2600i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-6000i","mcsr_category":"CL-6000i Series","mcst_name":"High Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-6000IM2","mcsr_category":"CL-6000i Series","mcst_name":"High Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-6200i","mcsr_category":"CL-6000i Series","mcst_name":"High Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-6200IM2","mcsr_category":"CL-6000i Series","mcst_name":"High Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-900i","mcsr_category":"CL-900i Series","mcst_name":"Low Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Low Speed Immuno_CL-900i/CL-1200i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Low Speed Immuno_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-920i","mcsr_category":"CL-900i Series","mcst_name":"Low Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Low Speed Immuno_CL-900i/CL-1200i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Low Speed Immuno_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-960i","mcsr_category":"CL-900i Series","mcst_name":"Low Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Low Speed Immuno_CL-900i/CL-1200i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Low Speed Immuno_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-980i","mcsr_category":"CL-900i Series","mcst_name":"Low Speed Immuno","km":true,"new_product":false,"mcsr_course_name":"CLIA_Low Speed Immuno_CL-900i/CL-1200i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Low Speed Immuno_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-8000i","mcsr_category":"CL-8000i Series","mcst_name":"CL-8000i Series","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-8000iM2","mcsr_category":"CL-8000i Series","mcst_name":"CL-8000i Series","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-8200i","mcsr_category":"CL-8000i Series","mcst_name":"CL-8000i Series","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-8200iM2","mcsr_category":"CL-8000i Series","mcst_name":"CL-8000i Series","km":true,"new_product":false,"mcsr_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_High Speed Immuno_CL-6000i/CL-8000i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-2600i","mcsr_category":"CL-2600i Series","mcst_name":"CL-2600i Series","km":true,"new_product":false,"mcsr_course_name":"CLIA_Mid Speed Immuno_CL-2000i/CL-2600i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Mid Speed Immuno_CL-2000i/CL-2600i_MCST","notes":""},{"sub_line":"CLIA Instrument","model":"CL-2800i","mcsr_category":"CL-2600i Series","mcst_name":"CL-2600i Series","km":true,"new_product":false,"mcsr_course_name":"CLIA_Mid Speed Immuno_CL-2000i/CL-2600i_MCSR","learning_type":"face-to-face","mcst_course_name":"CLIA_Mid Speed Immuno_CL-2000i/CL-2600i_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"SPL 1000","mcsr_category":"SAL6000/SAL8000 Series Track","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_SAL6000&SAL8000_Program(Self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"SPL 2000","mcsr_category":"SAL6000/SAL8000 Series Track","mcst_name":"SPL-2000","km":false,"new_product":false,"mcsr_course_name":"BA_SAL6000&SAL8000_Program(Self-learning)","learning_type":"self-learning","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"SPL 3000","mcsr_category":"SAL9000 Series Track","mcst_name":"SPL-2000","km":false,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-240","mcsr_category":"BS-230/BS-240","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-230","mcsr_category":"BS-230/BS-240","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-240VET","mcsr_category":"BS-230/BS-240","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-270","mcsr_category":"BS-230/BS-240","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-280","mcsr_category":"BS-230/BS-240","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-2000","mcsr_category":"BS-2000 Series","mcst_name":"High Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-2200","mcsr_category":"BS-2000 Series","mcst_name":"High Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-2000M","mcsr_category":"BS-2000 Series","mcst_name":"High Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-2200M","mcsr_category":"BS-2000 Series","mcst_name":"High Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-800","mcsr_category":"BS-800 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-800Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-800M","mcsr_category":"BS-800 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-800Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-820","mcsr_category":"BS-800 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-800Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-820M","mcsr_category":"BS-800 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-800Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-830","mcsr_category":"BS-800 Series","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-800Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-380","mcsr_category":"BS-380/BS-390","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS-380_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-390","mcsr_category":"BS-380/BS-390","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS-380_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-430","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-450","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-410","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-410E","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-410S","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-460","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-470","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-470E","mcsr_category":"BS-430/BS-450","mcst_name":"Low Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-600","mcsr_category":"BS-600/BS-620","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-600_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-620","mcsr_category":"BS-600/BS-620","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-600_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-480","mcsr_category":"BS-480/BS-490","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-480_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-490","mcsr_category":"BS-480/BS-490","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"BA_BS-480_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-120","mcsr_category":"BS-180 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-130","mcsr_category":"BS-180 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-180","mcsr_category":"BS-180 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-180 VET","mcsr_category":"BS-180 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-190","mcsr_category":"BS-180 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-200","mcsr_category":"BS-200 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-220","mcsr_category":"BS-200 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-200E","mcsr_category":"BS-200 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-220E","mcsr_category":"BS-200 Series","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-240E","mcsr_category":"BS-240E/BS-240Pro/BS-360E","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-240Pro","mcsr_category":"BS-240E/BS-240Pro/BS-360E","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-360E","mcsr_category":"BS-240E/BS-240Pro/BS-360E","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-360S","mcsr_category":"BS-240E/BS-240Pro/BS-360E","mcst_name":"Low Speed Chemistry","km":false,"new_product":false,"mcsr_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-600M","mcsr_category":"BS-600M/BS-620M","mcst_name":"Mid Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-620M","mcsr_category":"BS-600M/BS-620M","mcst_name":"Mid Speed Chemistry","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Low Speed Chemistry_BS-240/BS-240pro/BS-430_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-2800M","mcsr_category":"BS-2800M,BS-2600M","mcst_name":"BS-2800M","km":true,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-2600M","mcsr_category":"BS-2800M,BS-2600M","mcst_name":"BS-2800M","km":true,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"M1000","mcsr_category":"M1000","mcst_name":"M1000","km":false,"new_product":false,"mcsr_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_High Speed Chemistry_BS-2000M/BS-2800M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-330E","mcsr_category":"BS-330E/BS-350E","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-350E","mcsr_category":"BS-330E/BS-350E","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"BA_BS100/200/350_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-1000M","mcsr_category":"BS-1000M Series","mcst_name":"BS-1000M Series","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-1100M","mcsr_category":"BS-1000M Series","mcst_name":"BS-1000M Series","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-1160M","mcsr_category":"BS-1000M Series","mcst_name":"BS-1000M Series","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-1180M","mcsr_category":"BS-1000M Series","mcst_name":"BS-1000M Series","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-1200M","mcsr_category":"BS-1000M Series","mcst_name":"BS-1000M Series","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"BS-1280M","mcsr_category":"BS-1000M Series","mcst_name":"BS-1000M Series","km":true,"new_product":false,"mcsr_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCSR","learning_type":"face-to-face","mcst_course_name":"BA_Mid Speed Chemistry_BS-600M/BS-1000M_MCST","notes":""},{"sub_line":"Biochemistry Instrument","model":"MT 8000","mcsr_category":"TLA","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"TLA_MT 8000_MCSR(face to face training)","learning_type":"face-to-face","mcst_course_name":"","notes":""},{"sub_line":"Biochemistry Instrument","model":"MT 8000S","mcsr_category":"TLA","mcst_name":"/","km":true,"new_product":false,"mcsr_course_name":"TLA_MT 8000_MCSR(face to face training)","learning_type":"face-to-face","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2030","mcsr_category":"EH-2030/2050PLUS/2080","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_EH-20Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2050PLUS","mcsr_category":"EH-2030/2050PLUS/2080","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_EH-20Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2080B","mcsr_category":"EH-2030/2050PLUS/2080","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_EH-20Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2080C","mcsr_category":"EH-2030/2050PLUS/2080","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_EH-20Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-5600","mcsr_category":"UA-5600,UA-5800,UA-6600,UA-6800","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"Urine_UA series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-5800","mcsr_category":"UA-5600,UA-5800,UA-6600,UA-6800","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"Urine_UA series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-6600","mcsr_category":"UA-5600,UA-5800,UA-6600,UA-6800","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"Urine_UA series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-6800","mcsr_category":"UA-5600,UA-5800,UA-6600,UA-6800","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"Urine_UA series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-66","mcsr_category":"UA-66,UA-600,UA-600T","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_UA-66/UA-600/UA-600T_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-600","mcsr_category":"UA-66,UA-600,UA-600T","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_UA-66/UA-600/UA-600T_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Urinalysis Instrument","model":"UA-600T","mcsr_category":"UA-66,UA-600,UA-600T","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"UA_UA-66/UA-600/UA-600T_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"C3510","mcsr_category":"C3510/C3100","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"CA_C3000 Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"C3100","mcsr_category":"C3510/C3100","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"CA_C3000 Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"C2000-4","mcsr_category":"C2000-4/C2000-2","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"CA_C2000Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"C2000-2","mcsr_category":"C2000-4/C2000-2","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"CA_C2000Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"LBY-XC40B","mcsr_category":"LBY-XC40B/LBY-XC20B","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"CA_ESR_Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"LBY-XC20B","mcsr_category":"LBY-XC40B/LBY-XC20B","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"CA_ESR_Series_Program(self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Congulation Instrument","model":"CX-6000","mcsr_category":"CX-6000 series","mcst_name":"Medium speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_Optical coagulation_CX-6000/CX-9000_MCSR","learning_type":"face-to-face","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-6010","mcsr_category":"CX-6000 series","mcst_name":"Medium speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_Optical coagulation_CX-6000/CX-9000_MCSR","learning_type":"face-to-face","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-6200","mcsr_category":"CX-6000 series","mcst_name":"Medium speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_Optical coagulation_CX-6000/CX-9000_MCSR","learning_type":"face-to-face","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-6210","mcsr_category":"CX-6000 series","mcst_name":"Medium speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_Optical coagulation_CX-6000/CX-9000_MCSR","learning_type":"face-to-face","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-9000","mcsr_category":"CX-9000 series","mcst_name":"High speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_EN_CX-9000 Series_MCSR (oral exam)","learning_type":"oral exam","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-9010","mcsr_category":"CX-9000 series","mcst_name":"High speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_EN_CX-9000 Series_MCSR (oral exam)","learning_type":"oral exam","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-9200","mcsr_category":"CX-9000 series","mcst_name":"High speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_EN_CX-9000 Series_MCSR (oral exam)","learning_type":"oral exam","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Congulation Instrument","model":"CX-9210","mcsr_category":"CX-9000 series","mcst_name":"High speed coagulation(Optical)","km":true,"new_product":false,"mcsr_course_name":"COA_EN_CX-9000 Series_MCSR (oral exam)","learning_type":"oral exam","mcst_course_name":"COA_Optical coagulation_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-300B Plus","mcsr_category":"TDR-300BPlus","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-300BPlus MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-300B","mcsr_category":"TDR-300BPlus","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-300BPlus MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"AP-100","mcsr_category":"AP-100","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-Z200","mcsr_category":"TDR-Z200","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-X060","mcsr_category":"TDR-X060/TDR-X120/TDR-X240","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-X060/X120/X240_MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-X120","mcsr_category":"TDR-X060/TDR-X120/TDR-X240","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-X060/X120/X240_MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-X120II","mcsr_category":"TDR-X060/TDR-X120/TDR-X240","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-X060/X120/X240_MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-X240","mcsr_category":"TDR-X060/TDR-X120/TDR-X240","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-X060/X120/X240_MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-X030","mcsr_category":"TDR-X030","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_TDR-X030 MCSR (self-learning)","learning_type":"self-learning","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"AF-600","mcsr_category":"AF-600","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"AF-300","mcsr_category":"AF-600","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"AF-360","mcsr_category":"AF-600","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"AF-660","mcsr_category":"AF-600","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"TDR-Z200","mcsr_category":"TDR-Z200","mcst_name":"/","km":false,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"","notes":""},{"sub_line":"Microbiological instrument","model":"FA-N60","mcsr_category":"FA-N series","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"FA-N120","mcsr_category":"FA-N series","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Microbiological instrument","model":"FA-N240","mcsr_category":"FA-N series","mcst_name":"wsw","km":true,"new_product":false,"mcsr_course_name":"MB_Microbiology_FA-N/AF-600_MCSR","learning_type":"face-to-face","mcst_course_name":"MB_Microbiology Products_MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EU-5300 Pro","mcsr_category":"EU Pro series","mcst_name":"EU-5300 Pro\nEU-5600 Pro","km":true,"new_product":false,"mcsr_course_name":"UA_Urine_EU-5600Pro/EU 8600/EU 8600 GT_MCSR","learning_type":"face-to-face","mcst_course_name":"Urine_Urine Products_MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EU-3000 Pro","mcsr_category":"EU Pro series","mcst_name":"EU-5300 Pro\nEU-5600 Pro","km":true,"new_product":false,"mcsr_course_name":"UA_Urine_EU-5600Pro/EU 8600/EU 8600 GT_MCSR","learning_type":"face-to-face","mcst_course_name":"Urine_Urine Products_MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EU-5600 Pro","mcsr_category":"EU Pro series","mcst_name":"EU-5300 Pro\nEU-5600 Pro","km":true,"new_product":false,"mcsr_course_name":"UA_Urine_EU-5600Pro/EU 8600/EU 8600 GT_MCSR","learning_type":"face-to-face","mcst_course_name":"Urine_Urine Products_MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2090B","mcsr_category":"EH-2090","mcst_name":"EH-2090B \nEH-2090C","km":false,"new_product":false,"mcsr_course_name":"Urine_EH-2090_MCSR_Program (class training)","learning_type":"face-to-face","mcst_course_name":"Urine_EH-2090 MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2090B Pro","mcsr_category":"EH-2090","mcst_name":"EH-2090B \nEH-2090C","km":false,"new_product":false,"mcsr_course_name":"Urine_EH-2090_MCSR_Program (class training)","learning_type":"face-to-face","mcst_course_name":"Urine_EH-2090 MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2090C","mcsr_category":"EH-2090","mcst_name":"EH-2090B \nEH-2090C","km":false,"new_product":false,"mcsr_course_name":"Urine_EH-2090_MCSR_Program (class training)","learning_type":"face-to-face","mcst_course_name":"Urine_EH-2090 MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EH-2090C Pro","mcsr_category":"EH-2090","mcst_name":"EH-2090B \nEH-2090C","km":false,"new_product":false,"mcsr_course_name":"Urine_EH-2090_MCSR_Program (class training)","learning_type":"face-to-face","mcst_course_name":"Urine_EH-2090 MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EU 8600 GT","mcsr_category":"EU8600 GT","mcst_name":"EU 8600 GT","km":true,"new_product":true,"mcsr_course_name":"UA_Urine_EU-5600Pro/EU 8600/EU 8600 GT_MCSR","learning_type":"face-to-face","mcst_course_name":"Urine_Urine Products_MCST","notes":""},{"sub_line":"Urinalysis Instrument","model":"EU 8600","mcsr_category":"EU 8600 Series","mcst_name":"EU 8600","km":true,"new_product":true,"mcsr_course_name":"UA_Urine_EU-5600Pro/EU 8600/EU 8600 GT_MCSR","learning_type":"face-to-face","mcst_course_name":"Urine_Urine Products_MCST","notes":""}];
@@ -1274,7 +1359,41 @@ const LocalDB = {
     if(idx>=0) all[idx] = {...all[idx], ...patch};
     localStorage.setItem(LS_NS+'legacymodels', JSON.stringify(all));
   },
-  async archiveLegacyModel(id){ return this.updateLegacyModel(id, {archived:true}); }
+  async archiveLegacyModel(id){ return this.updateLegacyModel(id, {archived:true}); },
+  async listGtsOwners(){
+    return JSON.parse(localStorage.getItem(LS_NS+'gtsowners')||'[]').filter(r=>!r.archived);
+  },
+  async addGtsOwner(r){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'gtsowners')||'[]');
+    const rec = {id:uid(), archived:false, sort_order:all.length, notes:'', ...r};
+    all.push(rec);
+    localStorage.setItem(LS_NS+'gtsowners', JSON.stringify(all));
+    return rec;
+  },
+  async updateGtsOwner(id, patch){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'gtsowners')||'[]');
+    const idx = all.findIndex(r=>r.id===id);
+    if(idx>=0) all[idx] = {...all[idx], ...patch};
+    localStorage.setItem(LS_NS+'gtsowners', JSON.stringify(all));
+  },
+  async archiveGtsOwner(id){ return this.updateGtsOwner(id, {archived:true}); },
+  async listRtsAssignments(){
+    return JSON.parse(localStorage.getItem(LS_NS+'rtsassign')||'[]').filter(r=>!r.archived);
+  },
+  async addRtsAssignment(r){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'rtsassign')||'[]');
+    const rec = {id:uid(), archived:false, sort_order:all.length, region3:'', sub_lines:'ALL', notes:'', ...r};
+    all.push(rec);
+    localStorage.setItem(LS_NS+'rtsassign', JSON.stringify(all));
+    return rec;
+  },
+  async updateRtsAssignment(id, patch){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'rtsassign')||'[]');
+    const idx = all.findIndex(r=>r.id===id);
+    if(idx>=0) all[idx] = {...all[idx], ...patch};
+    localStorage.setItem(LS_NS+'rtsassign', JSON.stringify(all));
+  },
+  async archiveRtsAssignment(id){ return this.updateRtsAssignment(id, {archived:true}); }
 };
 
 const SupabaseDB = {
@@ -1368,7 +1487,37 @@ const SupabaseDB = {
     const {error} = await this.client.from('legacy_models').update(patch).eq('id', id);
     if(error){ alert('Save failed: '+error.message); throw error; }
   },
-  async archiveLegacyModel(id){ return this.updateLegacyModel(id, {archived:true}); }
+  async archiveLegacyModel(id){ return this.updateLegacyModel(id, {archived:true}); },
+  async listGtsOwners(){
+    const {data, error} = await this.client.from('gts_owners').select('*').eq('archived', false).order('sort_order');
+    if(error || !data){ console.error(error); return []; }
+    return data;
+  },
+  async addGtsOwner(r){
+    const {data, error} = await this.client.from('gts_owners').insert(r).select().single();
+    if(error){ alert('Save failed: '+error.message); throw error; }
+    return data;
+  },
+  async updateGtsOwner(id, patch){
+    const {error} = await this.client.from('gts_owners').update(patch).eq('id', id);
+    if(error){ alert('Save failed: '+error.message); throw error; }
+  },
+  async archiveGtsOwner(id){ return this.updateGtsOwner(id, {archived:true}); },
+  async listRtsAssignments(){
+    const {data, error} = await this.client.from('rts_assignments').select('*').eq('archived', false).order('sort_order');
+    if(error || !data){ console.error(error); return []; }
+    return data;
+  },
+  async addRtsAssignment(r){
+    const {data, error} = await this.client.from('rts_assignments').insert(r).select().single();
+    if(error){ alert('Save failed: '+error.message); throw error; }
+    return data;
+  },
+  async updateRtsAssignment(id, patch){
+    const {error} = await this.client.from('rts_assignments').update(patch).eq('id', id);
+    if(error){ alert('Save failed: '+error.message); throw error; }
+  },
+  async archiveRtsAssignment(id){ return this.updateRtsAssignment(id, {archived:true}); }
 };
 
 let DB = USE_SUPABASE ? SupabaseDB : LocalDB;
@@ -1510,6 +1659,31 @@ function renderPreLaunchKPI(){
   document.getElementById('pl-kpi').innerHTML = cards.map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
 }
 
+// Spreads timeline points that land on/near the same date into a zigzag fan
+// (instead of stacking on one baseline) so labels don't collide. Used by both
+// the Pre-Launch and New-Model-Launch timelines.
+function timelineJitter(points, dateKey){
+  const sorted = points.slice().sort((a,b)=> new Date(a[dateKey]) - new Date(b[dateKey]));
+  const CLUSTER_GAP_DAYS = 25;
+  const clusters = [];
+  let current = [], prevDate = null;
+  sorted.forEach(p=>{
+    const d = new Date(p[dateKey]);
+    if(prevDate!==null && (d-prevDate)/86400000 <= CLUSTER_GAP_DAYS) current.push(p);
+    else { if(current.length) clusters.push(current); current=[p]; }
+    prevDate = d;
+  });
+  if(current.length) clusters.push(current);
+  const STEP = 0.55;
+  clusters.forEach(cluster=>{
+    cluster.forEach((p,i)=>{
+      if(cluster.length===1){ p._y = 0; return; }
+      const magnitude = Math.ceil((i+1)/2) * STEP;
+      p._y = (i%2===0 ? 1 : -1) * magnitude;
+    });
+  });
+  return sorted;
+}
 function renderPreLaunchTimeline(){
   const launchItem = ITEMS.find(i=>i.id==='launch_date');
   const points = PRODUCTS.map(p=>{
@@ -1523,14 +1697,15 @@ function renderPreLaunchTimeline(){
     return;
   }
   const today = todayStr();
+  const jittered = timelineJitter(points, 'date');
   const c = chartFor('pl-ec-timeline');
   c.setOption({
     tooltip:{formatter: p=>p.name+'<br>Planned launch: '+p.value[0]+'<br>Readiness: '+p.value[2]+'%'},
     grid:{left:24,right:24,top:44,bottom:30},
     xAxis:{type:'time', axisLabel:{fontSize:10}},
-    yAxis:{type:'value', show:false, min:-1, max:1},
+    yAxis:{type:'value', show:false, min:-3, max:3},
     series:[{type:'scatter', symbolSize: v=>Math.max(14, Math.min(34, 14+v[2]/4)),
-      data: points.map(p=>({value:[p.date, 0, p.pct], name:p.name,
+      data: jittered.map(p=>({value:[p.date, p._y, p.pct], name:p.name,
         itemStyle:{color: p.date<today && p.pct<100 ? '#EF4444' : (p.pct>=100?'#10B981':'#F59E0B')}})),
       label:{show:true, formatter:p=>p.name, position:'top', fontSize:10, fontWeight:600, color:'#334155'},
       labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
@@ -1987,7 +2162,7 @@ function renderOverviewTable(){
 // PAGE B: LAUNCH MANAGEMENT — unified Region / Sub-line / Model filters drive
 // the KPI cards, coverage map, detail table, region matrix, and charts.
 // ============================================================================
-let bFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL', newOnly:false};
+let bFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL', newOnly:true};
 let _cmMap = null, _cmLayer = null, _cmGeoCache = null;
 let cmSort = {key:'regionII', dir:1};
 
@@ -2571,7 +2746,7 @@ function fuCandidates(){
   COVERAGE_MAP.models.forEach(m=>{
     if(!mcCategoryIsKm(m.model)) return;
     if(mcCategoryScheme(m.model)!=='F2F') return;
-    if(bFilters.subline!=='ALL' && m.line!==bFilters.subline) return;
+    if(bFilters.subline!=='ALL' && canonicalLine(m.line)!==canonicalLine(bFilters.subline)) return;
     const bucket = COVERAGE_MAP.byModel[m.key];
     if(!bucket) return;
     (bucket.regions||[]).forEach(r=>{
@@ -2731,14 +2906,15 @@ function renderLifecycleTimeline(){
     container.innerHTML = '<div class="map-placeholder"><div class="mp-ic">🗓️</div><div class="mp-title">No shipped new models yet</div><div class="mp-sub">Flag a model New on Page D and ship it to populate this timeline. 请在D页标记新品并出库以生成时间轴。</div></div>';
     return;
   }
+  const jittered = timelineJitter(models, 'date');
   const c = chartFor('lf-ec-timeline');
   c.setOption({
     tooltip:{formatter: p=>p.name+'<br>First intl. shipment: '+p.value[0]+'<br>Out qty (rolling 2y): '+p.value[2]},
     grid:{left:24,right:24,top:44,bottom:30},
     xAxis:{type:'time', axisLabel:{fontSize:10}},
-    yAxis:{type:'value', show:false, min:-1, max:1},
+    yAxis:{type:'value', show:false, min:-3, max:3},
     series:[{type:'scatter', symbolSize: v=>Math.max(14, Math.min(38, Math.sqrt(v[2])*3.2)),
-      data: models.map(m=>({value:[m.date, 0, m.out], name:m.name})),
+      data: jittered.map(m=>({value:[m.date, m._y, m.out], name:m.name})),
       label:{show:true, formatter:p=>p.name, position:'top', fontSize:10, fontWeight:600, color:'#334155'},
       labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
       itemStyle:{color:'#0066CC', opacity:.82, borderColor:'#004FA3', borderWidth:1}}]
@@ -2950,7 +3126,7 @@ function canonicalLine(raw){
   if(LEGACY_LINE_ABBR.some(l=>l.toLowerCase()===s)) return LEGACY_LINE_ABBR.find(l=>l.toLowerCase()===s);
   if(s.startsWith('biochem')) return 'Biochem';
   if(s==='clia' || s.includes('immun')) return 'CLIA';
-  if(s.startsWith('coag')) return 'Coag';
+  if(s.startsWith('coag') || s.includes('gulation')) return 'Coag';  // also catches the 'Congulation' typo in some source data
   if(s.startsWith('hema')) return 'Hema';
   if(s.startsWith('micro')) return 'Micro';
   if(s==='tla') return 'TLA';
@@ -3193,6 +3369,190 @@ function exportMcCSV(){
 }
 
 // ============================================================================
+// PAGE: TEAM COVERAGE (GTS ownership + RTS region/sub-line assignment)
+// ============================================================================
+let GTS_OWNERS = [], RTS_ASSIGN = [];
+let currentGtsEdit = null, currentRtsEdit = null;
+let gtsSort = {key:'mcsr_category', dir:1}, rtsSort = {key:'engineer_name', dir:1};
+
+function applyTeamPermissionsUI(){
+  const hq = isHQ();
+  ['gts-add-btn','rts-add-btn'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.style.display = hq ? 'inline-block' : 'none';
+  });
+  const note = document.getElementById('team-readonly-note');
+  if(note) note.style.display = hq ? 'none' : 'block';
+}
+
+// ---------------- GTS ownership ----------------
+const GTS_COLS = [
+  {key:'mcsr_category', en:'MCSR Category', cn:'机型大类', width:'220px'},
+  {key:'gts_name', en:'GTS Name', cn:'GTS姓名', width:'140px'},
+  {key:'notes', en:'Notes', cn:'备注', width:''},
+];
+function setGtsSort(key){ if(gtsSort.key===key) gtsSort.dir*=-1; else gtsSort={key,dir:1}; renderGtsTable(); }
+function renderGtsTable(){
+  const thead = document.getElementById('gts-thead');
+  thead.innerHTML = GTS_COLS.map(c=>{
+    const active = gtsSort.key===c.key;
+    const arrow = active ? (gtsSort.dir===1?'▲':'▼') : '▲▼';
+    const w = c.width ? ` style="min-width:${c.width}"` : '';
+    return `<th class="th-sort${active?' active':''}"${w} onclick="setGtsSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
+  }).join('');
+  const q = (document.getElementById('gts-search').value||'').toUpperCase();
+  let rows = GTS_OWNERS.filter(r=>!q || [r.mcsr_category,r.gts_name].some(v=>v && v.toUpperCase().includes(q)));
+  rows.sort((a,b)=>{
+    let av=(a[gtsSort.key]||'').toString().toUpperCase(), bv=(b[gtsSort.key]||'').toString().toUpperCase();
+    if(av<bv) return -1*gtsSort.dir; if(av>bv) return 1*gtsSort.dir; return 0;
+  });
+  document.getElementById('gts-tbody').innerHTML = rows.map(r=>`<tr class="editable" onclick="openGtsModal('${r.id}')">
+    <td><b>${esc(r.mcsr_category)}</b></td><td>${esc(r.gts_name)}</td><td style="white-space:normal">${esc(r.notes)}</td>
+  </tr>`).join('');
+  document.getElementById('gts-cnt').textContent = rows.length+' / '+GTS_OWNERS.length+' rows';
+}
+function openGtsModal(id){
+  if(!requireHQ('Team Coverage — GTS Ownership')) return;
+  currentGtsEdit = id || null;
+  document.getElementById('gtsmodal-title').textContent = id ? 'Edit GTS Ownership 编辑GTS负责' : 'Add GTS Ownership 新增GTS负责';
+  document.getElementById('gts-archive-btn').style.display = id ? 'inline-block' : 'none';
+  const r = id ? GTS_OWNERS.find(x=>x.id===id) : null;
+  const catSel = document.getElementById('gts-category');
+  const catOpts = [...new Set(MC_ROWS.map(x=>x.mcsr_category).filter(Boolean))].sort();
+  catSel.innerHTML = catOpts.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  catSel.value = r ? (r.mcsr_category||'') : (catOpts[0]||'');
+  document.getElementById('gts-name').value = r ? r.gts_name||'' : '';
+  document.getElementById('gts-notes').value = r ? r.notes||'' : '';
+  document.getElementById('gtsmodal-bg').classList.add('on');
+}
+function closeGtsModal(){ document.getElementById('gtsmodal-bg').classList.remove('on'); currentGtsEdit=null; }
+async function saveGtsRow(){
+  if(!requireHQ()) return;
+  const gts_name = document.getElementById('gts-name').value.trim();
+  if(!gts_name){ alert('GTS name is required 请填写GTS姓名'); return; }
+  const patch = {
+    mcsr_category: document.getElementById('gts-category').value,
+    gts_name,
+    notes: document.getElementById('gts-notes').value.trim(),
+  };
+  if(currentGtsEdit){
+    await DB.updateGtsOwner(currentGtsEdit, patch);
+    const idx = GTS_OWNERS.findIndex(r=>r.id===currentGtsEdit);
+    if(idx>=0) GTS_OWNERS[idx] = {...GTS_OWNERS[idx], ...patch};
+  } else {
+    const rec = await DB.addGtsOwner(patch);
+    GTS_OWNERS.push(rec);
+  }
+  closeGtsModal();
+  renderGtsTable();
+}
+async function archiveGtsRow(){
+  if(!requireHQ()) return;
+  if(!currentGtsEdit) return;
+  if(!confirm('Archive (hide) this row? Data is kept, not deleted.\n归档隐藏此行？数据保留不会被删除。')) return;
+  await DB.archiveGtsOwner(currentGtsEdit);
+  GTS_OWNERS = GTS_OWNERS.filter(r=>r.id!==currentGtsEdit);
+  closeGtsModal();
+  renderGtsTable();
+}
+
+// ---------------- RTS coverage assignment ----------------
+const RTS_COLS = [
+  {key:'engineer_name', en:'RTS Engineer', cn:'RTS工程师', width:'140px'},
+  {key:'region2', en:'Region II', cn:'二级区域', width:'110px'},
+  {key:'region3', en:'Region III', cn:'三级区域', width:'160px'},
+  {key:'sub_lines', en:'Sub-Lines', cn:'负责子产线', width:'200px'},
+  {key:'notes', en:'Notes', cn:'备注', width:''},
+];
+function setRtsSort(key){ if(rtsSort.key===key) rtsSort.dir*=-1; else rtsSort={key,dir:1}; renderRtsTable(); }
+function renderRtsTable(){
+  const thead = document.getElementById('rts-thead');
+  thead.innerHTML = RTS_COLS.map(c=>{
+    const active = rtsSort.key===c.key;
+    const arrow = active ? (rtsSort.dir===1?'▲':'▼') : '▲▼';
+    const w = c.width ? ` style="min-width:${c.width}"` : '';
+    return `<th class="th-sort${active?' active':''}"${w} onclick="setRtsSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
+  }).join('');
+  const q = (document.getElementById('rts-search').value||'').toUpperCase();
+  let rows = RTS_ASSIGN.filter(r=>!q || [r.engineer_name,r.region2,r.region3].some(v=>v && v.toUpperCase().includes(q)));
+  rows.sort((a,b)=>{
+    let av=(a[rtsSort.key]||'').toString().toUpperCase(), bv=(b[rtsSort.key]||'').toString().toUpperCase();
+    if(av<bv) return -1*rtsSort.dir; if(av>bv) return 1*rtsSort.dir; return 0;
+  });
+  document.getElementById('rts-tbody').innerHTML = rows.map(r=>{
+    const subLabel = r.sub_lines==='ALL' ? 'All 全部' : r.sub_lines.split(',').filter(Boolean).join(', ');
+    return `<tr class="editable" onclick="openRtsModal('${r.id}')">
+    <td><b>${esc(r.engineer_name)}</b></td><td>${esc(r.region2)}</td>
+    <td>${r.region3 ? esc(r.region3.replace(' REGION','')) : '<span style="color:var(--s400)">Whole region 整个二级区域</span>'}</td>
+    <td>${esc(subLabel)}</td><td style="white-space:normal">${esc(r.notes)}</td>
+  </tr>`;
+  }).join('');
+  document.getElementById('rts-cnt').textContent = rows.length+' / '+RTS_ASSIGN.length+' rows';
+}
+function openRtsModal(id){
+  if(!requireHQ('Team Coverage — RTS Assignment')) return;
+  currentRtsEdit = id || null;
+  document.getElementById('rtsmodal-title').textContent = id ? 'Edit RTS Coverage 编辑RTS覆盖' : 'Add RTS Coverage 新增RTS覆盖';
+  document.getElementById('rts-archive-btn').style.display = id ? 'inline-block' : 'none';
+  const r = id ? RTS_ASSIGN.find(x=>x.id===id) : null;
+
+  const engSel = document.getElementById('rts-engineer');
+  const roster = (RTS_ROSTER && RTS_ROSTER.rows) || [];
+  engSel.innerHTML = roster.map(p=>`<option value="${esc(p.id)}|${esc(p.name)}">${esc(p.name)} (${esc(p.region2)} · ${esc(p.region3)})</option>`).join('');
+  if(r) engSel.value = r.engineer_id+'|'+r.engineer_name;
+  else if(roster.length) engSel.value = roster[0].id+'|'+roster[0].name;
+
+  const regSel = document.getElementById('rts-region2');
+  regSel.innerHTML = B_REGIONS.map(rg=>`<option value="${rg}">${rg}</option>`).join('');
+  regSel.value = r ? r.region2 : B_REGIONS[0];
+
+  document.getElementById('rts-region3').value = r ? r.region3||'' : '';
+
+  const subWrap = document.getElementById('rts-sublines');
+  const selected = r ? (r.sub_lines==='ALL' ? LEGACY_LINE_ABBR : r.sub_lines.split(',').filter(Boolean)) : LEGACY_LINE_ABBR;
+  subWrap.innerHTML = LEGACY_LINE_ABBR.map(l=>`<label class="chk-row" style="margin-bottom:0;display:inline-flex;gap:5px;align-items:center">
+    <input type="checkbox" class="rts-subline-chk" value="${l}" ${selected.includes(l)?'checked':''}> ${l}</label>`).join('');
+
+  document.getElementById('rts-notes').value = r ? r.notes||'' : '';
+  document.getElementById('rtsmodal-bg').classList.add('on');
+}
+function closeRtsModal(){ document.getElementById('rtsmodal-bg').classList.remove('on'); currentRtsEdit=null; }
+async function saveRtsRow(){
+  if(!requireHQ()) return;
+  const engVal = document.getElementById('rts-engineer').value;
+  if(!engVal){ alert('Pick an RTS engineer 请选择RTS工程师'); return; }
+  const [engineer_id, engineer_name] = engVal.split('|');
+  const checked = [...document.querySelectorAll('.rts-subline-chk:checked')].map(el=>el.value);
+  if(!checked.length){ alert('Pick at least one sub-line 请至少选择一个子产线'); return; }
+  const sub_lines = checked.length===LEGACY_LINE_ABBR.length ? 'ALL' : checked.join(',');
+  const patch = {
+    engineer_id, engineer_name,
+    region2: document.getElementById('rts-region2').value,
+    region3: document.getElementById('rts-region3').value.trim(),
+    sub_lines,
+    notes: document.getElementById('rts-notes').value.trim(),
+  };
+  if(currentRtsEdit){
+    await DB.updateRtsAssignment(currentRtsEdit, patch);
+    const idx = RTS_ASSIGN.findIndex(r=>r.id===currentRtsEdit);
+    if(idx>=0) RTS_ASSIGN[idx] = {...RTS_ASSIGN[idx], ...patch};
+  } else {
+    const rec = await DB.addRtsAssignment(patch);
+    RTS_ASSIGN.push(rec);
+  }
+  closeRtsModal();
+  renderRtsTable();
+}
+async function archiveRtsRow(){
+  if(!requireHQ()) return;
+  if(!currentRtsEdit) return;
+  if(!confirm('Archive (hide) this row? Data is kept, not deleted.\n归档隐藏此行？数据保留不会被删除。')) return;
+  await DB.archiveRtsAssignment(currentRtsEdit);
+  RTS_ASSIGN = RTS_ASSIGN.filter(r=>r.id!==currentRtsEdit);
+  closeRtsModal();
+  renderRtsTable();
+}
+
+// ============================================================================
 // INIT
 // ============================================================================
 const INIT_ERRORS = [];
@@ -3220,9 +3580,35 @@ function renderInitErrors(){
 // ============================================================================
 // v40: B+ page-level pinned Region/Sub-Line filter — shared by MCSR-E and
 // F2F modules below (replaces each module's own separate region picker).
-let bplusFilters = {region:'ALL', subline:'ALL'};
-function setBPlusRegion(v){ bplusFilters.region=v; renderBPlusFilterBar(); renderMe(); renderFt(); }
-function setBPlusSubline(v){ bplusFilters.subline=v; renderBPlusFilterBar(); renderMe(); renderFt(); }
+let bplusFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL'};
+function setBPlusRegion(v){ bplusFilters.region=v; bplusFilters.region3='ALL'; renderBPlusFilterBar(); renderMe(); renderFt(); }
+function setBPlusSubline(v){ bplusFilters.subline=v; bplusFilters.model='ALL'; renderBPlusFilterBar(); renderMe(); renderFt(); }
+function setBPlusRegion3(v){ bplusFilters.region3=v; renderMe(); renderFt(); }
+function setBPlusModel(v){ bplusFilters.model=v; renderMe(); renderFt(); }
+function refreshBPlusRegion3Options(){
+  const sel = document.getElementById('bplus-region3');
+  if(!sel) return;
+  if(bplusFilters.region==='ALL'){ sel.style.display='none'; bplusFilters.region3='ALL'; return; }
+  const set = new Set();
+  COVERAGE_MAP.models.forEach(m=>{
+    const bucket = COVERAGE_MAP.byModel[m.key]; if(!bucket) return;
+    (bucket.regions||[]).forEach(r=>{ if(canonicalRegion2(r.regionII)===bplusFilters.region) set.add(r.regionIII); });
+  });
+  const opts = [...set].sort();
+  sel.innerHTML = '<option value="ALL">All ' + bplusFilters.region + ' sub-regions</option>'
+    + opts.map(r=>`<option value="${esc(r)}">${esc(r.replace(' REGION',''))}</option>`).join('');
+  sel.value = bplusFilters.region3;
+  sel.style.display = 'inline-block';
+}
+function refreshBPlusModelOptions(){
+  const sel = document.getElementById('bplus-model');
+  if(!sel) return;
+  const models = dModels().filter(m=> bplusFilters.subline==='ALL' || canonicalLine(m.line)===bplusFilters.subline);
+  sel.innerHTML = '<option value="ALL">All Models</option>'
+    + models.map(m=>`<option value="${esc(m.model)}">${esc(m.model)}</option>`).join('');
+  if(!models.some(m=>m.model===bplusFilters.model)) bplusFilters.model='ALL';
+  sel.value = bplusFilters.model;
+}
 function renderBPlusFilterBar(){
   const regEl = document.getElementById('bplus-region-filters');
   if(regEl) regEl.innerHTML = ['ALL', ...B_REGIONS].map(r=>{
@@ -3234,6 +3620,8 @@ function renderBPlusFilterBar(){
   if(subEl) subEl.innerHTML = ['ALL', ...LEGACY_LINE_ABBR].map(l=>
     `<span class="pt${l===bplusFilters.subline?' on':''}" onclick="setBPlusSubline('${l}')">${l==='ALL'?'All 全部':l}</span>`
   ).join('');
+  refreshBPlusRegion3Options();
+  refreshBPlusModelOptions();
 }
 function meShortR2(s){ return String(s||'').replace(' REGION','').replace('CENTRAL ASIA','C.ASIA').trim(); }
 function meRows(){
@@ -3242,7 +3630,9 @@ function meRows(){
   const gapOnly = (document.getElementById('me-gaponly')||{}).checked;
   return MCSRE_DATA.rows.filter(r=>{
     if(bplusFilters.region!=='ALL' && canonicalRegion2(r.r2)!==bplusFilters.region) return false;
+    if(bplusFilters.region3!=='ALL' && r.r3!==bplusFilters.region3) return false;
     if(bplusFilters.subline!=='ALL' && canonicalLine(r.sub)!==bplusFilters.subline) return false;
+    if(bplusFilters.model!=='ALL' && normModelKey(r.cert)!==normModelKey(bplusFilters.model)) return false;
     if(gapOnly && (r.target - r.capped)<=0) return false;
     if(qn && !(r.dist.toLowerCase().includes(qn)||r.cert.toLowerCase().includes(qn)||r.r3.toLowerCase().includes(qn))) return false;
     return true;
@@ -3255,7 +3645,12 @@ function meAgg(rows){
 function renderMe(){
   try{ renderBPlusFilterBar(); }catch(e){}
   const rows = meRows();
-  const all = MCSRE_DATA.rows.filter(r=> (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) && (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline));
+  const all = MCSRE_DATA.rows.filter(r=>
+    (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) &&
+    (bplusFilters.region3==='ALL'||r.r3===bplusFilters.region3) &&
+    (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline) &&
+    (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model))
+  );
   const a = meAgg(all);
   const gapDists = new Set(all.filter(r=>r.target-r.capped>0).map(r=>r.dist)).size;
   // KPI
@@ -3270,7 +3665,10 @@ function renderMe(){
   try{
     let regs = [...new Set(MCSRE_DATA.rows.map(r=>r.r2))].sort();
     if(bplusFilters.region!=='ALL') regs = regs.filter(r=>canonicalRegion2(r)===bplusFilters.region);
-    const per = regs.map(rg=>meAgg(MCSRE_DATA.rows.filter(r=>r.r2===rg && (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline))));
+    const per = regs.map(rg=>meAgg(MCSRE_DATA.rows.filter(r=>r.r2===rg
+      && (bplusFilters.region3==='ALL'||r.r3===bplusFilters.region3)
+      && (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline)
+      && (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model)))));
     chartFor('me-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       legend:{data:['Acquired','Gap'],textStyle:{fontSize:10}},
@@ -3288,7 +3686,10 @@ function renderMe(){
   try{
     let subs = [...new Set(MCSRE_DATA.rows.map(r=>r.sub))];
     if(bplusFilters.subline!=='ALL') subs = subs.filter(s=>canonicalLine(s)===bplusFilters.subline);
-    const perS = subs.map(sb=>meAgg(MCSRE_DATA.rows.filter(r=>r.sub===sb && (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region))));
+    const perS = subs.map(sb=>meAgg(MCSRE_DATA.rows.filter(r=>r.sub===sb
+      && (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region)
+      && (bplusFilters.region3==='ALL'||r.r3===bplusFilters.region3)
+      && (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model)))));
     const order = subs.map((s,i)=>({s,g:perS[i].gap,c:perS[i].capped,t:perS[i].target})).sort((x,y)=>y.g-x.g);
     chartFor('me-ec-subline').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
@@ -3342,6 +3743,23 @@ function renderMe(){
 // ============================================================================
 
 function pctTxt(n,d){ return d? Math.round(n/d*100)+'%' : '--'; }
+// Computes FTFR/VIP1-FTFR/SLA stats from a pre-filtered slice of
+// FTFR_AGG.orders. FTFR is device-level (grouped by serial) and only counts
+// orders flagged past-90-days (o.p9); SLA is order-level and uses ALL orders
+// in the slice, matching the source workbook's own definitions exactly.
+function ftfrCompute(rows){
+  const p9 = rows.filter(o=>o.p9);
+  const bySerial = {}, serialVip = {};
+  p9.forEach(o=>{ bySerial[o.sn]=(bySerial[o.sn]||0)+1; if(!(o.sn in serialVip)) serialVip[o.sn]=o.vip; });
+  const serials = Object.keys(bySerial);
+  const dev = serials.length;
+  const fix = serials.filter(sn=>bySerial[sn]===1).length;
+  const v1s = serials.filter(sn=>['VIP1','SVIP'].includes(serialVip[sn]));
+  const v1dev = v1s.length;
+  const v1fix = v1s.filter(sn=>bySerial[sn]===1).length;
+  const slaRows = rows.filter(o=>o.sla);
+  return { dev, fix, v1dev, v1fix, slaN: slaRows.length, s24: slaRows.filter(o=>o.s24).length, s48: slaRows.filter(o=>o.s48).length, orders: rows.length };
+}
 function pctBadge(n,d,goodAt,warnAt){
   if(!d) return '<span class="badge b-gy">--</span>';
   const p = n/d*100, t = Math.round(p)+'%';
@@ -3354,51 +3772,48 @@ function shortR2q(s){ return String(s||'').replace(' REGION','').replace('CENTRA
 // ---------------- FTFR MODULE ----------------
 function renderQf(){
   try{ renderQPlusFilterBar(); }catch(e){}
-  // FTFR_AGG is pre-aggregated at build time into two independent breakdowns
-  // (byCat, byRegion) plus a cat×region FTFR-only cross (byCatRegion, no
-  // VIP1/SLA split). So: region-only or sub-line-only filters are exact;
-  // picking BOTH at once is exact for FTFR itself (via byCatRegion) but VIP1
-  // FTFR / SLA can't be sliced that fine — shown as "--" with a note rather
-  // than a wrong-looking number.
-  const cats = Object.keys(FTFR_AGG.byCat);
-  const effRegion = qplusFilters.region!=='ALL' ? qplusFilters.region : userRegionScope();
+  // ============================================================================
+  // v41 rebuild: FTFR_AGG.orders is now one row per FTFR-BD repair order
+  // (~6,613 rows: sn/cat/r2/r3/vip/mo/p9/sla/s24/s48), not a set of
+  // precomputed buckets. Any combination of region2 + region3 + category can
+  // be filtered directly and fed through ftfrCompute() — no more "this
+  // combination wasn't precomputed, showing --" degradation, and Region III
+  // now genuinely narrows FTFR (its source data always had it; the old
+  // byCat/byRegion pre-aggregation just hadn't kept it).
+  // ============================================================================
+  const scope = userRegionScope();
+  const effRegion = qplusFilters.region!=='ALL' ? qplusFilters.region : scope;
+  const effRegion3 = qplusFilters.region3!=='ALL' ? qplusFilters.region3 : null;
   const sublineSel = qplusFilters.subline!=='ALL' ? qplusFilters.subline : null;
-  const rawReg = effRegion ? SCOPE_TO_RAW_R2[effRegion] : null;
-  const catsInSub = sublineSel ? cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===sublineSel) : cats;
+  const cats = [...new Set(FTFR_AGG.orders.map(o=>o.cat))].filter(Boolean).sort();
+  const modelSel = qplusFilters.model!=='ALL' && cats.includes(qplusFilters.model) ? qplusFilters.model : null;
+  let catsInSub = sublineSel ? cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===sublineSel) : cats;
+  if(modelSel) catsInSub = catsInSub.filter(c=>c===modelSel);
+  const narrowed = !!(sublineSel || modelSel);
+  const scopeNote = [effRegion, effRegion3 && effRegion3.replace(' REGION',''), (modelSel||sublineSel)].filter(Boolean).join(' · ');
 
-  let o, scopeNote, vip1Avail = true, slaAvail = true;
-  if(sublineSel && effRegion){
-    let dev=0,fix=0; catsInSub.forEach(c=>{ const p=FTFR_AGG.byCatRegion[c+'|'+rawReg]; if(p){ fix+=p[0]; dev+=p[1]; } });
-    o = {dev,fix,v1dev:0,v1fix:0,s24:0,s48:0,slaN:0,orders:0};
-    vip1Avail=false; slaAvail=false;
-    scopeNote = ' · '+effRegion+' · '+sublineSel;
-  } else if(sublineSel){
-    let dev=0,fix=0,v1dev=0,v1fix=0,s24=0,s48=0,slaN=0,orders=0;
-    catsInSub.forEach(c=>{ const x=FTFR_AGG.byCat[c]; dev+=x.dev; fix+=x.fix; v1dev+=x.v1dev; v1fix+=x.v1fix; s24+=x.s24; s48+=x.s48; slaN+=x.slaN; orders+=x.orders; });
-    o = {dev,fix,v1dev,v1fix,s24,s48,slaN,orders};
-    scopeNote = ' · '+sublineSel;
-  } else if(effRegion && FTFR_AGG.byRegion[rawReg]){
-    o = FTFR_AGG.byRegion[rawReg];
-    scopeNote = ' · '+effRegion;
-  } else {
-    // FTFR_AGG.overall doesn't carry s24/slaN (only byCat/byRegion do) —
-    // sum them across every category to get the true global SLA figures.
-    let s24=0, slaN=0;
-    cats.forEach(c=>{ s24+=FTFR_AGG.byCat[c].s24; slaN+=FTFR_AGG.byCat[c].slaN; });
-    o = {...FTFR_AGG.overall, s24, slaN};
-    scopeNote = '';
-  }
-  const repN = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!sublineSel || catsInSub.includes(r.cat))).length;
+  const baseFiltered = FTFR_AGG.orders.filter(o=>
+    (!effRegion || canonicalRegion2(o.r2)===effRegion) &&
+    (!effRegion3 || o.r3===effRegion3) &&
+    (!narrowed || catsInSub.includes(o.cat))
+  );
+  const o = ftfrCompute(baseFiltered);
+  const repN = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!effRegion3 || r.r3===effRegion3) && (!narrowed || catsInSub.includes(r.cat))).length;
+
   const kEl = document.getElementById('qf-kpi');
   if(kEl) kEl.innerHTML = [
-    {lbl:'FTFR (past 90d) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices fixed first time'+scopeNote, cls: o.dev? (o.fix/o.dev>=0.8?'ok':'wa') : 'wa'},
-    {lbl:'VIP1 FTFR (incl. SVIP)', val: vip1Avail? pctTxt(o.v1fix,o.v1dev) : '--', sub: vip1Avail? ('target ≥70% · '+o.v1fix+'/'+o.v1dev+scopeNote) : 'not available at this region×sub-line cross 该组合暂无细分', cls: !vip1Avail?'plan':(o.v1dev? (o.v1fix/o.v1dev>=0.7?'ok':'er') : 'wa')},
-    {lbl:'SLA ≤24h', val: slaAvail? pctTxt(o.s24,o.slaN) : '--', sub: slaAvail? (o.s24+' / '+o.slaN+' completed orders'+scopeNote) : 'not available at this region×sub-line cross', cls: !slaAvail?'plan':(o.slaN? (o.s24/o.slaN>=0.5?'ok':'wa') : 'wa')},
-    {lbl:'Repeat Devices (≥3) 多次维修', val: repN>=60?'60+':repN, sub:'attribution needed'+scopeNote, cls:'er'},
+    {lbl:'FTFR (past 90d) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices fixed first time'+(scopeNote?' · '+scopeNote:''), cls: o.dev? (o.fix/o.dev>=0.8?'ok':'wa') : 'wa'},
+    {lbl:'VIP1 FTFR (incl. SVIP)', val: pctTxt(o.v1fix,o.v1dev), sub: 'target ≥70% · '+o.v1fix+'/'+o.v1dev+(scopeNote?' · '+scopeNote:''), cls: o.v1dev? (o.v1fix/o.v1dev>=0.7?'ok':'er') : 'wa'},
+    {lbl:'SLA ≤24h', val: pctTxt(o.s24,o.slaN), sub: o.s24+' / '+o.slaN+' completed orders'+(scopeNote?' · '+scopeNote:''), cls: o.slaN? (o.s24/o.slaN>=0.5?'ok':'wa') : 'wa'},
+    {lbl:'Repeat Devices (≥3) 多次维修', val: repN>=60?'60+':repN, sub:'attribution needed'+(scopeNote?' · '+scopeNote:''), cls:'er'},
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
-  // chart: by category (top 14 by devices) — respects sub-line filter
+
+  // chart: by category (top 14 by devices) — respects region2+region3+sub-line/model
   try{
-    const top = catsInSub.map(c=>({c, ...FTFR_AGG.byCat[c]})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
+    const scoped = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3));
+    const byCat = {};
+    catsInSub.forEach(c=>{ byCat[c] = ftfrCompute(scoped.filter(o=>o.cat===c)); });
+    const top = Object.entries(byCat).map(([c,x])=>({c,...x})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
     chartFor('qf-ec-cat').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(ps)=>{const x=top[ps[0].dataIndex];return `${x.c}<br>FTFR: ${Math.round(x.fix/x.dev*100)}% (${x.fix}/${x.dev} devices)`}},
       grid:{left:8,right:36,top:10,bottom:2,containLabel:true},
@@ -3409,15 +3824,12 @@ function renderQf(){
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart: by region — respects sub-line filter (via byCatRegion sum, FTFR-only but exact) and region lock
+  // chart: by region — respects region3 lock and sub-line/model narrowing; always exact now
   try{
-    let regs = Object.keys(FTFR_AGG.byRegion).filter(r=>r);
-    if(effRegion) regs = regs.filter(r=>regionMatchesScope(r));
-    const per = regs.map(r=>{
-      if(!sublineSel) return FTFR_AGG.byRegion[r];
-      let dev=0,fix=0; catsInSub.forEach(c=>{ const p=FTFR_AGG.byCatRegion[c+'|'+r]; if(p){ fix+=p[0]; dev+=p[1]; } });
-      return {dev,fix};
-    });
+    const scoped2 = FTFR_AGG.orders.filter(o=> (!narrowed || catsInSub.includes(o.cat)));
+    let regs = [...new Set(FTFR_AGG.orders.map(o=>canonicalRegion2(o.r2)))].filter(Boolean).sort();
+    if(effRegion) regs = regs.filter(r=>r===effRegion);
+    const per = regs.map(r=>ftfrCompute(scoped2.filter(o=>canonicalRegion2(o.r2)===r && (!effRegion3 || o.r3===effRegion3))));
     chartFor('qf-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       grid:{left:8,right:34,top:10,bottom:2,containLabel:true},
@@ -3428,22 +3840,26 @@ function renderQf(){
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart: monthly trend (global — FTFR-BD side table isn't split by region/sub-line)
+  // chart: monthly trend — now also respects the current filters (previously
+  // forced global since the old pre-aggregation only kept a global month table)
   try{
-    const mo = FTFR_AGG.monthly.order, d = FTFR_AGG.monthly.data;
+    const MONTH_ORDER=['Dec','Jan','Feb','Mar','Apr','May','Jun'];
+    const mScoped = baseFiltered;
+    const byM = {};
+    MONTH_ORDER.forEach(m=>{ const rows=mScoped.filter(o=>o.mo===m); const sla=rows.filter(o=>o.sla); byM[m]={orders:rows.length, slaN:sla.length, s24:sla.filter(o=>o.s24).length}; });
     chartFor('qf-ec-trend').setOption({
       tooltip:{trigger:'axis'},
       legend:{textStyle:{fontSize:9}},
       grid:{left:8,right:14,top:30,bottom:2,containLabel:true},
-      xAxis:{type:'category',data:mo,axisLabel:{fontSize:9}},
+      xAxis:{type:'category',data:MONTH_ORDER,axisLabel:{fontSize:9}},
       yAxis:[{type:'value',name:'orders',axisLabel:{fontSize:9}},{type:'value',max:100,axisLabel:{fontSize:9,formatter:'{value}%'}}],
       series:[
-        {name:'Orders',type:'bar',barWidth:16,itemStyle:{color:'#93C5FD'},data:mo.map(m=>d[m].orders)},
-        {name:'SLA≤24h',type:'line',yAxisIndex:1,smooth:true,itemStyle:{color:'#0066CC'},data:mo.map(m=>d[m].slaN?Math.round(d[m].s24/d[m].slaN*100):null)}
+        {name:'Orders',type:'bar',barWidth:16,itemStyle:{color:'#93C5FD'},data:MONTH_ORDER.map(m=>byM[m].orders)},
+        {name:'SLA≤24h',type:'line',yAxisIndex:1,smooth:true,itemStyle:{color:'#0066CC'},data:MONTH_ORDER.map(m=>byM[m].slaN?Math.round(byM[m].s24/byM[m].slaN*100):null)}
       ]
     }, true);
   }catch(e){}
-  // table
+  // table: model quality profile
   const QF_COLS = [
     {label:'Category', key:'c'}, {label:'Devices (90d)', key:'dev'}, {label:'Fixed 1st', key:'fix'},
     {label:'FTFR', key:'rate'}, {label:'VIP1 FTFR', key:'v1rate'}, {label:'SLA≤24h', key:'s24'},
@@ -3453,7 +3869,9 @@ function renderQf(){
   if(th) th.innerHTML=sortableThead('qf', QF_COLS, 'renderQf');
   const q=((document.getElementById('qf-search')||{}).value||'').toLowerCase();
   const min5=(document.getElementById('qf-min5')||{}).checked;
-  let rows = catsInSub.map(c=>({c,...FTFR_AGG.byCat[c]}))
+  const scopedForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3));
+  let rows = catsInSub
+    .map(c=>({c, ...ftfrCompute(scopedForTable.filter(o=>o.cat===c))}))
     .map(x=>({...x, rate: x.dev? x.fix/x.dev : -1, v1rate: x.v1dev? x.v1fix/x.v1dev : -1}))
     .filter(x=>(!min5||x.dev>=5) && (!q||x.c.toLowerCase().includes(q)));
   const stQf = SORT_STATE['qf'];
@@ -3461,26 +3879,49 @@ function renderQf(){
   const tb=document.getElementById('qf-tbody');
   if(tb) tb.innerHTML = rows.map(x=>`<tr><td><b>${esc(x.c)}</b></td><td>${x.dev}</td><td>${x.fix}</td><td>${pctBadge(x.fix,x.dev,80,70)}</td><td>${x.v1dev?pctBadge(x.v1fix,x.v1dev,70,60):'<span class="badge b-gy">--</span>'}</td><td>${pctTxt(x.s24,x.slaN)}</td><td>${pctTxt(x.s48,x.slaN)}</td><td>${x.orders}</td></tr>`).join('');
   const cnt=document.getElementById('qf-cnt'); if(cnt) cnt.textContent=rows.length+' categories';
-  // repeat table — respects both region lock and sub-line filter
+  // table: repeat-repair devices — now also respects Region III
   const QR_COLS = [
     {label:'Serial No.', key:'sn'}, {label:'Model', key:'model'}, {label:'Category', key:'cat'},
     {label:'Region', key:'r2'}, {label:'Repairs', key:'n'}, {label:'VIP', key:'vip'}, {label:'Customer', key:'cust'},
   ];
   const rh=document.getElementById('qr-thead');
   if(rh) rh.innerHTML=sortableThead('qr', QR_COLS, 'renderQf');
-  let repRows = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!sublineSel || catsInSub.includes(r.cat)));
+  let repRows = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!effRegion3 || r.r3===effRegion3) && (!narrowed || catsInSub.includes(r.cat)));
   const stQr = SORT_STATE['qr'];
   if(stQr && stQr.key) repRows = sortRows('qr', repRows, (r,k)=>r[k]);
   const rb=document.getElementById('qr-tbody');
   if(rb) rb.innerHTML = repRows.map(r=>`<tr><td style="font-family:monospace;font-size:10px">${esc(r.sn)}</td><td><b>${esc(r.model)}</b></td><td>${esc(r.cat)}</td><td>${esc(shortR2q(r.r2))} · ${esc(r.r3.replace(' REGION',''))}</td><td><b style="color:var(--er)">${r.n}</b></td><td>${r.vip&&r.vip!=='N'?'<span class="badge b-pu">'+esc(r.vip)+'</span>':''}</td><td style="font-size:10px">${esc(r.cust)}</td></tr>`).join('');
 }
 
-// v40: C+ page-level pinned Region/Sub-Line filter — shared by FTFR and QE
-// modules (replaces each module's own separate region picker; QE also gets
-// sub-line filtering for the first time here).
-let qplusFilters = {region:'ALL', subline:'ALL'};
-function setQPlusRegion(v){ qplusFilters.region=v; renderQPlusFilterBar(); renderQf(); renderQq(); }
-function setQPlusSubline(v){ qplusFilters.subline=v; renderQPlusFilterBar(); renderQf(); renderQq(); }
+let qplusFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL'};
+function setQPlusRegion(v){ qplusFilters.region=v; qplusFilters.region3='ALL'; renderQPlusFilterBar(); renderQf(); renderQq(); }
+function setQPlusSubline(v){ qplusFilters.subline=v; qplusFilters.model='ALL'; renderQPlusFilterBar(); renderQf(); renderQq(); }
+function setQPlusRegion3(v){ qplusFilters.region3=v; renderQf(); renderQq(); }
+function setQPlusModel(v){ qplusFilters.model=v; renderQf(); renderQq(); }
+function refreshQPlusRegion3Options(){
+  const sel = document.getElementById('qplus-region3');
+  if(!sel) return;
+  if(qplusFilters.region==='ALL'){ sel.style.display='none'; qplusFilters.region3='ALL'; return; }
+  const set = new Set();
+  COVERAGE_MAP.models.forEach(m=>{
+    const bucket = COVERAGE_MAP.byModel[m.key]; if(!bucket) return;
+    (bucket.regions||[]).forEach(r=>{ if(canonicalRegion2(r.regionII)===qplusFilters.region) set.add(r.regionIII); });
+  });
+  const opts = [...set].sort();
+  sel.innerHTML = '<option value="ALL">All ' + qplusFilters.region + ' sub-regions</option>'
+    + opts.map(r=>`<option value="${esc(r)}">${esc(r.replace(' REGION',''))}</option>`).join('');
+  sel.value = qplusFilters.region3;
+  sel.style.display = 'inline-block';
+}
+function refreshQPlusModelOptions(){
+  const sel = document.getElementById('qplus-model');
+  if(!sel) return;
+  const models = dModels().filter(m=> qplusFilters.subline==='ALL' || canonicalLine(m.line)===qplusFilters.subline);
+  sel.innerHTML = '<option value="ALL">All Models</option>'
+    + models.map(m=>`<option value="${esc(m.model)}">${esc(m.model)}</option>`).join('');
+  if(!models.some(m=>m.model===qplusFilters.model)) qplusFilters.model='ALL';
+  sel.value = qplusFilters.model;
+}
 function renderQPlusFilterBar(){
   const regEl = document.getElementById('qplus-region-filters');
   if(regEl) regEl.innerHTML = ['ALL', ...B_REGIONS].map(r=>{
@@ -3492,13 +3933,17 @@ function renderQPlusFilterBar(){
   if(subEl) subEl.innerHTML = ['ALL', ...LEGACY_LINE_ABBR].map(l=>
     `<span class="pt${l===qplusFilters.subline?' on':''}" onclick="setQPlusSubline('${l}')">${l==='ALL'?'All 全部':l}</span>`
   ).join('');
+  refreshQPlusRegion3Options();
+  refreshQPlusModelOptions();
 }
 // ---------------- QE MODULE ----------------
 function renderQq(){
   try{ renderQPlusFilterBar(); }catch(e){}
   const R = QE_DATA.rows.filter(r=>
     (qplusFilters.region==='ALL'||canonicalRegion2(r.r2)===qplusFilters.region) &&
-    (qplusFilters.subline==='ALL'||canonicalLine(r.sub)===qplusFilters.subline)
+    (qplusFilters.region3==='ALL'||r.r3===qplusFilters.region3) &&
+    (qplusFilters.subline==='ALL'||canonicalLine(r.sub)===qplusFilters.subline) &&
+    (qplusFilters.model==='ALL'||legacyEffectiveCategory(r.model)===qplusFilters.model)
   );
   const closed = R.filter(r=>r.oc==='CLOSED'), open = R.filter(r=>r.oc==='OPEN');
   const cltY = R.filter(r=>r.clt==='Y').length, ctY = R.filter(r=>r.ct==='Y').length;
@@ -3613,9 +4058,13 @@ function median(arr){ if(!arr.length)return null; const s=arr.slice().sort((a,b)
 function renderFt(){
   const tt=(document.getElementById('ft-tt')||{}).value||'ALL';
   const base = F2F_DATA.rows.filter(r=>tt==='ALL'||r.tt===tt);
+  // Region III isn't applied here — F2F only carries country names (not the
+  // ISO codes the rest of the site uses), so it can't be reliably resolved
+  // to a Region III sub-region; Region II and Model still narrow it.
   const R = base.filter(r=>
     (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) &&
-    (bplusFilters.subline==='ALL'||canonicalLine(r.line)===bplusFilters.subline)
+    (bplusFilters.subline==='ALL'||canonicalLine(r.line)===bplusFilters.subline) &&
+    (bplusFilters.model==='ALL'||ftCat(r.course)===bplusFilters.model)
   );
   const classes=new Set(R.map(r=>r.cid)).size;
   const passN=R.filter(r=>r['pass']==='Y').length;
@@ -3753,8 +4202,8 @@ function renderCockpit(){
   ];
 
   // ---- stage C: Mature & Quality (Page C + C+) ----
-  const scope=userRegionScope(), rawReg=scope?SCOPE_TO_RAW_R2[scope]:null;
-  const ftfrO=(rawReg && FTFR_AGG.byRegion[rawReg]) ? FTFR_AGG.byRegion[rawReg] : FTFR_AGG.overall;
+  const scope=userRegionScope();
+  const ftfrO = ftfrCompute(FTFR_AGG.orders.filter(o=>regionMatchesScope(o.r2)));
   const vip1Rate = ftfrO.v1dev ? ftfrO.v1fix/ftfrO.v1dev : null;
   let qeClosed=[], qeY=0;
   try{ qeClosed=QE_DATA.rows.filter(r=>r.oc==='CLOSED'); qeY=qeClosed.filter(r=>r.clt==='Y').length; }catch(e){}
@@ -3798,9 +4247,10 @@ function renderCockpit(){
   try{
     const scopeTagR = scope ? (' in '+scope) : '';
     if(ftfrO.v1dev && vip1Rate < 0.7) risksC.push({dot:'var(--er)', html:`<b>VIP1 FTFR ${Math.round(vip1Rate*100)}%</b>${scopeTagR} below 70% target — attribute repeat repairs`, page:'quality'});
-    Object.keys(FTFR_AGG.byCat).forEach(c=>{
-      const x=FTFR_AGG.byCat[c];
-      if(x.dev>=10 && x.fix/x.dev<0.7) risksC.push({dot:'var(--er)', html:`<b>${esc(c)}</b> FTFR ${Math.round(x.fix/x.dev*100)}% (${x.dev} devices, all regions) below 70%`, page:'quality'});
+    const catsC = [...new Set(FTFR_AGG.orders.map(o=>o.cat))].filter(Boolean);
+    catsC.forEach(c=>{
+      const x = ftfrCompute(FTFR_AGG.orders.filter(o=>o.cat===c && regionMatchesScope(o.r2)));
+      if(x.dev>=10 && x.fix/x.dev<0.7) risksC.push({dot:'var(--er)', html:`<b>${esc(c)}</b> FTFR ${Math.round(x.fix/x.dev*100)}% (${x.dev} devices${scopeTagR||', all regions'}) below 70%`, page:'quality'});
     });
   }catch(e){}
   try{
@@ -3851,6 +4301,8 @@ async function init(){
   MC_ROWS = await safe('listMcRows', () => DB.listMcRows()) || [];
   FU_SUPPORT = await safe('listFuSupport', () => DB.listFuSupport()) || [];
   LEGACY_MODELS = await safe('listLegacyModels', () => DB.listLegacyModels()) || [];
+  GTS_OWNERS = await safe('listGtsOwners', () => DB.listGtsOwners()) || [];
+  RTS_ASSIGN = await safe('listRtsAssignments', () => DB.listRtsAssignments()) || [];
 
   await safe('renderDbBanner', () => renderDbBanner());
   await safe('renderPreLaunch', () => { renderPreLaunchKPI(); renderPreLaunchTable(); renderRemarksList(); renderPreLaunchTimeline(); refreshArchivedCount(); });
@@ -3867,6 +4319,7 @@ async function init(){
     renderLifecycleKPI(); renderLifecycleTimeline(); renderLifecycleCharts(); renderLifecycleTable();
   });
   await safe('renderMcMap', () => { renderMcKPI(); renderMcSublineFilters(); renderMcTable(); });
+  await safe('renderTeam', () => { applyTeamPermissionsUI(); renderGtsTable(); renderRtsTable(); });
 
   await safe('renderCockpit', () => renderCockpit());
   await safe('renderMe', () => renderMe());
