@@ -22,7 +22,7 @@
   --shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:var(--s50);color:var(--s900);font-size:13px;display:flex;min-height:100vh}
+body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:var(--s50);color:var(--s900);font-size:12.5px;display:flex;min-height:100vh}
 .sb{width:var(--sbw);background:var(--s900);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200}
 .sb-brand{padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
 .sb-brand .logo{display:flex;flex-direction:column;background:#fff;border-radius:6px;padding:7px 10px 6px;margin-bottom:8px}
@@ -32,7 +32,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:v
 .sb-brand p{font-size:8.5px;color:rgba(255,255,255,.4);margin-top:4px;line-height:1.5;font-weight:500;letter-spacing:.02em}
 .sb-nav{flex:1;padding:4px 0;overflow-y:auto}
 .sb-sec{font-size:9px;font-weight:700;color:rgba(255,255,255,.32);text-transform:uppercase;letter-spacing:.06em;padding:8px 16px 3px}
-.ni{display:flex;align-items:center;gap:9px;padding:6px 16px;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;font-weight:500}
+.ni{display:flex;align-items:center;gap:8px;padding:5px 16px;color:rgba(255,255,255,.6);font-size:11.5px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;font-weight:500}
 .ni:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.92)}
 .ni.active{background:rgba(0,102,204,.32);color:#fff;border-left-color:#60A5FA;font-weight:700}
 .ni-ic{font-size:14px;width:18px;text-align:center}
@@ -44,30 +44,30 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:v
 .sb-footer{padding:8px 16px 12px;border-top:1px solid rgba(255,255,255,.07)}
 .sb-info{font-size:9px;color:rgba(255,255,255,.32);line-height:1.7}
 .sb-stat{background:rgba(255,255,255,.06);border-radius:6px;padding:7px 10px;margin-top:6px;font-size:10px;color:rgba(255,255,255,.5)}
-.main{margin-left:var(--sbw);flex:1;padding:18px 22px 40px;min-width:0}
-.ph{margin-bottom:14px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.main{margin-left:var(--sbw);flex:1;padding:13px 18px 28px;min-width:0}
+.ph{margin-bottom:10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ph h2{font-size:18px;font-weight:800}
 .ph h2 .en{font-weight:500;color:var(--s400);font-size:12px;margin-left:6px}
 .ph-sub{font-size:11px;color:var(--s500);line-height:1.6}
 .page{display:none}
 .page.on{display:block}
-.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:9px}
 .krow5{grid-template-columns:repeat(5,1fr)}
-.k{background:var(--wh);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.k{background:var(--wh);border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .k::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--p)}
 .k.ok::before{background:var(--ok)}.k.wa::before{background:var(--wa)}.k.er::before{background:var(--er)}.k.pu::before{background:var(--pu)}
-.k-lbl{font-size:10px;color:var(--s500);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px}
-.k-val{font-size:23px;font-weight:800;color:var(--s900);line-height:1.1}
+.k-lbl{font-size:9.5px;color:var(--s500);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+.k-val{font-size:19px;font-weight:800;color:var(--s900);line-height:1.1}
 .k-val small{font-size:12px;font-weight:600;color:var(--s400)}
-.k-sub{font-size:10px;color:var(--s400);margin-top:4px}
-.cg{display:grid;gap:12px;margin-bottom:12px}
+.k-sub{font-size:9px;color:var(--s400);margin-top:2px}
+.cg{display:grid;gap:9px;margin-bottom:9px}
 .cg2{grid-template-columns:1fr 1fr}
 .cg3{grid-template-columns:1fr 1fr 1fr}
-.card{background:var(--wh);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
-.ct{font-size:12.5px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card{background:var(--wh);border-radius:var(--r);padding:11px 14px;box-shadow:var(--shadow)}
+.ct{font-size:12px;font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:6px}
 .ct .en{font-weight:500;color:var(--s400);font-size:10px}
 .ct .sub{margin-left:auto;font-size:9.5px;color:var(--s400);font-weight:500}
-.ec{height:220px}.ec-md{height:260px}.ec-sm{height:190px}.ec-lg{height:340px}
+.ec{height:190px}.ec-md{height:260px}.ec-sm{height:190px}.ec-lg{height:340px}
 .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
 .b-ok{background:var(--okl);color:#067A55}
 .b-wa{background:var(--wal);color:#92610A}
@@ -76,15 +76,15 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:v
 .b-pu{background:var(--pul);color:#5B21B6}
 .b-bl{background:var(--pl);color:var(--pd)}
 .tbl-wrap{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
-.tbl-toolbar{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--s100);flex-wrap:wrap}
+.tbl-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--s100);flex-wrap:wrap}
 .tbl-toolbar h3{font-size:12.5px;font-weight:700}
 .tbl-toolbar .en{font-weight:400;color:var(--s400);font-size:10px;margin-left:4px}
 .tsearch{border:1px solid var(--s200);border-radius:6px;padding:6px 10px;font-size:11.5px;width:200px}
 .tcnt{font-size:10.5px;color:var(--s500);font-weight:600}
 .tbl-scroll{overflow:auto;max-height:640px}
 table{border-collapse:collapse;width:100%;font-size:11.5px}
-th{background:var(--s50);color:var(--s600);font-weight:700;text-align:left;padding:8px 9px;position:sticky;top:0;z-index:5;border-bottom:2px solid var(--s200);white-space:nowrap}
-td{padding:7px 9px;border-bottom:1px solid var(--s100);vertical-align:top}
+th{background:var(--s50);color:var(--s600);font-weight:700;text-align:left;padding:6px 8px;position:sticky;top:0;z-index:5;border-bottom:2px solid var(--s200);white-space:nowrap}
+td{padding:5px 8px;border-bottom:1px solid var(--s100);vertical-align:top}
 tr:hover td{background:var(--s50)}
 .cell-done{background:var(--okl);color:#067A55;border-radius:5px;padding:3px 7px;font-size:10.5px;font-weight:600;display:inline-block}
 .cell-na{background:var(--s100);color:var(--s400);border-radius:5px;padding:3px 7px;font-size:10.5px;display:inline-block}
@@ -112,8 +112,8 @@ tr:hover td{background:var(--s50)}
 .note{background:var(--pl);border-left:3px solid var(--p);border-radius:6px;padding:9px 12px;font-size:10.5px;color:var(--s700);line-height:1.7;margin-bottom:12px}
 .note.wa{background:var(--wal);border-color:var(--wa)}
 .note b{color:var(--s900)}
-.flow{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.flow-step{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 18px;flex:1;min-width:150px;cursor:pointer;transition:.15s;border:2px solid transparent}
+.flow{display:flex;align-items:stretch;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.flow-step{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 15px;flex:1;min-width:150px;cursor:pointer;transition:.15s;border:2px solid transparent}
 .flow-step:hover{border-color:var(--p);transform:translateY(-2px)}
 .flow-step .fs-tag{font-size:9px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.05em}
 .flow-step .fs-title{font-size:13px;font-weight:700;margin-top:3px}
@@ -122,9 +122,12 @@ tr:hover td{background:var(--s50)}
 .flow-step .fs-stat b{font-size:19px;color:var(--s900);font-weight:800}
 .flow-step .fs-stat span{font-size:9.5px;color:var(--s500)}
 .flow-step .fs-stat .fs-stat2{margin-left:8px;padding-left:8px;border-left:1px solid var(--s200)}
-.flow-arrow{color:var(--s300);font-size:18px}
+.flow-arrow{color:var(--s300);font-size:18px;display:flex;align-items:center}
 .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:500}
 .modal-bg.on{display:flex}
+.arch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--s100);font-size:11.5px}
+.arch-row:last-child{border-bottom:none}
+.arch-actions{display:flex;gap:6px;flex:none}
 .modal{background:#fff;border-radius:10px;width:480px;max-width:92vw;max-height:86vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.25)}
 .modal-hd{padding:14px 18px;border-bottom:1px solid var(--s100);display:flex;align-items:center;justify-content:space-between}
 .modal-hd h3{font-size:13.5px;font-weight:700}
@@ -208,7 +211,7 @@ tr:hover td{background:var(--s50)}
 
 /* ===== v28: cockpit / placeholder modules ===== */
 .role-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
-.role-card{background:var(--wh);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow);border-top:3px solid var(--p)}
+.role-card{background:var(--wh);border-radius:var(--r);padding:10px 13px;box-shadow:var(--shadow);border-top:3px solid var(--p)}
 .role-card.rc2{border-top-color:var(--pu)}.role-card.rc3{border-top-color:var(--ok)}
 .role-card h4{font-size:13px;font-weight:800;margin-bottom:1px}
 .role-card .en{font-size:9.5px;color:var(--s400);font-weight:600;display:block;margin-bottom:6px}
@@ -218,7 +221,7 @@ tr:hover td{background:var(--s50)}
 .role-card li:hover{color:var(--pd)}
 .role-card li b{color:var(--s800)}
 .role-card li.stat{cursor:default;color:var(--s400);font-size:10px}
-.ph-card{background:repeating-linear-gradient(-45deg,#FCFDFF,#FCFDFF 12px,#F5F8FC 12px,#F5F8FC 24px);border:1.5px dashed var(--s300);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.ph-card{background:repeating-linear-gradient(-45deg,#FCFDFF,#FCFDFF 12px,#F5F8FC 12px,#F5F8FC 24px);border:1.5px dashed var(--s300);border-radius:var(--r);padding:10px 13px;margin-bottom:9px}
 .ph-card .ct{margin-bottom:5px}
 .ph-note{font-size:10.5px;color:var(--s500);line-height:1.65;margin-bottom:4px}
 .badge.b-plan{background:var(--pul);color:#5B21B6}
@@ -252,12 +255,13 @@ details.dcx summary:hover{color:var(--pd)}
 .pt.locked:hover{background:var(--s50)}
 
 /* ===== v39: stage-grouped cockpit ===== */
-.stage-block{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:12px}
+.stage-block{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);padding:11px 14px;margin-bottom:9px}
 .stage-hd{display:flex;align-items:center;gap:8px;margin-bottom:11px}
 .stage-letter{width:22px;height:22px;border-radius:6px;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
 .stage-hd .stage-name{font-size:13px;font-weight:800;color:var(--s900)}
 .stage-hd .stage-name .en{font-weight:500;color:var(--s400);font-size:10.5px;margin-left:6px}
 .stage-hd .stage-link{margin-left:auto;font-size:10px;color:var(--p);font-weight:600;cursor:pointer}
+.stage-hd .stage-link:hover{text-decoration:underline}
 .stage-risks{margin-top:2px}
 .stage-empty{font-size:11px;color:var(--s400);padding:2px 0}
 </style>
@@ -344,10 +348,10 @@ details.dcx summary:hover{color:var(--pd)}
       <input type="text" class="tsearch" id="ov-search" placeholder="🔍 Search model 搜索机型" oninput="renderOverviewTable()">
       <div class="fg" style="margin-left:6px">
         <span class="pt on" data-v="ALL" onclick="setOvStage('ALL',this)">All 全部</span>
-        <span class="pt" data-v="PRELAUNCH" onclick="setOvStage('PRELAUNCH',this)">上市前</span>
-        <span class="pt" data-v="LAUNCH" onclick="setOvStage('LAUNCH',this)">导入期</span>
-        <span class="pt" data-v="MATURE" onclick="setOvStage('MATURE',this)">成熟在线</span>
-        <span class="pt" data-v="EOL" onclick="setOvStage('EOL',this)">停产/停服</span>
+        <span class="pt" data-v="PRELAUNCH" onclick="setOvStage('PRELAUNCH',this)">Pre-Launch 上市前</span>
+        <span class="pt" data-v="LAUNCH" onclick="setOvStage('LAUNCH',this)">Launch 导入期</span>
+        <span class="pt" data-v="MATURE" onclick="setOvStage('MATURE',this)">Mature 成熟在线</span>
+        <span class="pt" data-v="EOL" onclick="setOvStage('EOL',this)">EOL/EOS 停产/停服</span>
       </div>
       <span class="tcnt" id="ov-cnt" style="margin-left:auto"></span>
     </div>
@@ -376,7 +380,8 @@ details.dcx summary:hover{color:var(--pd)}
       <h3>Service Readiness Matrix<span class="en">产品服务准备度矩阵</span></h3>
       <span class="tcnt" id="pl-dims-cnt"></span>
       <label class="toolbar-toggle" style="margin-left:14px"><input type="checkbox" id="pl-hide100" checked onchange="renderPreLaunchTable()"> Hide 100% complete products <span style="font-weight:400">Hide 100% completed 隐藏已完成</span></label>
-      <button class="btn btn-p" id="pl-add-btn" style="margin-left:auto" onclick="openProductModal()">+ Add Product 新增产品</button>
+      <span id="pl-archived-link" onclick="openArchivedModal()" style="margin-left:auto;display:none;font-size:11px;color:var(--pd);font-weight:600;cursor:pointer;text-decoration:underline"></span>
+      <button class="btn btn-p" id="pl-add-btn" onclick="openProductModal()">+ Add Product 新增产品</button>
       <button class="btn btn-gy" onclick="exportPreLaunchCSV()">⬇ Export CSV</button>
     </div>
     <div class="tbl-scroll"><table id="pl-table"></table></div>
@@ -895,10 +900,22 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="field"><label>Overall Remarks for this Product 该产品整体评论</label><textarea id="p-remarks" placeholder="Risks, blockers, next review date... 风险、阻碍、下次评审时间..."></textarea></div>
     </div>
     <div class="modal-ft">
+      <button class="btn btn-gy" id="p-delete-btn" style="margin-right:6px;display:none;color:var(--er);border-color:#FCA5A5" onclick="deleteProductPermanently()">Delete Permanently 永久删除</button>
       <button class="btn btn-gy" id="p-archive-btn" style="margin-right:auto;display:none" onclick="archiveProduct()">Archive 归档隐藏</button>
       <button class="btn btn-gy" onclick="closeProductModal()">Cancel 取消</button>
       <button class="btn btn-p" onclick="saveProduct()">Save 保存</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="archmodal-bg">
+  <div class="modal">
+    <div class="modal-hd"><h3>Archived Products <span class="en">已归档产品</span></h3><span class="x" onclick="closeArchivedModal()">✕</span></div>
+    <div class="modal-bd">
+      <div class="hidden-note" style="margin-bottom:10px">Hidden from the board but not deleted. Restore to bring back, or delete permanently to free up the name for reuse (useful if a rename collided with an archived duplicate).<br>已从看板隐藏但未删除。可恢复，或永久删除以释放该产品名（如果改名时与某个已归档的重名产品冲突，可在此彻底清理）。</div>
+      <div id="archmodal-body"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-gy" onclick="closeArchivedModal()">Close 关闭</button></div>
   </div>
 </div>
 
@@ -1187,6 +1204,17 @@ const LocalDB = {
     localStorage.setItem(LS_NS+'products', JSON.stringify(all));
   },
   async archiveProduct(id){ return this.updateProduct(id, {archived:true}); },
+  async restoreProduct(id){ return this.updateProduct(id, {archived:false}); },
+  async listArchivedProducts(){
+    return JSON.parse(localStorage.getItem(LS_NS+'products')||'[]').filter(p=>p.archived);
+  },
+  async deleteProductPermanently(id){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'products')||'[]').filter(p=>p.id!==id);
+    localStorage.setItem(LS_NS+'products', JSON.stringify(all));
+    const status = JSON.parse(localStorage.getItem(LS_NS+'status')||'{}');
+    Object.keys(status).forEach(k=>{ if(k.startsWith(id+'__')) delete status[k]; });
+    localStorage.setItem(LS_NS+'status', JSON.stringify(status));
+  },
   async upsertStatus(productId, itemId, patch){
     const all = JSON.parse(localStorage.getItem(LS_NS+'status')||'{}');
     const k = productId+'__'+itemId;
@@ -1278,9 +1306,22 @@ const SupabaseDB = {
   },
   async updateProduct(id, patch){
     const {error} = await this.client.from('pl_products').update(patch).eq('id', id);
-    if(error){ alert('Save failed: '+error.message); throw error; }
+    if(error){ alert('Save failed: '+error.message+'\n\nIf this mentions a duplicate/unique constraint, an ARCHIVED product may already be using that exact name — check "Archived products" (link near + Add Product) and rename or permanently delete it there first.'); throw error; }
   },
   async archiveProduct(id){ return this.updateProduct(id, {archived:true}); },
+  async restoreProduct(id){ return this.updateProduct(id, {archived:false}); },
+  async listArchivedProducts(){
+    const {data, error} = await this.client.from('pl_products').select('*').eq('archived', true).order('name_en');
+    if(error){ console.error(error); return []; }
+    return data;
+  },
+  async deleteProductPermanently(id){
+    // Hard delete — also removes this product's readiness-matrix answers so
+    // no orphaned pl_status rows are left behind.
+    await this.client.from('pl_status').delete().eq('product_id', id);
+    const {error} = await this.client.from('pl_products').delete().eq('id', id);
+    if(error){ alert('Delete failed: '+error.message); throw error; }
+  },
   async upsertStatus(productId, itemId, patch){
     const rec = {product_id:productId, item_id:itemId, ...patch, updated_at:new Date().toISOString()};
     const {data, error} = await this.client.from('pl_status').upsert(rec, {onConflict:'product_id,item_id'}).select().single();
@@ -1628,6 +1669,7 @@ function openProductModal(productId){
   currentProductEdit = productId || null;
   document.getElementById('pmodal-title').textContent = productId ? 'Edit Product 编辑产品' : 'Add Product 新增产品';
   document.getElementById('p-archive-btn').style.display = productId ? 'inline-block' : 'none';
+  document.getElementById('p-delete-btn').style.display = productId ? 'inline-block' : 'none';
   if(productId){
     const p = PRODUCTS.find(x=>x.id===productId);
     document.getElementById('p-name-en').value = p.name_en||'';
@@ -1683,6 +1725,58 @@ async function archiveProduct(){
   renderPreLaunchTable();
   renderPreLaunchKPI();
   renderRemarksList();
+}
+async function deleteProductPermanently(){
+  if(!requireHQ()) return;
+  if(!currentProductEdit) return;
+  const p = PRODUCTS.find(x=>x.id===currentProductEdit);
+  const label = p ? (p.name_en||p.id) : currentProductEdit;
+  if(!confirm('PERMANENTLY delete "'+label+'"? This removes the product AND every readiness-matrix answer for it. This cannot be undone — Archive instead if unsure.\n\n永久删除 "'+label+'"？将同时删除该产品在准备度矩阵中的所有填报数据，且不可恢复。如果不确定，请改用"归档隐藏"。')) return;
+  await DB.deleteProductPermanently(currentProductEdit);
+  PRODUCTS = PRODUCTS.filter(p=>p.id!==currentProductEdit);
+  closeProductModal();
+  renderPreLaunchTable();
+  renderPreLaunchKPI();
+  renderRemarksList();
+  try{ await refreshArchivedCount(); }catch(e){}
+}
+
+// ---------------- Archived products panel ----------------
+async function refreshArchivedCount(){
+  const el = document.getElementById('pl-archived-link');
+  if(!el) return;
+  try{
+    const arch = await DB.listArchivedProducts();
+    el.textContent = 'Archived products (' + arch.length + ') 已归档';
+    el.style.display = arch.length ? 'inline' : 'none';
+  }catch(e){ el.style.display = 'none'; }
+}
+async function openArchivedModal(){
+  if(!requireHQ()) return;
+  const arch = await DB.listArchivedProducts();
+  const body = document.getElementById('archmodal-body');
+  body.innerHTML = arch.length
+    ? arch.map(p=>`<div class="arch-row">
+        <div><b>${esc(p.name_en)}</b>${p.name_cn?' · '+esc(p.name_cn):''}<span style="color:var(--s400);font-size:10px;margin-left:6px">${esc(p.sub_line||'')}</span></div>
+        <div class="arch-actions">
+          <button class="btn btn-gy btn-sm" onclick="restoreArchivedProduct('${p.id}')">Restore 恢复</button>
+          <button class="btn btn-gy btn-sm" style="color:var(--er);border-color:#FCA5A5" onclick="deleteArchivedProductPermanently('${p.id}','${esc(p.name_en).replace(/'/g,"\\'")}')">Delete Permanently 永久删除</button>
+        </div>
+      </div>`).join('')
+    : '<div class="ph-note">No archived products 暂无已归档产品</div>';
+  document.getElementById('archmodal-bg').classList.add('on');
+}
+function closeArchivedModal(){ document.getElementById('archmodal-bg').classList.remove('on'); }
+async function restoreArchivedProduct(id){
+  await DB.restoreProduct(id);
+  PRODUCTS = await DB.listProducts();
+  renderPreLaunchTable(); renderPreLaunchKPI(); renderRemarksList();
+  openArchivedModal(); refreshArchivedCount();
+}
+async function deleteArchivedProductPermanently(id, label){
+  if(!confirm('PERMANENTLY delete "'+label+'"? This cannot be undone.\n永久删除 "'+label+'"？不可恢复。')) return;
+  await DB.deleteProductPermanently(id);
+  openArchivedModal(); refreshArchivedCount();
 }
 
 function renderRemarksList(){
@@ -1781,7 +1875,7 @@ function renderOverviewKPI(){
   const a = document.getElementById('ov-flow-a'); if(a) a.innerHTML = `<b>${s.preLaunch}</b><span>products in prep 筹备中</span>`;
   const b = document.getElementById('ov-flow-b'); if(b) b.innerHTML = `<b>${s.launch}</b><span>new + shipped 新品且已出库</span>`;
   const c = document.getElementById('ov-flow-c'); if(c) c.innerHTML = `<b>${s.mature}</b><span>online categories 在线大类</span>`;
-  const d = document.getElementById('ov-flow-d'); if(d) d.innerHTML = `<b>${s.discontinued}</b><span>discontinued 停产</span><span class="fs-stat2"><b>${s.eos}</b><span>EOS 停服</span></span>`;
+  const d = document.getElementById('ov-flow-d'); if(d) d.innerHTML = `<b>${s.discontinued}</b><span>discontinued 停产 · <b>${s.eos}</b> EOS 停服</span>`;
 }
 
 // Same population source as computeLifecycleStageCounts(), broken out item-by-item
@@ -2428,17 +2522,36 @@ function renderLaunchCharts(){
   // that's what caused the slight misalignment) then average in pixel-space.
   setTimeout(()=>{
     try {
-      if(!rows.length || !c1.convertToPixel) return;
+      if(!c1.convertToPixel) return;
+      // ECharts' graphic array merges by id (or by index with no id) and does
+      // NOT auto-remove leftover elements from a previous, larger render —
+      // so filtering from "All" (7 sub-line groups) down to one sub-line
+      // used to leave the other 6 groups' labels/dividers stuck on screen.
+      // Fix: always emit a FIXED-SIZE pool of slots (one per possible
+      // sub-line + one fewer divider), each with a stable id, and blank out
+      // whichever slots aren't in use this render — so ECharts updates
+      // every slot in place instead of accumulating stragglers.
+      const MAX_GROUPS = LEGACY_LINE_ABBR.length;
       const px = i => c1.convertToPixel({xAxisIndex:0}, i);
       const graphics = [];
-      groups.forEach((g,gi)=>{
-        const xMid = (px(g.start) + px(g.end)) / 2;
-        graphics.push({type:'text', left:xMid-24, top:16, style:{text:sublineAbbr(g.line), font:'bold 11px Inter', fill:'#334155'}, z:10});
-        if(gi>0){
-          const dividerX = (px(groups[gi-1].end) + px(g.start)) / 2;
-          graphics.push({type:'line', shape:{x1:dividerX, y1:40, x2:dividerX, y2:c1.getHeight()-70}, style:{stroke:'#E2E8F0', lineWidth:1}, z:9});
+      for(let gi=0; gi<MAX_GROUPS; gi++){
+        const g = groups[gi];
+        if(g && rows.length){
+          const xMid = (px(g.start) + px(g.end)) / 2;
+          graphics.push({id:'grp-label-'+gi, type:'text', left:xMid-24, top:16, invisible:false, style:{text:sublineAbbr(g.line), font:'bold 11px Inter', fill:'#334155'}, z:10});
+        } else {
+          graphics.push({id:'grp-label-'+gi, type:'text', invisible:true, style:{text:''}});
         }
-      });
+      }
+      for(let gi=1; gi<MAX_GROUPS; gi++){
+        const g = groups[gi];
+        if(g && rows.length){
+          const dividerX = (px(groups[gi-1].end) + px(g.start)) / 2;
+          graphics.push({id:'grp-div-'+gi, type:'line', invisible:false, shape:{x1:dividerX, y1:40, x2:dividerX, y2:c1.getHeight()-70}, style:{stroke:'#E2E8F0', lineWidth:1}, z:9});
+        } else {
+          graphics.push({id:'grp-div-'+gi, type:'line', invisible:true, shape:{x1:0,y1:0,x2:0,y2:0}});
+        }
+      }
       c1.setOption({graphic: graphics});
     } catch(e){ console.warn('chart group-label positioning skipped:', e); }
   }, 0);
@@ -3740,7 +3853,7 @@ async function init(){
   LEGACY_MODELS = await safe('listLegacyModels', () => DB.listLegacyModels()) || [];
 
   await safe('renderDbBanner', () => renderDbBanner());
-  await safe('renderPreLaunch', () => { renderPreLaunchKPI(); renderPreLaunchTable(); renderRemarksList(); renderPreLaunchTimeline(); });
+  await safe('renderPreLaunch', () => { renderPreLaunchKPI(); renderPreLaunchTable(); renderRemarksList(); renderPreLaunchTimeline(); refreshArchivedCount(); });
 
   await safe('renderOverview', () => {
     PORTFOLIO = buildPortfolio();
