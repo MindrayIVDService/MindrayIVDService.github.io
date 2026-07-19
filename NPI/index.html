@@ -250,6 +250,16 @@ details.dcx summary:hover{color:var(--pd)}
 .user-strip button:hover{border-color:var(--p);color:var(--p)}
 .pt.locked{background:var(--s50);color:var(--s300);cursor:not-allowed;position:relative}
 .pt.locked:hover{background:var(--s50)}
+
+/* ===== v39: stage-grouped cockpit ===== */
+.stage-block{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:12px}
+.stage-hd{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.stage-letter{width:22px;height:22px;border-radius:6px;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.stage-hd .stage-name{font-size:13px;font-weight:800;color:var(--s900)}
+.stage-hd .stage-name .en{font-weight:500;color:var(--s400);font-size:10.5px;margin-left:6px}
+.stage-hd .stage-link{margin-left:auto;font-size:10px;color:var(--p);font-weight:600;cursor:pointer}
+.stage-risks{margin-top:2px}
+.stage-empty{font-size:11px;color:var(--s400);padding:2px 0}
 </style>
 </head>
 <body>
@@ -326,7 +336,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="cg cg3">
     <div class="card"><div class="ct">Stage Distribution<span class="en">生命周期阶段分布</span></div><div class="ec" id="ov-ec-stage"></div></div>
     <div class="card"><div class="ct">By Product Line<span class="en">产线分布</span></div><div class="ec" id="ov-ec-line"></div></div>
-    <div class="card"><div class="ct">Out Trend (rolling 2y)<span class="en">近2年出库趋势</span><span class="sub">installed = cumulative, estimated 装机为累计估算值</span></div><div class="ec" id="ov-ec-trend"></div></div>
+    <div class="card"><div class="ct">Out Trend (rolling 2y)<span class="en">近2年出库趋势</span><span class="sub">installed = yearly, estimated 装机为年度估算值</span></div><div class="ec" id="ov-ec-trend"></div></div>
   </div>
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
@@ -341,9 +351,7 @@ details.dcx summary:hover{color:var(--pd)}
       </div>
       <span class="tcnt" id="ov-cnt" style="margin-left:auto"></span>
     </div>
-    <div class="tbl-scroll"><table><thead><tr>
-      <th>Model 机型</th><th>Product Line 产线</th><th>Stage 阶段</th><th>Status 状态</th><th>Launch / First Out 上市/出库</th><th>EOL / EOS 停产/停服</th><th>Out (rolling 2y) 近2年出库</th><th>Installed (rolling 2y) 近2年装机</th><th>Owner 负责人</th>
-    </tr></thead><tbody id="ov-tbody"></tbody></table></div>
+    <div class="tbl-scroll"><table><thead><tr id="ov-thead"></tr></thead><tbody id="ov-tbody"></tbody></table></div>
   </div>
 </div>
 
@@ -480,12 +488,24 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="ph"><h2>🎯 Executive Cockpit <span class="en">管理驾驶舱</span></h2>
     <div class="ph-sub">Cross-stage health &amp; risks at a glance · three role lenses 跨阶段健康度与风险一页速览</div></div>
 
-  <div class="krow krow5" id="ck-kpi"></div>
-  <div class="krow" id="ck-kpi-plan"></div>
-
-  <div class="card" style="margin-bottom:12px">
-    <div class="ct">⚠️ Risk Radar<span class="en">风险雷达</span><span class="sub">auto-aggregated red signals from all pages · click to drill down</span></div>
-    <div id="ck-risks"></div>
+  <div class="stage-block" data-stage="A">
+    <div class="stage-hd"><span class="stage-letter" style="background:#3385D6">A</span><span class="stage-name">Pre-Launch<span class="en">上市前赋能准备度</span></span><span class="stage-link" onclick="nav('prelaunch')">Page A →</span></div>
+    <div class="krow" id="ck-kpi-a"></div>
+    <div class="stage-risks" id="ck-risks-a"></div>
+  </div>
+  <div class="stage-block" data-stage="B">
+    <div class="stage-hd"><span class="stage-letter" style="background:#F59E0B">B</span><span class="stage-name">Launch &amp; Readiness<span class="en">导入管理 · 渠道与备件</span></span><span class="stage-link" onclick="nav('launch')">Page B →</span></div>
+    <div class="krow" id="ck-kpi-b"></div>
+    <div class="stage-risks" id="ck-risks-b"></div>
+  </div>
+  <div class="stage-block" data-stage="C">
+    <div class="stage-hd"><span class="stage-letter" style="background:#10B981">C</span><span class="stage-name">Mature &amp; Quality<span class="en">成熟产品 · 质量监控</span></span><span class="stage-link" onclick="nav('quality')">Page C →</span></div>
+    <div class="krow" id="ck-kpi-c"></div>
+    <div class="stage-risks" id="ck-risks-c"></div>
+  </div>
+  <div class="stage-block" data-stage="D">
+    <div class="stage-hd"><span class="stage-letter" style="background:#94A3B8">D</span><span class="stage-name">EOL / EOS<span class="en">停产停服管理</span></span><span class="stage-link" onclick="nav('eos')">Page D →</span></div>
+    <div class="stage-risks" id="ck-risks-d"></div>
   </div>
 
   <div class="role-grid">
@@ -528,6 +548,17 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="ph"><h2>🧩 B+. Channel &amp; Spares Readiness <span class="en">渠道资质与备件备库</span></h2>
     <div class="ph-sub">The other two legs of independent launch delivery. MCSR-E attainment &amp; F2F enablement are <b>live</b> (2026-07 snapshots); spares pre-stock is planned. 渠道资质与集中赋能已上线，备件备库规划中。</div></div>
 
+  <div class="b-filter-bar">
+    <div class="tbl-toolbar" style="flex-wrap:wrap">
+      <span class="flbl">Region</span>
+      <div class="fg" id="bplus-region-filters"></div>
+    </div>
+    <div class="tbl-toolbar" style="flex-wrap:wrap">
+      <span class="flbl">Sub-Line</span>
+      <div class="fg" id="bplus-subline-filters"></div>
+    </div>
+  </div>
+
   <!-- ===== LIVE: Channel MCSR-E Attainment (v29) ===== -->
   <div class="krow" id="me-kpi"></div>
   <div class="cg cg3">
@@ -538,11 +569,6 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl" style="font-weight:800;color:var(--s800)">Distributor Certification Detail 渠道明细</span>
-      <span class="flbl">Region</span>
-      <div class="fg" id="me-region-filters"></div>
-      <select id="me-subline" onchange="meSetSub(this.value)" style="font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700)">
-        <option value="ALL">All Sub-Lines 全部子产线</option>
-      </select>
       <label class="chk" style="font-size:11px;display:inline-flex;align-items:center;gap:4px;color:var(--s600)"><input type="checkbox" id="me-gaponly" checked onchange="renderMe()"> Gap only 只看有缺口</label>
       <input type="text" class="tsearch" id="me-search" placeholder="🔍 Search distributor / cert 搜索渠道或认证" oninput="renderMe()" style="margin-left:auto">
       <span id="me-cnt" style="font-size:10px;color:var(--s400);white-space:nowrap"></span>
@@ -587,8 +613,6 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap" style="margin-bottom:12px">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl" style="font-weight:800;color:var(--s800)">Course Conversion Detail 课程明细</span>
-      <span class="flbl">Region</span>
-      <div class="fg" id="ft-region-filters"></div>
       <select id="ft-tt" onchange="renderFt()" style="font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700)">
         <option value="ALL">All Trainees 全部学员</option>
         <option value="channel">Channel 渠道</option>
@@ -618,6 +642,17 @@ details.dcx summary:hover{color:var(--pd)}
 <div id="p-quality" class="page">
   <div class="ph"><h2>🩺 C+. Quality &amp; FTFR / QE Watch <span class="en">质量与技术监控</span></h2>
     <div class="ph-sub">Post-launch quality &amp; service loops sliced <b>by model</b> — complementary to the monthly-report portal (dept / month view). FTFR/SLA &amp; QE are live; NPI watch is planned. 按机型切片，与月报平台互补。</div></div>
+
+  <div class="b-filter-bar">
+    <div class="tbl-toolbar" style="flex-wrap:wrap">
+      <span class="flbl">Region</span>
+      <div class="fg" id="qplus-region-filters"></div>
+    </div>
+    <div class="tbl-toolbar" style="flex-wrap:wrap">
+      <span class="flbl">Sub-Line</span>
+      <div class="fg" id="qplus-subline-filters"></div>
+    </div>
+  </div>
 
   <div class="ph-card">
     <div class="ct">🆕 NPI Post-Launch Watch 新品上市后跟踪 <span class="badge b-plan">PLANNED</span></div>
@@ -684,7 +719,6 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap" style="margin-bottom:12px">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl" style="font-weight:800;color:var(--s800)">Open QE Checklist 未封闭清单</span>
-      <div class="fg" id="qq-region-filters"></div>
       <input type="text" class="tsearch" id="qq-search" placeholder="🔍 Search model / region 搜索机型或区域" oninput="renderQq()" style="margin-left:auto">
       <span id="qq-cnt" style="font-size:10px;color:var(--s400)"></span>
     </div>
@@ -1060,6 +1094,43 @@ function nav(page, el){
 // HELPERS
 // ============================================================================
 function esc(s){ return (s===null||s===undefined) ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// ============================================================================
+// v39: GENERIC SORTABLE-TABLE HELPER — reused across every plain listing
+// table on the site (Overview ledger, MCSR-E, F2F, FTFR profile/repeat, QE
+// checklist). The four Supabase-editable tables (Page B coverage, First-Unit,
+// Legacy Ledger, Master table) keep their own earlier COLUMNS-array pattern
+// unchanged since it already does the same job for those.
+// ============================================================================
+const SORT_STATE = {};
+function setSort(tableId, key, renderFn){
+  const st = SORT_STATE[tableId] || (SORT_STATE[tableId]={key:null,dir:1});
+  if(st.key===key) st.dir*=-1; else { st.key=key; st.dir=1; }
+  renderFn();
+}
+function sortableThead(tableId, cols, renderFnName){
+  return cols.map(c=>{
+    const st = SORT_STATE[tableId];
+    const active = st && st.key===c.key;
+    const arrow = active ? (st.dir===1?'▲':'▼') : '▲▼';
+    return `<th class="th-sort${active?' active':''}" onclick="setSort('${tableId}','${c.key}',${renderFnName})">${c.label}<span class="arrow">${arrow}</span></th>`;
+  }).join('');
+}
+function sortRows(tableId, rows, accessor){
+  const st = SORT_STATE[tableId];
+  if(!st || !st.key) return rows;
+  const withIdx = rows.map((r,i)=>({r,i}));
+  withIdx.sort((A,B)=>{
+    let av=accessor(A.r,st.key), bv=accessor(B.r,st.key);
+    const aNull = av===undefined||av===null||av==='--'||av==='';
+    const bNull = bv===undefined||bv===null||bv==='--'||bv==='';
+    if(aNull && bNull) return A.i-B.i;
+    if(aNull) return 1;
+    if(bNull) return -1;
+    if(typeof av==='string'){ av=av.toUpperCase(); bv=String(bv).toUpperCase(); }
+    if(av<bv) return -1*st.dir; if(av>bv) return 1*st.dir; return A.i-B.i;
+  });
+  return withIdx.map(x=>x.r);
+}
 function fmtPct(v){ return (v===null||v===undefined||isNaN(v)) ? '--' : (v*100).toFixed(0)+'%'; }
 function normKey(s){ return (s||'').toString().toUpperCase().replace(/[\s\-\[\]\/]/g,''); }
 // Mirrors extract_coverage_map.py's norm() exactly (lowercase, collapse
@@ -1767,12 +1838,12 @@ function renderOverviewCharts(){
       label:{show:true, position:'right', fontSize:10}}]
   });
 
-  // Yearly Out (as before) + a cumulative Installed bar. Per-year Installed
-  // dates aren't tracked in the source data (only lifetime installedCount per
-  // model), so each model's own installedCount/outCount conversion rate is
-  // applied to that model's own yearCounts, then run-summed across years —
-  // an estimate, clearly labeled, that reconciles exactly to each model's
-  // true lifetime installedCount by the final year.
+  // Yearly Out + yearly Installed, side by side on the same chart (both
+  // per-year, neither cumulative). Per-year Installed dates aren't tracked in
+  // the source data (only each model's lifetime installedCount), so each
+  // model's own installedCount/outCount conversion rate is applied to that
+  // model's own yearCounts to estimate that year's installs — clearly
+  // labeled as an estimate.
   const yearOut = {}, yearInstEst = {};
   Object.values(EQUIPMENT.lifecycle).forEach(m=>{
     const rate = m.outCount ? (m.installedCount / m.outCount) : 0;
@@ -1782,26 +1853,34 @@ function renderOverviewCharts(){
     });
   });
   const years = Object.keys(yearOut).sort();
-  let cum = 0;
-  const cumInstalled = years.map(y=>{ cum += yearInstEst[y]||0; return Math.round(cum); });
   const c3 = chartFor('ov-ec-trend');
   c3.setOption({
     tooltip:{trigger:'axis'},
-    legend:{data:['Out (yearly) 年度出库','Installed (cumulative, est.) 累计装机·估算'], top:0, textStyle:{fontSize:9}},
+    legend:{data:['Out (yearly) 年度出库','Installed (yearly, est.) 年度装机·估算'], top:0, textStyle:{fontSize:9}},
     grid:{left:44,right:16,top:34,bottom:24},
     xAxis:{type:'category', data:years, axisLabel:{fontSize:10}}, yAxis:{type:'value'},
     series:[
       {name:'Out (yearly) 年度出库', type:'bar', data:years.map(y=>yearOut[y]), itemStyle:{color:'#7C3AED', borderRadius:[4,4,0,0]}, barMaxWidth:34,
         label:{show:true, position:'top', fontSize:9}},
-      {name:'Installed (cumulative, est.) 累计装机·估算', type:'bar', data:cumInstalled, itemStyle:{color:'#93C5FD', borderRadius:[4,4,0,0]}, barMaxWidth:34,
+      {name:'Installed (yearly, est.) 年度装机·估算', type:'bar', data:years.map(y=>Math.round(yearInstEst[y]||0)), itemStyle:{color:'#93C5FD', borderRadius:[4,4,0,0]}, barMaxWidth:34,
         label:{show:true, position:'top', fontSize:9}}
     ]
   });
 }
 
+const OV_COLS = [
+  {label:'Model 机型', key:'model'}, {label:'Product Line 产线', key:'line'},
+  {label:'Stage 阶段', key:'stage'}, {label:'Status 状态', key:'status'},
+  {label:'Launch / First Out 上市/出库', key:'launch'}, {label:'EOL / EOS 停产/停服', key:'eol'},
+  {label:'Out (rolling 2y) 近2年出库', key:'out2y'}, {label:'Installed (rolling 2y) 近2年装机', key:'install2y'},
+  {label:'Owner 负责人', key:'owner'},
+];
 function renderOverviewTable(){
+  const thEl = document.getElementById('ov-thead');
+  if(thEl) thEl.innerHTML = sortableThead('ov', OV_COLS, 'renderOverviewTable');
   const q = (document.getElementById('ov-search').value||'').toUpperCase();
-  const rows = PORTFOLIO.filter(r=> (ovStage==='ALL'||r.stage===ovStage) && (!q || r.model.toUpperCase().includes(q)) );
+  let rows = PORTFOLIO.filter(r=> (ovStage==='ALL'||r.stage===ovStage) && (!q || r.model.toUpperCase().includes(q)) );
+  rows = sortRows('ov', rows, (r,k)=>r[k]);
   const stageBadge = {PRELAUNCH:'<span class="badge b-bl">Pre-Launch</span>', LAUNCH:'<span class="badge b-pu">Launch</span>', MATURE:'<span class="badge b-ok">Mature</span>', EOL:'<span class="badge b-er">EOL</span>'};
   document.getElementById('ov-tbody').innerHTML = rows.map(r=>`<tr>
     <td><b>${esc(r.model)}</b></td><td>${esc(r.line)}</td><td>${stageBadge[r.stage]}</td><td>${esc(r.status)}</td>
@@ -1868,8 +1947,8 @@ function applyRegionScopeDefaults(){
   if(!scope) return;
   bFilters.region = scope;
   try{ refreshBRegion3Options(); }catch(e){}
-  const raw = SCOPE_TO_RAW_R2[scope];
-  if(raw){ meFilters.region = raw; ftRegion = raw; qqRegion = raw; }
+  bplusFilters.region = scope;
+  qplusFilters.region = scope;
 }
 function lockedChip(label){
   return `<span class="pt locked" title="Access limited to your region 仅可查看本区域数据">🔒 ${label}</span>`;
@@ -3026,44 +3105,44 @@ function renderInitErrors(){
 // ============================================================================
 // v29: CHANNEL MCSR-E ATTAINMENT (live data, snapshot embedded from xlsx)
 // ============================================================================
-let meFilters = {region:'ALL', sub:'ALL'};
+// v40: B+ page-level pinned Region/Sub-Line filter — shared by MCSR-E and
+// F2F modules below (replaces each module's own separate region picker).
+let bplusFilters = {region:'ALL', subline:'ALL'};
+function setBPlusRegion(v){ bplusFilters.region=v; renderBPlusFilterBar(); renderMe(); renderFt(); }
+function setBPlusSubline(v){ bplusFilters.subline=v; renderBPlusFilterBar(); renderMe(); renderFt(); }
+function renderBPlusFilterBar(){
+  const regEl = document.getElementById('bplus-region-filters');
+  if(regEl) regEl.innerHTML = ['ALL', ...B_REGIONS].map(r=>{
+    const label = r==='ALL'?'All':(B_REGION_ABBR[r]||r);
+    if(r==='ALL' ? userRegionScope() : !regionMatchesScope(r)) return lockedChip(label);
+    return `<span class="pt${r===bplusFilters.region?' on':''}" onclick="setBPlusRegion('${r}')">${label}</span>`;
+  }).join('');
+  const subEl = document.getElementById('bplus-subline-filters');
+  if(subEl) subEl.innerHTML = ['ALL', ...LEGACY_LINE_ABBR].map(l=>
+    `<span class="pt${l===bplusFilters.subline?' on':''}" onclick="setBPlusSubline('${l}')">${l==='ALL'?'All 全部':l}</span>`
+  ).join('');
+}
 function meShortR2(s){ return String(s||'').replace(' REGION','').replace('CENTRAL ASIA','C.ASIA').trim(); }
 function meRows(){
   const q = (document.getElementById('me-search')||{}).value||'';
   const qn = q.trim().toLowerCase();
   const gapOnly = (document.getElementById('me-gaponly')||{}).checked;
   return MCSRE_DATA.rows.filter(r=>{
-    if(meFilters.region!=='ALL' && r.r2!==meFilters.region) return false;
-    if(meFilters.sub!=='ALL' && r.sub!==meFilters.sub) return false;
+    if(bplusFilters.region!=='ALL' && canonicalRegion2(r.r2)!==bplusFilters.region) return false;
+    if(bplusFilters.subline!=='ALL' && canonicalLine(r.sub)!==bplusFilters.subline) return false;
     if(gapOnly && (r.target - r.capped)<=0) return false;
     if(qn && !(r.dist.toLowerCase().includes(qn)||r.cert.toLowerCase().includes(qn)||r.r3.toLowerCase().includes(qn))) return false;
     return true;
   });
 }
-function meSetRegion(v){ meFilters.region=v; renderMe(); }
-function meSetSub(v){ meFilters.sub=v; renderMe(); }
 function meAgg(rows){
   let t=0,c=0; rows.forEach(r=>{t+=r.target;c+=r.capped;});
   return {target:t, capped:c, gap:t-c, rate: t? c/t : null};
 }
-function renderMeStatic(){
-  // region chips
-  const regs = [...new Set(MCSRE_DATA.rows.map(r=>r.r2))].sort();
-  const el = document.getElementById('me-region-filters');
-  if(el) el.innerHTML = ['ALL',...regs].map(r=>{
-    const label = r==='ALL'?'All 全部':esc(meShortR2(r));
-    if(r==='ALL' ? userRegionScope() : !regionMatchesScope(r)) return lockedChip(label);
-    return `<span class="pt ${meFilters.region===r?'on':''}" onclick="meSetRegion('${r.replace(/'/g,"\\'")}')">${label}</span>`;
-  }).join('');
-  // subline select
-  const subs = [...new Set(MCSRE_DATA.rows.map(r=>r.sub))].sort();
-  const sel = document.getElementById('me-subline');
-  if(sel && sel.options.length<=1) subs.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
-}
 function renderMe(){
-  try{ renderMeStatic(); }catch(e){}
+  try{ renderBPlusFilterBar(); }catch(e){}
   const rows = meRows();
-  const all = MCSRE_DATA.rows.filter(r=> (meFilters.region==='ALL'||r.r2===meFilters.region) && (meFilters.sub==='ALL'||r.sub===meFilters.sub));
+  const all = MCSRE_DATA.rows.filter(r=> (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) && (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline));
   const a = meAgg(all);
   const gapDists = new Set(all.filter(r=>r.target-r.capped>0).map(r=>r.dist)).size;
   // KPI
@@ -3076,8 +3155,9 @@ function renderMe(){
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
   // chart: by region
   try{
-    const regs = [...new Set(MCSRE_DATA.rows.map(r=>r.r2))].sort();
-    const per = regs.map(rg=>meAgg(MCSRE_DATA.rows.filter(r=>r.r2===rg && (meFilters.sub==='ALL'||r.sub===meFilters.sub))));
+    let regs = [...new Set(MCSRE_DATA.rows.map(r=>r.r2))].sort();
+    if(bplusFilters.region!=='ALL') regs = regs.filter(r=>canonicalRegion2(r)===bplusFilters.region);
+    const per = regs.map(rg=>meAgg(MCSRE_DATA.rows.filter(r=>r.r2===rg && (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline))));
     chartFor('me-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       legend:{data:['Acquired','Gap'],textStyle:{fontSize:10}},
@@ -3093,8 +3173,9 @@ function renderMe(){
   }catch(e){}
   // chart: by subline
   try{
-    const subs = [...new Set(MCSRE_DATA.rows.map(r=>r.sub))];
-    const perS = subs.map(sb=>meAgg(MCSRE_DATA.rows.filter(r=>r.sub===sb && (meFilters.region==='ALL'||r.r2===meFilters.region))));
+    let subs = [...new Set(MCSRE_DATA.rows.map(r=>r.sub))];
+    if(bplusFilters.subline!=='ALL') subs = subs.filter(s=>canonicalLine(s)===bplusFilters.subline);
+    const perS = subs.map(sb=>meAgg(MCSRE_DATA.rows.filter(r=>r.sub===sb && (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region))));
     const order = subs.map((s,i)=>({s,g:perS[i].gap,c:perS[i].capped,t:perS[i].target})).sort((x,y)=>y.g-x.g);
     chartFor('me-ec-subline').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
@@ -3120,9 +3201,16 @@ function renderMe(){
     }, true);
   }catch(e){}
   // table
+  const ME_COLS = [
+    {label:'Region II', key:'r2'}, {label:'Region III', key:'r3'}, {label:'Distributor', key:'dist'},
+    {label:'Type', key:'ct'}, {label:'Sub-Line', key:'sub'}, {label:'Certification', key:'cert'},
+    {label:'Target', key:'target'}, {label:'Acquired', key:'capped'}, {label:'Gap', key:'gap'}, {label:'Attainment', key:'rate'},
+  ];
   const th = document.getElementById('me-thead');
-  if(th) th.innerHTML = ['Region II','Region III','Distributor','Type','Sub-Line','Certification','Target','Acquired','Gap','Attainment'].map(h=>`<th>${h}</th>`).join('');
-  const sorted = rows.slice().sort((x,y)=> (y.target-y.capped)-(x.target-x.capped) || y.target-x.target);
+  if(th) th.innerHTML = sortableThead('me', ME_COLS, 'renderMe');
+  const rowsCalc = rows.map(r=>({...r, gap: r.target-r.capped, rate: r.target? r.capped/r.target : -1}));
+  const st = SORT_STATE['me'];
+  const sorted = st && st.key ? sortRows('me', rowsCalc, (r,k)=>r[k]) : rowsCalc.slice().sort((x,y)=> y.gap-x.gap || y.target-x.target);
   const LIMIT = 400;
   const tb = document.getElementById('me-tbody');
   if(tb) tb.innerHTML = sorted.slice(0,LIMIT).map(r=>{
@@ -3152,28 +3240,52 @@ function shortR2q(s){ return String(s||'').replace(' REGION','').replace('CENTRA
 
 // ---------------- FTFR MODULE ----------------
 function renderQf(){
-  // Region-scoped accounts see THEIR region's FTFR/SLA (byRegion), not the
-  // global aggregate — same locking principle as every other page. HQ (no
-  // scope) keeps seeing the global "overall" figure as before.
-  const scope = userRegionScope();
-  const rawReg = scope ? SCOPE_TO_RAW_R2[scope] : null;
-  const o = (rawReg && FTFR_AGG.byRegion[rawReg]) ? FTFR_AGG.byRegion[rawReg] : FTFR_AGG.overall;
-  const scopeNote = scope ? (' · ' + scope) : '';
+  try{ renderQPlusFilterBar(); }catch(e){}
+  // FTFR_AGG is pre-aggregated at build time into two independent breakdowns
+  // (byCat, byRegion) plus a cat×region FTFR-only cross (byCatRegion, no
+  // VIP1/SLA split). So: region-only or sub-line-only filters are exact;
+  // picking BOTH at once is exact for FTFR itself (via byCatRegion) but VIP1
+  // FTFR / SLA can't be sliced that fine — shown as "--" with a note rather
+  // than a wrong-looking number.
   const cats = Object.keys(FTFR_AGG.byCat);
-  let s24, slaN;
-  if(rawReg && FTFR_AGG.byRegion[rawReg]){ s24 = o.s24; slaN = o.slaN; }
-  else { s24=0; slaN=0; cats.forEach(c=>{ s24+=FTFR_AGG.byCat[c].s24; slaN+=FTFR_AGG.byCat[c].slaN; }); }
-  const repN = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2)).length;
+  const effRegion = qplusFilters.region!=='ALL' ? qplusFilters.region : userRegionScope();
+  const sublineSel = qplusFilters.subline!=='ALL' ? qplusFilters.subline : null;
+  const rawReg = effRegion ? SCOPE_TO_RAW_R2[effRegion] : null;
+  const catsInSub = sublineSel ? cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===sublineSel) : cats;
+
+  let o, scopeNote, vip1Avail = true, slaAvail = true;
+  if(sublineSel && effRegion){
+    let dev=0,fix=0; catsInSub.forEach(c=>{ const p=FTFR_AGG.byCatRegion[c+'|'+rawReg]; if(p){ fix+=p[0]; dev+=p[1]; } });
+    o = {dev,fix,v1dev:0,v1fix:0,s24:0,s48:0,slaN:0,orders:0};
+    vip1Avail=false; slaAvail=false;
+    scopeNote = ' · '+effRegion+' · '+sublineSel;
+  } else if(sublineSel){
+    let dev=0,fix=0,v1dev=0,v1fix=0,s24=0,s48=0,slaN=0,orders=0;
+    catsInSub.forEach(c=>{ const x=FTFR_AGG.byCat[c]; dev+=x.dev; fix+=x.fix; v1dev+=x.v1dev; v1fix+=x.v1fix; s24+=x.s24; s48+=x.s48; slaN+=x.slaN; orders+=x.orders; });
+    o = {dev,fix,v1dev,v1fix,s24,s48,slaN,orders};
+    scopeNote = ' · '+sublineSel;
+  } else if(effRegion && FTFR_AGG.byRegion[rawReg]){
+    o = FTFR_AGG.byRegion[rawReg];
+    scopeNote = ' · '+effRegion;
+  } else {
+    // FTFR_AGG.overall doesn't carry s24/slaN (only byCat/byRegion do) —
+    // sum them across every category to get the true global SLA figures.
+    let s24=0, slaN=0;
+    cats.forEach(c=>{ s24+=FTFR_AGG.byCat[c].s24; slaN+=FTFR_AGG.byCat[c].slaN; });
+    o = {...FTFR_AGG.overall, s24, slaN};
+    scopeNote = '';
+  }
+  const repN = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!sublineSel || catsInSub.includes(r.cat))).length;
   const kEl = document.getElementById('qf-kpi');
   if(kEl) kEl.innerHTML = [
-    {lbl:'FTFR (past 90d) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices fixed first time'+scopeNote, cls: o.fix/o.dev>=0.8?'ok':'wa'},
-    {lbl:'VIP1 FTFR (incl. SVIP)', val: pctTxt(o.v1fix,o.v1dev), sub: 'target ≥70% · '+o.v1fix+'/'+o.v1dev+scopeNote, cls: o.v1dev? (o.v1fix/o.v1dev>=0.7?'ok':'er') : 'wa'},
-    {lbl:'SLA ≤24h', val: pctTxt(s24,slaN), sub: s24+' / '+slaN+' completed orders'+scopeNote, cls: slaN? (s24/slaN>=0.5?'ok':'wa') : 'wa'},
+    {lbl:'FTFR (past 90d) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices fixed first time'+scopeNote, cls: o.dev? (o.fix/o.dev>=0.8?'ok':'wa') : 'wa'},
+    {lbl:'VIP1 FTFR (incl. SVIP)', val: vip1Avail? pctTxt(o.v1fix,o.v1dev) : '--', sub: vip1Avail? ('target ≥70% · '+o.v1fix+'/'+o.v1dev+scopeNote) : 'not available at this region×sub-line cross 该组合暂无细分', cls: !vip1Avail?'plan':(o.v1dev? (o.v1fix/o.v1dev>=0.7?'ok':'er') : 'wa')},
+    {lbl:'SLA ≤24h', val: slaAvail? pctTxt(o.s24,o.slaN) : '--', sub: slaAvail? (o.s24+' / '+o.slaN+' completed orders'+scopeNote) : 'not available at this region×sub-line cross', cls: !slaAvail?'plan':(o.slaN? (o.s24/o.slaN>=0.5?'ok':'wa') : 'wa')},
     {lbl:'Repeat Devices (≥3) 多次维修', val: repN>=60?'60+':repN, sub:'attribution needed'+scopeNote, cls:'er'},
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
-  // chart: by category (top 14 by devices)
+  // chart: by category (top 14 by devices) — respects sub-line filter
   try{
-    const top = cats.map(c=>({c, ...FTFR_AGG.byCat[c]})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
+    const top = catsInSub.map(c=>({c, ...FTFR_AGG.byCat[c]})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
     chartFor('qf-ec-cat').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(ps)=>{const x=top[ps[0].dataIndex];return `${x.c}<br>FTFR: ${Math.round(x.fix/x.dev*100)}% (${x.fix}/${x.dev} devices)`}},
       grid:{left:8,right:36,top:10,bottom:2,containLabel:true},
@@ -3184,11 +3296,15 @@ function renderQf(){
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart: by region
+  // chart: by region — respects sub-line filter (via byCatRegion sum, FTFR-only but exact) and region lock
   try{
     let regs = Object.keys(FTFR_AGG.byRegion).filter(r=>r);
-    if(scope) regs = regs.filter(r=>regionMatchesScope(r));
-    const per = regs.map(r=>FTFR_AGG.byRegion[r]);
+    if(effRegion) regs = regs.filter(r=>regionMatchesScope(r));
+    const per = regs.map(r=>{
+      if(!sublineSel) return FTFR_AGG.byRegion[r];
+      let dev=0,fix=0; catsInSub.forEach(c=>{ const p=FTFR_AGG.byCatRegion[c+'|'+r]; if(p){ fix+=p[0]; dev+=p[1]; } });
+      return {dev,fix};
+    });
     chartFor('qf-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       grid:{left:8,right:34,top:10,bottom:2,containLabel:true},
@@ -3199,7 +3315,7 @@ function renderQf(){
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart: monthly trend
+  // chart: monthly trend (global — FTFR-BD side table isn't split by region/sub-line)
   try{
     const mo = FTFR_AGG.monthly.order, d = FTFR_AGG.monthly.data;
     chartFor('qf-ec-trend').setOption({
@@ -3215,29 +3331,62 @@ function renderQf(){
     }, true);
   }catch(e){}
   // table
+  const QF_COLS = [
+    {label:'Category', key:'c'}, {label:'Devices (90d)', key:'dev'}, {label:'Fixed 1st', key:'fix'},
+    {label:'FTFR', key:'rate'}, {label:'VIP1 FTFR', key:'v1rate'}, {label:'SLA≤24h', key:'s24'},
+    {label:'SLA≤48h', key:'s48'}, {label:'Total Orders', key:'orders'},
+  ];
   const th=document.getElementById('qf-thead');
-  if(th) th.innerHTML=['Category','Devices (90d)','Fixed 1st','FTFR','VIP1 FTFR','SLA≤24h','SLA≤48h','Total Orders'].map(h=>`<th>${h}</th>`).join('');
+  if(th) th.innerHTML=sortableThead('qf', QF_COLS, 'renderQf');
   const q=((document.getElementById('qf-search')||{}).value||'').toLowerCase();
   const min5=(document.getElementById('qf-min5')||{}).checked;
-  const rows = cats.map(c=>({c,...FTFR_AGG.byCat[c]}))
-    .filter(x=>(!min5||x.dev>=5) && (!q||x.c.toLowerCase().includes(q)))
-    .sort((a,b)=> (a.dev?a.fix/a.dev:1)-(b.dev?b.fix/b.dev:1));
+  let rows = catsInSub.map(c=>({c,...FTFR_AGG.byCat[c]}))
+    .map(x=>({...x, rate: x.dev? x.fix/x.dev : -1, v1rate: x.v1dev? x.v1fix/x.v1dev : -1}))
+    .filter(x=>(!min5||x.dev>=5) && (!q||x.c.toLowerCase().includes(q)));
+  const stQf = SORT_STATE['qf'];
+  rows = stQf && stQf.key ? sortRows('qf', rows, (r,k)=>r[k]) : rows.sort((a,b)=> a.rate-b.rate);
   const tb=document.getElementById('qf-tbody');
   if(tb) tb.innerHTML = rows.map(x=>`<tr><td><b>${esc(x.c)}</b></td><td>${x.dev}</td><td>${x.fix}</td><td>${pctBadge(x.fix,x.dev,80,70)}</td><td>${x.v1dev?pctBadge(x.v1fix,x.v1dev,70,60):'<span class="badge b-gy">--</span>'}</td><td>${pctTxt(x.s24,x.slaN)}</td><td>${pctTxt(x.s48,x.slaN)}</td><td>${x.orders}</td></tr>`).join('');
   const cnt=document.getElementById('qf-cnt'); if(cnt) cnt.textContent=rows.length+' categories';
-  // repeat table
+  // repeat table — respects both region lock and sub-line filter
+  const QR_COLS = [
+    {label:'Serial No.', key:'sn'}, {label:'Model', key:'model'}, {label:'Category', key:'cat'},
+    {label:'Region', key:'r2'}, {label:'Repairs', key:'n'}, {label:'VIP', key:'vip'}, {label:'Customer', key:'cust'},
+  ];
   const rh=document.getElementById('qr-thead');
-  if(rh) rh.innerHTML=['Serial No.','Model','Category','Region','Repairs','VIP','Customer'].map(h=>`<th>${h}</th>`).join('');
+  if(rh) rh.innerHTML=sortableThead('qr', QR_COLS, 'renderQf');
+  let repRows = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!sublineSel || catsInSub.includes(r.cat)));
+  const stQr = SORT_STATE['qr'];
+  if(stQr && stQr.key) repRows = sortRows('qr', repRows, (r,k)=>r[k]);
   const rb=document.getElementById('qr-tbody');
-  const repRows = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2));
   if(rb) rb.innerHTML = repRows.map(r=>`<tr><td style="font-family:monospace;font-size:10px">${esc(r.sn)}</td><td><b>${esc(r.model)}</b></td><td>${esc(r.cat)}</td><td>${esc(shortR2q(r.r2))} · ${esc(r.r3.replace(' REGION',''))}</td><td><b style="color:var(--er)">${r.n}</b></td><td>${r.vip&&r.vip!=='N'?'<span class="badge b-pu">'+esc(r.vip)+'</span>':''}</td><td style="font-size:10px">${esc(r.cust)}</td></tr>`).join('');
 }
 
+// v40: C+ page-level pinned Region/Sub-Line filter — shared by FTFR and QE
+// modules (replaces each module's own separate region picker; QE also gets
+// sub-line filtering for the first time here).
+let qplusFilters = {region:'ALL', subline:'ALL'};
+function setQPlusRegion(v){ qplusFilters.region=v; renderQPlusFilterBar(); renderQf(); renderQq(); }
+function setQPlusSubline(v){ qplusFilters.subline=v; renderQPlusFilterBar(); renderQf(); renderQq(); }
+function renderQPlusFilterBar(){
+  const regEl = document.getElementById('qplus-region-filters');
+  if(regEl) regEl.innerHTML = ['ALL', ...B_REGIONS].map(r=>{
+    const label = r==='ALL'?'All':(B_REGION_ABBR[r]||r);
+    if(r==='ALL' ? userRegionScope() : !regionMatchesScope(r)) return lockedChip(label);
+    return `<span class="pt${r===qplusFilters.region?' on':''}" onclick="setQPlusRegion('${r}')">${label}</span>`;
+  }).join('');
+  const subEl = document.getElementById('qplus-subline-filters');
+  if(subEl) subEl.innerHTML = ['ALL', ...LEGACY_LINE_ABBR].map(l=>
+    `<span class="pt${l===qplusFilters.subline?' on':''}" onclick="setQPlusSubline('${l}')">${l==='ALL'?'All 全部':l}</span>`
+  ).join('');
+}
 // ---------------- QE MODULE ----------------
-let qqRegion='ALL';
-function qqSetRegion(v){ qqRegion=v; renderQq(); }
 function renderQq(){
-  const R = QE_DATA.rows;
+  try{ renderQPlusFilterBar(); }catch(e){}
+  const R = QE_DATA.rows.filter(r=>
+    (qplusFilters.region==='ALL'||canonicalRegion2(r.r2)===qplusFilters.region) &&
+    (qplusFilters.subline==='ALL'||canonicalLine(r.sub)===qplusFilters.subline)
+  );
   const closed = R.filter(r=>r.oc==='CLOSED'), open = R.filter(r=>r.oc==='OPEN');
   const cltY = R.filter(r=>r.clt==='Y').length, ctY = R.filter(r=>r.ct==='Y').length;
   const durs = closed.map(r=>r.dur).filter(v=>v!==null);
@@ -3326,21 +3475,17 @@ function renderQq(){
       return `<div class="risk-item"><span class="risk-dot" style="background:${openN?'var(--er)':'var(--wa)'}"></span><span><b>${esc(model)}</b> · ${esc(cls)} × <b>${t.rows.length}</b>单${openN?` (${openN} open)`:''}<br><span style="font-size:10px;color:var(--s400)">${esc(regs)}</span></span></div>`;
     }).join('') : '<div class="ph-note">No trending issues 🎉</div>';
   }
-  // region filter chips + open table
-  const fEl=document.getElementById('qq-region-filters');
-  if(fEl){
-    const regs=[...new Set(R.map(r=>r.r2))].sort();
-    fEl.innerHTML=['ALL',...regs].map(r=>{
-      const label = r==='ALL'?'All 全部':esc(shortR2q(r));
-      if(r==='ALL' ? userRegionScope() : !regionMatchesScope(r)) return lockedChip(label);
-      return `<span class="pt ${qqRegion===r?'on':''}" onclick="qqSetRegion('${r.replace(/'/g,"\\'")}')">${label}</span>`;
-    }).join('');
-  }
+  const QQ_COLS = [
+    {label:'Model', key:'model'}, {label:'Sub-Line', key:'sub'}, {label:'Region', key:'r2'},
+    {label:'Month', key:'ym'}, {label:'Status', key:'st'}, {label:'Classification', key:'cls'},
+    {label:'Days', key:'dur'}, {label:'Aging', key:'dur'},
+  ];
   const th=document.getElementById('qq-thead');
-  if(th) th.innerHTML=['Model','Sub-Line','Region','Month','Status','Classification','Days','Aging'].map(h=>`<th>${h}</th>`).join('');
+  if(th) th.innerHTML=sortableThead('qq', QQ_COLS, 'renderQq');
   const q=((document.getElementById('qq-search')||{}).value||'').toLowerCase();
-  const rows=open.filter(r=>(qqRegion==='ALL'||r.r2===qqRegion)&&(!q||(r.model+' '+r.r2+' '+r.r3).toLowerCase().includes(q)))
-    .sort((a,b)=>(b.dur||0)-(a.dur||0));
+  let rows=open.filter(r=>(!q||(r.model+' '+r.r2+' '+r.r3).toLowerCase().includes(q)));
+  const stQq = SORT_STATE['qq'];
+  rows = stQq && stQq.key ? sortRows('qq', rows, (r,k)=>r[k]) : rows.sort((a,b)=>(b.dur||0)-(a.dur||0));
   const tb=document.getElementById('qq-tbody');
   if(tb) tb.innerHTML=rows.map(r=>{
     const durB = r.dur===null?'<span class="badge b-gy">--</span>':(r.dur>16?`<span class="badge b-er">${r.dur}d overdue</span>`:(r.dur>10?`<span class="badge b-wa">${r.dur}d</span>`:`<span class="badge b-ok">${r.dur}d</span>`));
@@ -3350,14 +3495,15 @@ function renderQq(){
 }
 
 // ---------------- F2F MODULE ----------------
-let ftRegion='ALL';
-function ftSetRegion(v){ ftRegion=v; renderFt(); }
 function ftCat(course){ return F2F_DATA.courseMap[course] || ''; }
 function median(arr){ if(!arr.length)return null; const s=arr.slice().sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
 function renderFt(){
   const tt=(document.getElementById('ft-tt')||{}).value||'ALL';
   const base = F2F_DATA.rows.filter(r=>tt==='ALL'||r.tt===tt);
-  const R = base.filter(r=>ftRegion==='ALL'||r.r2.trim()===ftRegion);
+  const R = base.filter(r=>
+    (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) &&
+    (bplusFilters.subline==='ALL'||canonicalLine(r.line)===bplusFilters.subline)
+  );
   const classes=new Set(R.map(r=>r.cid)).size;
   const passN=R.filter(r=>r['pass']==='Y').length;
   const mcsrN=R.filter(r=>r.mcsr==='Y').length;
@@ -3373,8 +3519,10 @@ function renderFt(){
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
   // by region chart
   try{
-    const regs=[...new Set(base.map(r=>r.r2.trim()).filter(Boolean))].sort();
-    const per=regs.map(rg=>{const rr=base.filter(r=>r.r2.trim()===rg);return {n:rr.length,m:rr.filter(r=>r.mcsr==='Y').length};});
+    const baseSub = base.filter(r=>bplusFilters.subline==='ALL'||canonicalLine(r.line)===bplusFilters.subline);
+    let regs=[...new Set(baseSub.map(r=>r.r2.trim()).filter(Boolean))].sort();
+    if(bplusFilters.region!=='ALL') regs = regs.filter(r=>canonicalRegion2(r)===bplusFilters.region);
+    const per=regs.map(rg=>{const rr=baseSub.filter(r=>r.r2.trim()===rg);return {n:rr.length,m:rr.filter(r=>r.mcsr==='Y').length};});
     chartFor('ft-ec-region').setOption({
       tooltip:{trigger:'axis'},
       legend:{data:['Trainees','Conversion %'],textStyle:{fontSize:9}},
@@ -3415,27 +3563,24 @@ function renderFt(){
       series:[{type:'bar',barWidth:16,itemStyle:{color:'#10B981'},data:ms.map(m=>mm[m]),label:{show:true,position:'top',fontSize:9}}]
     }, true);
   }catch(e){}
-  // filters + table
-  const fEl=document.getElementById('ft-region-filters');
-  if(fEl){
-    const regs=[...new Set(F2F_DATA.rows.map(r=>r.r2.trim()).filter(Boolean))].sort();
-    fEl.innerHTML=['ALL',...regs].map(r=>{
-      const label = r==='ALL'?'All 全部':esc(shortR2q(r));
-      if(r==='ALL' ? userRegionScope() : !regionMatchesScope(r)) return lockedChip(label);
-      return `<span class="pt ${ftRegion===r?'on':''}" onclick="ftSetRegion('${r.replace(/'/g,"\\'")}')">${label}</span>`;
-    }).join('');
-  }
+  // table
+  const FT_COLS = [
+    {label:'Course', key:'course'}, {label:'Category', key:'cat'}, {label:'Line', key:'line'},
+    {label:'Trainees', key:'n'}, {label:'Pass %', key:'p'}, {label:'Conversion %', key:'m'}, {label:'Median Lead', key:'med'},
+  ];
   const th=document.getElementById('ft-thead');
-  if(th) th.innerHTML=['Course','Category','Line','Trainees','Pass %','Conversion %','Median Lead'].map(h=>`<th>${h}</th>`).join('');
+  if(th) th.innerHTML=sortableThead('ft', FT_COLS, 'renderFt');
   const q=((document.getElementById('ft-search')||{}).value||'').toLowerCase();
   const gc={};
   R.forEach(r=>{ const k=r.course; (gc[k]=gc[k]||[]).push(r); });
-  const rows=Object.keys(gc).map(k=>{
+  let rows=Object.keys(gc).map(k=>{
     const rr=gc[k];
     const iv2=rr.filter(r=>r.mcsr==='Y'&&r.iv!==null).map(r=>r.iv);
     return {course:k, cat:ftCat(k), line:rr[0].line, n:rr.length,
       p:rr.filter(r=>r['pass']==='Y').length, m:rr.filter(r=>r.mcsr==='Y').length, med:median(iv2)};
-  }).filter(x=>!q||(x.course+' '+x.cat).toLowerCase().includes(q)).sort((a,b)=>b.n-a.n);
+  }).filter(x=>!q||(x.course+' '+x.cat).toLowerCase().includes(q));
+  const stFt = SORT_STATE['ft'];
+  rows = stFt && stFt.key ? sortRows('ft', rows, (r,k)=>r[k]) : rows.sort((a,b)=>b.n-a.n);
   const tb=document.getElementById('ft-tbody');
   if(tb) tb.innerHTML=rows.map(x=>`<tr><td style="font-size:10.5px">${esc(x.course)}</td><td><b>${esc(x.cat)}</b></td><td>${esc(x.line)}</td><td>${x.n}</td><td>${pctBadge(x.p,x.n,80,60)}</td><td>${pctBadge(x.m,x.n,60,40)}</td><td>${x.med===null?'--':Math.round(x.med)+'d'+(x.med>90?' ⚠️':'')}</td></tr>`).join('');
   const cnt=document.getElementById('ft-cnt'); if(cnt) cnt.textContent=rows.length+' courses · '+R.length+' trainees';
@@ -3445,7 +3590,7 @@ function renderFt(){
 // v28: EXECUTIVE COCKPIT
 // ============================================================================
 function renderCockpit(){
-  // ---- computed KPI row ----
+  // ---- stage A: Pre-Launch ----
   let s = {preLaunch:0,launch:0,mature:0,discontinued:0,eos:0};
   try{ s = computeLifecycleStageCounts(); }catch(e){}
   let overdue=0, countable=0, done=0;
@@ -3459,9 +3604,14 @@ function renderCockpit(){
     });});
   }catch(e){}
   const avgReady = countable ? Math.round(done/countable*100) : null;
+  const cardsA = [
+    {lbl:'Pre-Launch Readiness 准备度', val: avgReady===null?'--':avgReady+'%', sub: s.preLaunch+' products in prep', cls: avgReady===null?'wa':(avgReady>=80?'ok':(avgReady>=60?'wa':'er'))},
+    {lbl:'Overdue Deliverables 超期项', val: overdue, sub:'red cells on page A', cls: overdue>0?'er':'ok'},
+  ];
+
+  // ---- stage B: Launch & Readiness (Page B + B+) ----
   let fuRows=[], fuPend=0;
   try{ fuRows = fuCandidates(); fuPend = fuRows.filter(r=>!r.coaching_done).length; }catch(e){}
-  // red qualification countries across KM models (installed but nobody qualified)
   const redByModel = {};
   let redCountryPairs = 0;
   try{
@@ -3478,83 +3628,90 @@ function renderCockpit(){
       });
     });
   }catch(e){}
-  const cards = [
-    {lbl:'Pre-Launch Readiness 准备度', val: avgReady===null?'--':avgReady+'%', sub: s.preLaunch+' products in prep', cls: avgReady===null?'wa':(avgReady>=80?'ok':(avgReady>=60?'wa':'er'))},
-    {lbl:'Overdue Deliverables 超期项', val: overdue, sub:'red cells on page A', cls: overdue>0?'er':'ok'},
+  let meRate=null, meGap=null;
+  try{ const t=MCSRE_DATA.rows.reduce((a,r)=>a+r.target,0), c=MCSRE_DATA.rows.reduce((a,r)=>a+r.capped,0); meRate=Math.round(c/t*100); meGap=t-c; }catch(e){}
+  const cardsB = [
     {lbl:'KM Models in Ramp-Up 导入期', val: s.launch, sub:'new + shipped', cls:'pu'},
     {lbl:'First-Unit Pending 待首台套', val: fuPend, sub: fuRows.length+' candidate rows', cls: fuPend>0?'wa':'ok'},
     {lbl:'Red Coverage Gaps 资质缺口', val: redCountryPairs, sub:'model × country installed w/o MCSR', cls: redCountryPairs>0?'er':'ok'},
+    meRate===null
+      ? {lbl:'Channel MCSR-E Attainment 渠道资质', sub:'target ≥80% · 规划中', cls:'plan'}
+      : {lbl:'Channel MCSR-E Attainment 渠道资质', val: meRate+'%', sub: 'gap '+meGap+' · page B+', cls: meRate>=80?'ok':(meRate>=60?'wa':'er')},
   ];
-  const el = document.getElementById('ck-kpi');
-  if(el) el.innerHTML = cards.map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
-  // ---- planned KPI row ----
-  let meRate=null, meGap=null;
-  try{ const t=MCSRE_DATA.rows.reduce((a,r)=>a+r.target,0), c=MCSRE_DATA.rows.reduce((a,r)=>a+r.capped,0); meRate=Math.round(c/t*100); meGap=t-c; }catch(e){}
-  const plan = [
-    {lbl:'Channel MCSR-E Attainment 渠道资质', live:true, val: meRate===null?'--':meRate+'%', cls: meRate>=80?'ok':(meRate>=60?'wa':'er'), sub: meGap===null?'':('gap '+meGap+' · page B+'), page:'bready'},
-    (function(){ try{
-      const scope=userRegionScope(), rawReg=scope?SCOPE_TO_RAW_R2[scope]:null;
-      const o=(rawReg && FTFR_AGG.byRegion[rawReg]) ? FTFR_AGG.byRegion[rawReg] : FTFR_AGG.overall;
-      const r=o.v1fix/o.v1dev;
-      return {lbl:'VIP1 FTFR'+(scope?' · '+scope:''), live:true, val:o.v1dev?Math.round(r*100)+'%':'--', cls:(o.v1dev&&r>=0.7)?'ok':'er', sub:'target ≥70% · past 90d · page C+', page:'quality'};
-    }catch(e){ return {lbl:'VIP1 FTFR 一次修复率', sub:'target ≥70% · 规划中'}; } })(),
-    (function(){ try{
-      const closed=QE_DATA.rows.filter(r=>r.oc==='CLOSED'), y=closed.filter(r=>r.clt==='Y').length, r=y/closed.length;
-      return {lbl:'QE Closing Timeliness 封闭及时率', live:true, val:Math.round(r*100)+'%', cls:r>=0.75?'ok':'er', sub:'target ≥75% · '+QE_DATA.rows.filter(x=>x.oc==='OPEN').length+' open · page C+', page:'quality'};
-    }catch(e){ return {lbl:'QE 封闭及时率 Closing Timeliness', sub:'target ≥75% · 规划中'}; } })(),
-    {lbl:'Spares Readiness 备件备库', sub:'BOM × stock declaration · planned'},
+
+  // ---- stage C: Mature & Quality (Page C + C+) ----
+  const scope=userRegionScope(), rawReg=scope?SCOPE_TO_RAW_R2[scope]:null;
+  const ftfrO=(rawReg && FTFR_AGG.byRegion[rawReg]) ? FTFR_AGG.byRegion[rawReg] : FTFR_AGG.overall;
+  const vip1Rate = ftfrO.v1dev ? ftfrO.v1fix/ftfrO.v1dev : null;
+  let qeClosed=[], qeY=0;
+  try{ qeClosed=QE_DATA.rows.filter(r=>r.oc==='CLOSED'); qeY=qeClosed.filter(r=>r.clt==='Y').length; }catch(e){}
+  const qeRate = qeClosed.length ? qeY/qeClosed.length : null;
+  const cardsC = [
+    {lbl:'VIP1 FTFR'+(scope?' · '+scope:''), val: vip1Rate===null?'--':Math.round(vip1Rate*100)+'%', sub:'target ≥70% · past 90d · page C+', cls: vip1Rate===null?'plan':(vip1Rate>=0.7?'ok':'er')},
+    {lbl:'QE Closing Timeliness 封闭及时率', val: qeRate===null?'--':Math.round(qeRate*100)+'%', sub:'target ≥75% · '+QE_DATA.rows.filter(x=>x.oc==='OPEN').length+' open · page C+', cls: qeRate===null?'plan':(qeRate>=0.75?'ok':'er')},
   ];
-  const el2 = document.getElementById('ck-kpi-plan');
-  if(el2) el2.innerHTML = plan.map(c=> c.live
-    ? `<div class="k ${c.cls}" style="cursor:pointer" onclick="nav('${c.page}')"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`
-    : `<div class="k plan" title="Pending data connection — spec on page B+ 待接入，口径见B+页"><div class="k-lbl">${c.lbl}</div><div class="k-val">--</div><div class="k-sub">${c.sub}</div></div>`).join('');
-  // ---- risk radar ----
-  const risks = [];
+
+  // ---- render KPI rows ----
+  const renderKrow = (id, cards) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = cards.map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val===undefined?'--':c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
+  };
+  renderKrow('ck-kpi-a', cardsA);
+  renderKrow('ck-kpi-b', cardsB);
+  renderKrow('ck-kpi-c', cardsC);
+
+  // ---- risk radar, tagged by stage ----
+  const risksA=[], risksB=[], risksC=[], risksD=[];
   try{
     PRODUCTS.forEach(p=>{ ITEMS.forEach(item=>{
       if(!isScored(item)) return;
       const rec = statusRec(p.id,item.id);
       if(classify(rec,item)!=='overdue') return;
-      risks.push({dot:'var(--er)', html:`<b>${esc(p.name_en)}</b> · ${esc(item.item_en||item.item_cn)} overdue${rec&&rec.expected_date?(' (exp. '+esc(rec.expected_date)+')'):''}`, page:'prelaunch'});
+      risksA.push({dot:'var(--er)', html:`<b>${esc(p.name_en)}</b> · ${esc(item.item_en||item.item_cn)} overdue${rec&&rec.expected_date?(' (exp. '+esc(rec.expected_date)+')'):''}`, page:'prelaunch'});
     });});
   }catch(e){}
   Object.keys(redByModel).slice(0,8).forEach(model=>{
     const n = redByModel[model].length;
-    risks.push({dot:'var(--er)', html:`<b>${esc(model)}</b> installed in ${n} countr${n>1?'ies':'y'} w/o any MCSR 有装机无资质`, page:'launch'});
+    risksB.push({dot:'var(--er)', html:`<b>${esc(model)}</b> installed in ${n} countr${n>1?'ies':'y'} w/o any MCSR 有装机无资质`, page:'launch'});
   });
-  if(fuPend>0) risks.push({dot:'var(--wa)', html:`<b>${fuPend}</b> shipped-not-installed rows awaiting first-unit coaching 待首台套认领`, page:'launch'});
+  if(fuPend>0) risksB.push({dot:'var(--wa)', html:`<b>${fuPend}</b> shipped-not-installed rows awaiting first-unit coaching 待首台套认领`, page:'launch'});
   try{
-    const scopeR=userRegionScope(), rawRegR=scopeR?SCOPE_TO_RAW_R2[scopeR]:null;
-    const o=(rawRegR && FTFR_AGG.byRegion[rawRegR]) ? FTFR_AGG.byRegion[rawRegR] : FTFR_AGG.overall;
-    const scopeTagR = scopeR ? (' in '+scopeR) : '';
-    if(o.v1dev && o.v1fix/o.v1dev < 0.7) risks.push({dot:'var(--er)', html:`<b>VIP1 FTFR ${Math.round(o.v1fix/o.v1dev*100)}%</b>${scopeTagR} below 70% target — attribute repeat repairs`, page:'quality'});
-    // per-category FTFR isn't split by region in the source aggregation, so this
-    // risk item stays global-scope for everyone (both HQ and regional accounts).
+    const worst={};
+    MCSRE_DATA.rows.forEach(r=>{ const k=r.r2; (worst[k]=worst[k]||{t:0,c:0}); worst[k].t+=r.target; worst[k].c+=r.capped; });
+    Object.keys(worst).forEach(k=>{ if(!regionMatchesScope(k)) return; const x=worst[k]; if(x.t>=50 && x.c/x.t<0.7) risksB.push({dot:'var(--wa)', html:`<b>${esc(k.replace(' REGION',''))}</b> channel MCSR-E attainment ${Math.round(x.c/x.t*100)}% low (gap ${x.t-x.c})`, page:'bready'}); });
+  }catch(e){}
+  risksB.push({dot:'var(--s300)', html:'Spares readiness signals pending data connection 备件备库待接入', page:'bready'});
+  try{
+    const scopeTagR = scope ? (' in '+scope) : '';
+    if(ftfrO.v1dev && vip1Rate < 0.7) risksC.push({dot:'var(--er)', html:`<b>VIP1 FTFR ${Math.round(vip1Rate*100)}%</b>${scopeTagR} below 70% target — attribute repeat repairs`, page:'quality'});
     Object.keys(FTFR_AGG.byCat).forEach(c=>{
       const x=FTFR_AGG.byCat[c];
-      if(x.dev>=10 && x.fix/x.dev<0.7) risks.push({dot:'var(--er)', html:`<b>${esc(c)}</b> FTFR ${Math.round(x.fix/x.dev*100)}% (${x.dev} devices, all regions) below 70%`, page:'quality'});
+      if(x.dev>=10 && x.fix/x.dev<0.7) risksC.push({dot:'var(--er)', html:`<b>${esc(c)}</b> FTFR ${Math.round(x.fix/x.dev*100)}% (${x.dev} devices, all regions) below 70%`, page:'quality'});
     });
   }catch(e){}
   try{
     const qeScoped = QE_DATA.rows.filter(r=>regionMatchesScope(r.r2));
     const closed=qeScoped.filter(r=>r.oc==='CLOSED'), y=closed.filter(r=>r.clt==='Y').length;
-    const scopeTag = userRegionScope() ? (' in ' + userRegionScope()) : '';
-    if(closed.length && y/closed.length<0.75) risks.push({dot:'var(--er)', html:`<b>QE closing timeliness ${Math.round(y/closed.length*100)}%</b> below 75% target${scopeTag} · ${qeScoped.filter(r=>r.oc==='OPEN').length} open`, page:'quality'});
+    const scopeTag = scope ? (' in ' + scope) : '';
+    if(closed.length && y/closed.length<0.75) risksC.push({dot:'var(--er)', html:`<b>QE closing timeliness ${Math.round(y/closed.length*100)}%</b> below 75% target${scopeTag} · ${qeScoped.filter(r=>r.oc==='OPEN').length} open`, page:'quality'});
     const grp={};
     qeScoped.forEach(r=>{ if(!r.model||!r.cls||r.cls==='N/A')return; const k=r.model+'|'+r.cls; grp[k]=(grp[k]||0)+1; });
     const nTrend=Object.values(grp).filter(n=>n>=3).length;
-    if(nTrend) risks.push({dot:'var(--wa)', html:`<b>${nTrend}</b> trending issues (same model × classification ≥3 QE)${scopeTag} 趋势问题`, page:'quality'});
+    if(nTrend) risksC.push({dot:'var(--wa)', html:`<b>${nTrend}</b> trending issues (same model × classification ≥3 QE)${scopeTag} 趋势问题`, page:'quality'});
   }catch(e){}
-  try{
-    const w=MCSRE_DATA.rows.reduce((a,r)=>{a.t+=r.target;a.c+=r.capped;return a;},{t:0,c:0});
-    const worst={};
-    MCSRE_DATA.rows.forEach(r=>{ const k=r.r2; (worst[k]=worst[k]||{t:0,c:0}); worst[k].t+=r.target; worst[k].c+=r.capped; });
-    Object.keys(worst).forEach(k=>{ if(!regionMatchesScope(k)) return; const x=worst[k]; if(x.t>=50 && x.c/x.t<0.7) risks.push({dot:'var(--wa)', html:`<b>${esc(k.replace(' REGION',''))}</b> channel MCSR-E attainment ${Math.round(x.c/x.t*100)}% low (gap ${x.t-x.c})`, page:'bready'}); });
-  }catch(e){}
-  risks.push({dot:'var(--s300)', html:'Spares & NPI quality signals pending data connection 待接入', page:'bready'});
-  const rEl = document.getElementById('ck-risks');
-  if(rEl) rEl.innerHTML = risks.length ? risks.slice(0,12).map(r=>`<div class="risk-item"><span class="risk-dot" style="background:${r.dot}"></span><span>${r.html}</span><span class="go-link" onclick="nav('${r.page}')">view →</span></div>`).join('')
-    : '<div class="ph-note">No red signals 🎉</div>';
+  risksD.push({dot:'var(--s300)', html:'EOL/EOS module is planned — no live data yet 停产停服模块规划中，暂无实时数据', page:'eos'});
+
+  const renderRisks = (id, arr, cap) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(!arr.length){ el.innerHTML = '<div class="stage-empty">No red signals 🎉</div>'; return; }
+    el.innerHTML = arr.slice(0,cap||6).map(r=>`<div class="risk-item"><span class="risk-dot" style="background:${r.dot}"></span><span>${r.html}</span><span class="go-link" onclick="nav('${r.page}')">view →</span></div>`).join('');
+  };
+  renderRisks('ck-risks-a', risksA);
+  renderRisks('ck-risks-b', risksB);
+  renderRisks('ck-risks-c', risksC);
+  renderRisks('ck-risks-d', risksD);
 }
 
 async function init(){
