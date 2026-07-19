@@ -870,6 +870,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <h3>GTS Ownership<span class="en">GTS负责人</span></h3>
       <input type="text" class="tsearch" id="gts-search" placeholder="🔍 Search category / name 搜索大类或姓名" oninput="renderGtsTable()" style="margin-left:auto">
+      <button class="btn btn-gy" onclick="exportGtsCSV()">⬇ Export CSV</button>
       <button class="btn btn-p" id="gts-add-btn" onclick="openGtsModal()">+ Add Row 新增一行</button>
     </div>
     <div class="tbl-scroll" style="max-height:420px"><table><thead><tr id="gts-thead"></tr></thead><tbody id="gts-tbody"></tbody></table></div>
@@ -880,6 +881,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <h3>RTS Coverage Assignment<span class="en">RTS覆盖分工</span></h3>
       <input type="text" class="tsearch" id="rts-search" placeholder="🔍 Search name / region 搜索姓名或区域" oninput="renderRtsTable()" style="margin-left:auto">
+      <button class="btn btn-gy" onclick="exportRtsCSV()">⬇ Export CSV</button>
       <button class="btn btn-p" id="rts-add-btn" onclick="openRtsModal()">+ Add Row 新增一行</button>
     </div>
     <div class="tbl-scroll" style="max-height:420px"><table><thead><tr id="rts-thead"></tr></thead><tbody id="rts-tbody"></tbody></table></div>
@@ -995,11 +997,13 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="modal">
     <div class="modal-hd"><h3 id="gtsmodal-title">Edit GTS Ownership 编辑GTS负责</h3><span class="x" onclick="closeGtsModal()">✕</span></div>
     <div class="modal-bd">
-      <div class="field"><label>MCSR Category 机型大类 *</label>
-        <select id="gts-category"></select>
-        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Sourced from Reference master table 来源于机型-资质课程底表</div>
+      <div class="field"><label>MCSR Category 机型大类 * <span style="font-weight:400;color:var(--s400)">(pick one or more 可多选)</span></label>
+        <input type="text" id="gts-cat-search" placeholder="🔍 Filter categories 筛选大类..." oninput="filterGtsCategories()" style="margin-bottom:6px">
+        <div id="gts-categories" style="max-height:180px;overflow:auto;border:1px solid var(--s200);border-radius:6px;padding:8px"></div>
+        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Adding with several boxes checked creates one row per category (same name/email/notes on each) 勾选多个大类会为每个大类各建一行（姓名/邮箱/备注相同）</div>
       </div>
       <div class="field"><label>GTS Name GTS姓名 *</label><input type="text" id="gts-name" placeholder="e.g. 张三"></div>
+      <div class="field"><label>Email 邮箱</label><input type="email" id="gts-email" placeholder="e.g. zhangsan@mindray.com"></div>
       <div class="field"><label>Notes 备注</label><textarea id="gts-notes" placeholder="Optional — e.g. backup GTS, handoff date... 可选，如备用GTS、交接时间等"></textarea></div>
     </div>
     <div class="modal-ft">
@@ -1018,14 +1022,15 @@ details.dcx summary:hover{color:var(--pd)}
         <select id="rts-engineer"></select>
         <div style="font-size:9.5px;color:var(--s400);margin-top:3px">From RTS Score roster 来源于RTS Score花名册 · home base shown in parentheses 括号内为主场区域</div>
       </div>
-      <div class="field"><label>Region II 二级区域 *</label><select id="rts-region2"></select></div>
+      <div class="field"><label>Region II 二级区域 *</label><select id="rts-region2" onchange="refreshRtsRegion3Options()"></select></div>
       <div class="field"><label>Region III 三级区域</label>
-        <input type="text" id="rts-region3" placeholder="Leave blank = whole Region II 留空=整个二级区域">
-        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Fill in only if this RTS covers a specific Region III (not the whole Region II) 仅当只负责某个具体三级区域时填写</div>
+        <select id="rts-region3"></select>
+        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Leave on "Whole Region II" if this RTS covers the entire Region II 若负责整个二级区域，保持"整个二级区域"选项即可</div>
       </div>
       <div class="field"><label>Sub-Lines 负责子产线 *</label>
         <div id="rts-sublines" style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 0"></div>
       </div>
+      <div class="field"><label>Email 邮箱</label><input type="email" id="rts-email" placeholder="e.g. lisi@mindray.com"></div>
       <div class="field"><label>Notes 备注</label><textarea id="rts-notes" placeholder="Optional 可选"></textarea></div>
     </div>
     <div class="modal-ft">
@@ -3388,6 +3393,7 @@ function applyTeamPermissionsUI(){
 const GTS_COLS = [
   {key:'mcsr_category', en:'MCSR Category', cn:'机型大类', width:'220px'},
   {key:'gts_name', en:'GTS Name', cn:'GTS姓名', width:'140px'},
+  {key:'email', en:'Email', cn:'邮箱', width:'170px'},
   {key:'notes', en:'Notes', cn:'备注', width:''},
 ];
 function setGtsSort(key){ if(gtsSort.key===key) gtsSort.dir*=-1; else gtsSort={key,dir:1}; renderGtsTable(); }
@@ -3400,15 +3406,21 @@ function renderGtsTable(){
     return `<th class="th-sort${active?' active':''}"${w} onclick="setGtsSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
   }).join('');
   const q = (document.getElementById('gts-search').value||'').toUpperCase();
-  let rows = GTS_OWNERS.filter(r=>!q || [r.mcsr_category,r.gts_name].some(v=>v && v.toUpperCase().includes(q)));
+  let rows = GTS_OWNERS.filter(r=>!q || [r.mcsr_category,r.gts_name,r.email].some(v=>v && v.toUpperCase().includes(q)));
   rows.sort((a,b)=>{
     let av=(a[gtsSort.key]||'').toString().toUpperCase(), bv=(b[gtsSort.key]||'').toString().toUpperCase();
     if(av<bv) return -1*gtsSort.dir; if(av>bv) return 1*gtsSort.dir; return 0;
   });
   document.getElementById('gts-tbody').innerHTML = rows.map(r=>`<tr class="editable" onclick="openGtsModal('${r.id}')">
-    <td><b>${esc(r.mcsr_category)}</b></td><td>${esc(r.gts_name)}</td><td style="white-space:normal">${esc(r.notes)}</td>
+    <td><b>${esc(r.mcsr_category)}</b></td><td>${esc(r.gts_name)}</td><td>${esc(r.email)}</td><td style="white-space:normal">${esc(r.notes)}</td>
   </tr>`).join('');
   document.getElementById('gts-cnt').textContent = rows.length+' / '+GTS_OWNERS.length+' rows';
+}
+function filterGtsCategories(){
+  const q = (document.getElementById('gts-cat-search').value||'').toUpperCase();
+  document.querySelectorAll('#gts-categories .gts-cat-row').forEach(el=>{
+    el.style.display = !q || el.textContent.toUpperCase().includes(q) ? 'flex' : 'none';
+  });
 }
 function openGtsModal(id){
   if(!requireHQ('Team Coverage — GTS Ownership')) return;
@@ -3416,11 +3428,15 @@ function openGtsModal(id){
   document.getElementById('gtsmodal-title').textContent = id ? 'Edit GTS Ownership 编辑GTS负责' : 'Add GTS Ownership 新增GTS负责';
   document.getElementById('gts-archive-btn').style.display = id ? 'inline-block' : 'none';
   const r = id ? GTS_OWNERS.find(x=>x.id===id) : null;
-  const catSel = document.getElementById('gts-category');
+
   const catOpts = [...new Set(MC_ROWS.map(x=>x.mcsr_category).filter(Boolean))].sort();
-  catSel.innerHTML = catOpts.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  catSel.value = r ? (r.mcsr_category||'') : (catOpts[0]||'');
+  const wrap = document.getElementById('gts-categories');
+  wrap.innerHTML = catOpts.map(c=>`<label class="gts-cat-row chk-row" style="display:flex;margin-bottom:4px;gap:6px;align-items:center">
+    <input type="checkbox" class="gts-cat-chk" value="${esc(c)}" ${r && r.mcsr_category===c ? 'checked' : ''}> ${esc(c)}</label>`).join('');
+  document.getElementById('gts-cat-search').value = '';
+
   document.getElementById('gts-name').value = r ? r.gts_name||'' : '';
+  document.getElementById('gts-email').value = r ? r.email||'' : '';
   document.getElementById('gts-notes').value = r ? r.notes||'' : '';
   document.getElementById('gtsmodal-bg').classList.add('on');
 }
@@ -3429,18 +3445,29 @@ async function saveGtsRow(){
   if(!requireHQ()) return;
   const gts_name = document.getElementById('gts-name').value.trim();
   if(!gts_name){ alert('GTS name is required 请填写GTS姓名'); return; }
-  const patch = {
-    mcsr_category: document.getElementById('gts-category').value,
-    gts_name,
-    notes: document.getElementById('gts-notes').value.trim(),
-  };
+  const cats = [...document.querySelectorAll('.gts-cat-chk:checked')].map(el=>el.value);
+  if(!cats.length){ alert('Pick at least one MCSR category 请至少选择一个机型大类'); return; }
+  const email = document.getElementById('gts-email').value.trim();
+  const notes = document.getElementById('gts-notes').value.trim();
+
   if(currentGtsEdit){
+    // First checked category updates the row being edited; any additional
+    // checked categories become new rows (same name/email/notes on each) —
+    // this is how "turn one GTS-category row into coverage for several
+    // categories" works without changing the underlying one-row-per-category schema.
+    const patch = {mcsr_category: cats[0], gts_name, email, notes};
     await DB.updateGtsOwner(currentGtsEdit, patch);
     const idx = GTS_OWNERS.findIndex(r=>r.id===currentGtsEdit);
     if(idx>=0) GTS_OWNERS[idx] = {...GTS_OWNERS[idx], ...patch};
+    for(const cat of cats.slice(1)){
+      const rec = await DB.addGtsOwner({mcsr_category: cat, gts_name, email, notes});
+      GTS_OWNERS.push(rec);
+    }
   } else {
-    const rec = await DB.addGtsOwner(patch);
-    GTS_OWNERS.push(rec);
+    for(const cat of cats){
+      const rec = await DB.addGtsOwner({mcsr_category: cat, gts_name, email, notes});
+      GTS_OWNERS.push(rec);
+    }
   }
   closeGtsModal();
   renderGtsTable();
@@ -3454,6 +3481,20 @@ async function archiveGtsRow(){
   closeGtsModal();
   renderGtsTable();
 }
+function exportGtsCSV(){
+  let csv = 'MCSRCategory,GTSName,Email,Notes\n';
+  GTS_OWNERS.forEach(r=>{
+    const line = [r.mcsr_category, r.gts_name, r.email, (r.notes||'').replace(/\n/g,' ')]
+      .map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
+    csv += line+'\n';
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gts_ownership_export.csv';
+  a.click();
+}
+
 
 // ---------------- RTS coverage assignment ----------------
 const RTS_COLS = [
@@ -3461,6 +3502,7 @@ const RTS_COLS = [
   {key:'region2', en:'Region II', cn:'二级区域', width:'110px'},
   {key:'region3', en:'Region III', cn:'三级区域', width:'160px'},
   {key:'sub_lines', en:'Sub-Lines', cn:'负责子产线', width:'200px'},
+  {key:'email', en:'Email', cn:'邮箱', width:'170px'},
   {key:'notes', en:'Notes', cn:'备注', width:''},
 ];
 function setRtsSort(key){ if(rtsSort.key===key) rtsSort.dir*=-1; else rtsSort={key,dir:1}; renderRtsTable(); }
@@ -3473,7 +3515,7 @@ function renderRtsTable(){
     return `<th class="th-sort${active?' active':''}"${w} onclick="setRtsSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
   }).join('');
   const q = (document.getElementById('rts-search').value||'').toUpperCase();
-  let rows = RTS_ASSIGN.filter(r=>!q || [r.engineer_name,r.region2,r.region3].some(v=>v && v.toUpperCase().includes(q)));
+  let rows = RTS_ASSIGN.filter(r=>!q || [r.engineer_name,r.region2,r.region3,r.email].some(v=>v && v.toUpperCase().includes(q)));
   rows.sort((a,b)=>{
     let av=(a[rtsSort.key]||'').toString().toUpperCase(), bv=(b[rtsSort.key]||'').toString().toUpperCase();
     if(av<bv) return -1*rtsSort.dir; if(av>bv) return 1*rtsSort.dir; return 0;
@@ -3483,10 +3525,30 @@ function renderRtsTable(){
     return `<tr class="editable" onclick="openRtsModal('${r.id}')">
     <td><b>${esc(r.engineer_name)}</b></td><td>${esc(r.region2)}</td>
     <td>${r.region3 ? esc(r.region3.replace(' REGION','')) : '<span style="color:var(--s400)">Whole region 整个二级区域</span>'}</td>
-    <td>${esc(subLabel)}</td><td style="white-space:normal">${esc(r.notes)}</td>
+    <td>${esc(subLabel)}</td><td>${esc(r.email)}</td><td style="white-space:normal">${esc(r.notes)}</td>
   </tr>`;
   }).join('');
   document.getElementById('rts-cnt').textContent = rows.length+' / '+RTS_ASSIGN.length+' rows';
+}
+// Populates #rts-region3 with the Region IIIs actually known for the
+// currently-selected Region II (sourced from COVERAGE_MAP, same data the
+// Coverage Map page's own region3 filter uses) plus a "whole Region II"
+// option. preselect='' selects "whole Region II"; otherwise selects that
+// exact Region III if it's in the list (falls back to "whole Region II"
+// if not found, e.g. stale/renamed data on an existing row).
+function refreshRtsRegion3Options(preselect){
+  const sel = document.getElementById('rts-region3');
+  const region2 = document.getElementById('rts-region2').value;
+  const set = new Set();
+  (COVERAGE_MAP.models||[]).forEach(k=>{
+    const bucket = COVERAGE_MAP.byModel[k];
+    if(!bucket) return;
+    (bucket.regions||[]).forEach(r=>{ if(canonicalRegion2(r.regionII)===region2) set.add(r.regionIII); });
+  });
+  const opts = [...set].sort();
+  sel.innerHTML = '<option value="">Whole Region II 整个二级区域</option>'
+    + opts.map(r=>`<option value="${esc(r)}">${esc(r.replace(' REGION',''))}</option>`).join('');
+  sel.value = (preselect && opts.includes(preselect)) ? preselect : '';
 }
 function openRtsModal(id){
   if(!requireHQ('Team Coverage — RTS Assignment')) return;
@@ -3505,7 +3567,7 @@ function openRtsModal(id){
   regSel.innerHTML = B_REGIONS.map(rg=>`<option value="${rg}">${rg}</option>`).join('');
   regSel.value = r ? r.region2 : B_REGIONS[0];
 
-  document.getElementById('rts-region3').value = r ? r.region3||'' : '';
+  refreshRtsRegion3Options(r ? r.region3||'' : '');
 
   const subWrap = document.getElementById('rts-sublines');
   const selected = r ? (r.sub_lines==='ALL' ? LEGACY_LINE_ABBR : r.sub_lines.split(',').filter(Boolean)) : LEGACY_LINE_ABBR;
@@ -3513,6 +3575,7 @@ function openRtsModal(id){
     <input type="checkbox" class="rts-subline-chk" value="${l}" ${selected.includes(l)?'checked':''}> ${l}</label>`).join('');
 
   document.getElementById('rts-notes').value = r ? r.notes||'' : '';
+  document.getElementById('rts-email').value = r ? r.email||'' : '';
   document.getElementById('rtsmodal-bg').classList.add('on');
 }
 function closeRtsModal(){ document.getElementById('rtsmodal-bg').classList.remove('on'); currentRtsEdit=null; }
@@ -3529,6 +3592,7 @@ async function saveRtsRow(){
     region2: document.getElementById('rts-region2').value,
     region3: document.getElementById('rts-region3').value.trim(),
     sub_lines,
+    email: document.getElementById('rts-email').value.trim(),
     notes: document.getElementById('rts-notes').value.trim(),
   };
   if(currentRtsEdit){
@@ -3550,6 +3614,20 @@ async function archiveRtsRow(){
   RTS_ASSIGN = RTS_ASSIGN.filter(r=>r.id!==currentRtsEdit);
   closeRtsModal();
   renderRtsTable();
+}
+function exportRtsCSV(){
+  let csv = 'EngineerID,EngineerName,Region2,Region3,SubLines,Email,Notes\n';
+  RTS_ASSIGN.forEach(r=>{
+    const subLabel = r.sub_lines==='ALL' ? 'All' : r.sub_lines;
+    const line = [r.engineer_id, r.engineer_name, r.region2, r.region3, subLabel, r.email, (r.notes||'').replace(/\n/g,' ')]
+      .map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
+    csv += line+'\n';
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'rts_coverage_export.csv';
+  a.click();
 }
 
 // ============================================================================
