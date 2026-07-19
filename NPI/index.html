@@ -1007,7 +1007,7 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="field"><label>Notes 备注</label><textarea id="gts-notes" placeholder="Optional — e.g. backup GTS, handoff date... 可选，如备用GTS、交接时间等"></textarea></div>
     </div>
     <div class="modal-ft">
-      <button class="btn btn-gy" id="gts-archive-btn" style="margin-right:auto;display:none" onclick="archiveGtsRow()">Archive 归档隐藏</button>
+      <button class="btn btn-gy" id="gts-delete-btn" style="margin-right:auto;display:none;color:var(--er);border-color:#FCA5A5" onclick="deleteGtsRow()">Delete Permanently 永久删除</button>
       <button class="btn btn-gy" onclick="closeGtsModal()">Cancel 取消</button>
       <button class="btn btn-p" onclick="saveGtsRow()">Save 保存</button>
     </div>
@@ -1023,9 +1023,9 @@ details.dcx summary:hover{color:var(--pd)}
         <div style="font-size:9.5px;color:var(--s400);margin-top:3px">From RTS Score roster 来源于RTS Score花名册 · home base shown in parentheses 括号内为主场区域</div>
       </div>
       <div class="field"><label>Region II 二级区域 *</label><select id="rts-region2" onchange="refreshRtsRegion3Options()"></select></div>
-      <div class="field"><label>Region III 三级区域</label>
-        <select id="rts-region3"></select>
-        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Leave on "Whole Region II" if this RTS covers the entire Region II 若负责整个二级区域，保持"整个二级区域"选项即可</div>
+      <div class="field"><label>Region III 三级区域 <span style="font-weight:400;color:var(--s400)">(pick one or more, or whole region 可多选，或整个二级区域)</span></label>
+        <div id="rts-region3-list" style="max-height:180px;overflow:auto;border:1px solid var(--s200);border-radius:6px;padding:8px"></div>
+        <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Checking several Region IIIs creates one row per Region III (same engineer/sub-lines/email/notes on each) 勾选多个三级区域会为每个区域各建一行（工程师/子产线/邮箱/备注相同）</div>
       </div>
       <div class="field"><label>Sub-Lines 负责子产线 *</label>
         <div id="rts-sublines" style="display:flex;flex-wrap:wrap;gap:10px;padding:6px 0"></div>
@@ -1034,7 +1034,7 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="field"><label>Notes 备注</label><textarea id="rts-notes" placeholder="Optional 可选"></textarea></div>
     </div>
     <div class="modal-ft">
-      <button class="btn btn-gy" id="rts-archive-btn" style="margin-right:auto;display:none" onclick="archiveRtsRow()">Archive 归档隐藏</button>
+      <button class="btn btn-gy" id="rts-delete-btn" style="margin-right:auto;display:none;color:var(--er);border-color:#FCA5A5" onclick="deleteRtsRow()">Delete Permanently 永久删除</button>
       <button class="btn btn-gy" onclick="closeRtsModal()">Cancel 取消</button>
       <button class="btn btn-p" onclick="saveRtsRow()">Save 保存</button>
     </div>
@@ -1381,7 +1381,10 @@ const LocalDB = {
     if(idx>=0) all[idx] = {...all[idx], ...patch};
     localStorage.setItem(LS_NS+'gtsowners', JSON.stringify(all));
   },
-  async archiveGtsOwner(id){ return this.updateGtsOwner(id, {archived:true}); },
+  async deleteGtsOwner(id){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'gtsowners')||'[]').filter(r=>r.id!==id);
+    localStorage.setItem(LS_NS+'gtsowners', JSON.stringify(all));
+  },
   async listRtsAssignments(){
     return JSON.parse(localStorage.getItem(LS_NS+'rtsassign')||'[]').filter(r=>!r.archived);
   },
@@ -1398,7 +1401,10 @@ const LocalDB = {
     if(idx>=0) all[idx] = {...all[idx], ...patch};
     localStorage.setItem(LS_NS+'rtsassign', JSON.stringify(all));
   },
-  async archiveRtsAssignment(id){ return this.updateRtsAssignment(id, {archived:true}); }
+  async deleteRtsAssignment(id){
+    const all = JSON.parse(localStorage.getItem(LS_NS+'rtsassign')||'[]').filter(r=>r.id!==id);
+    localStorage.setItem(LS_NS+'rtsassign', JSON.stringify(all));
+  }
 };
 
 const SupabaseDB = {
@@ -1507,7 +1513,10 @@ const SupabaseDB = {
     const {error} = await this.client.from('gts_owners').update(patch).eq('id', id);
     if(error){ alert('Save failed: '+error.message); throw error; }
   },
-  async archiveGtsOwner(id){ return this.updateGtsOwner(id, {archived:true}); },
+  async deleteGtsOwner(id){
+    const {error} = await this.client.from('gts_owners').delete().eq('id', id);
+    if(error){ alert('Delete failed: '+error.message); throw error; }
+  },
   async listRtsAssignments(){
     const {data, error} = await this.client.from('rts_assignments').select('*').eq('archived', false).order('sort_order');
     if(error || !data){ console.error(error); return []; }
@@ -1522,7 +1531,10 @@ const SupabaseDB = {
     const {error} = await this.client.from('rts_assignments').update(patch).eq('id', id);
     if(error){ alert('Save failed: '+error.message); throw error; }
   },
-  async archiveRtsAssignment(id){ return this.updateRtsAssignment(id, {archived:true}); }
+  async deleteRtsAssignment(id){
+    const {error} = await this.client.from('rts_assignments').delete().eq('id', id);
+    if(error){ alert('Delete failed: '+error.message); throw error; }
+  }
 };
 
 let DB = USE_SUPABASE ? SupabaseDB : LocalDB;
@@ -3426,10 +3438,16 @@ function openGtsModal(id){
   if(!requireHQ('Team Coverage — GTS Ownership')) return;
   currentGtsEdit = id || null;
   document.getElementById('gtsmodal-title').textContent = id ? 'Edit GTS Ownership 编辑GTS负责' : 'Add GTS Ownership 新增GTS负责';
-  document.getElementById('gts-archive-btn').style.display = id ? 'inline-block' : 'none';
+  document.getElementById('gts-delete-btn').style.display = id ? 'inline-block' : 'none';
   const r = id ? GTS_OWNERS.find(x=>x.id===id) : null;
 
-  const catOpts = [...new Set(MC_ROWS.map(x=>x.mcsr_category).filter(Boolean))].sort();
+  // Falls back to the baked-in MC_ROWS_SEED if the live Supabase mc_rows
+  // table hasn't been (fully) seeded yet — otherwise this list silently
+  // renders empty even though categories obviously exist (Page D shows the
+  // same gap). MC_ROWS_SEED is always present in this file regardless of
+  // Supabase state, so it's a safe fallback, not a guess.
+  const catSource = (MC_ROWS && MC_ROWS.length) ? MC_ROWS : MC_ROWS_SEED;
+  const catOpts = [...new Set(catSource.map(x=>x.mcsr_category).filter(Boolean))].sort();
   const wrap = document.getElementById('gts-categories');
   wrap.innerHTML = catOpts.map(c=>`<label class="gts-cat-row chk-row" style="display:flex;margin-bottom:4px;gap:6px;align-items:center">
     <input type="checkbox" class="gts-cat-chk" value="${esc(c)}" ${r && r.mcsr_category===c ? 'checked' : ''}> ${esc(c)}</label>`).join('');
@@ -3472,11 +3490,13 @@ async function saveGtsRow(){
   closeGtsModal();
   renderGtsTable();
 }
-async function archiveGtsRow(){
+async function deleteGtsRow(){
   if(!requireHQ()) return;
   if(!currentGtsEdit) return;
-  if(!confirm('Archive (hide) this row? Data is kept, not deleted.\n归档隐藏此行？数据保留不会被删除。')) return;
-  await DB.archiveGtsOwner(currentGtsEdit);
+  const row = GTS_OWNERS.find(r=>r.id===currentGtsEdit);
+  const label = row ? `${row.gts_name} — ${row.mcsr_category}` : 'this row';
+  if(!confirm(`Permanently delete "${label}"? This cannot be undone.\n永久删除 "${label}"？此操作不可撤销。`)) return;
+  await DB.deleteGtsOwner(currentGtsEdit);
   GTS_OWNERS = GTS_OWNERS.filter(r=>r.id!==currentGtsEdit);
   closeGtsModal();
   renderGtsTable();
@@ -3530,14 +3550,16 @@ function renderRtsTable(){
   }).join('');
   document.getElementById('rts-cnt').textContent = rows.length+' / '+RTS_ASSIGN.length+' rows';
 }
-// Populates #rts-region3 with the Region IIIs actually known for the
-// currently-selected Region II (sourced from COVERAGE_MAP, same data the
-// Coverage Map page's own region3 filter uses) plus a "whole Region II"
-// option. preselect='' selects "whole Region II"; otherwise selects that
-// exact Region III if it's in the list (falls back to "whole Region II"
-// if not found, e.g. stale/renamed data on an existing row).
+// Populates #rts-region3-list with a "Whole Region II" checkbox plus one
+// checkbox per Region III actually known for the currently-selected Region
+// II (sourced from COVERAGE_MAP, same data the Coverage Map page's own
+// region3 filter uses). "Whole Region II" and specific Region IIIs are
+// mutually exclusive — checking one clears the other, enforced by
+// toggleRtsWholeRegion()/toggleRtsRegion3Chk() below.
+// preselect: array of region3 strings to pre-check (empty array = whole region).
 function refreshRtsRegion3Options(preselect){
-  const sel = document.getElementById('rts-region3');
+  preselect = preselect || [];
+  const wrap = document.getElementById('rts-region3-list');
   const region2 = document.getElementById('rts-region2').value;
   const set = new Set();
   (COVERAGE_MAP.models||[]).forEach(k=>{
@@ -3546,15 +3568,26 @@ function refreshRtsRegion3Options(preselect){
     (bucket.regions||[]).forEach(r=>{ if(canonicalRegion2(r.regionII)===region2) set.add(r.regionIII); });
   });
   const opts = [...set].sort();
-  sel.innerHTML = '<option value="">Whole Region II 整个二级区域</option>'
-    + opts.map(r=>`<option value="${esc(r)}">${esc(r.replace(' REGION',''))}</option>`).join('');
-  sel.value = (preselect && opts.includes(preselect)) ? preselect : '';
+  const wholeChecked = preselect.length===0;
+  wrap.innerHTML = `<label class="chk-row" style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--s200)">
+      <input type="checkbox" id="rts-region3-whole" ${wholeChecked?'checked':''} onchange="toggleRtsWholeRegion(this)"> Whole Region II 整个二级区域</label>`
+    + opts.map(r=>`<label class="chk-row" style="margin-bottom:4px">
+      <input type="checkbox" class="rts-region3-chk" value="${esc(r)}" ${preselect.includes(r)?'checked':''} ${wholeChecked?'disabled':''} onchange="toggleRtsRegion3Chk(this)"> ${esc(r.replace(' REGION',''))}</label>`).join('');
+}
+function toggleRtsWholeRegion(el){
+  document.querySelectorAll('.rts-region3-chk').forEach(cb=>{
+    if(el.checked) cb.checked = false;
+    cb.disabled = el.checked;
+  });
+}
+function toggleRtsRegion3Chk(el){
+  if(el.checked) document.getElementById('rts-region3-whole').checked = false;
 }
 function openRtsModal(id){
   if(!requireHQ('Team Coverage — RTS Assignment')) return;
   currentRtsEdit = id || null;
   document.getElementById('rtsmodal-title').textContent = id ? 'Edit RTS Coverage 编辑RTS覆盖' : 'Add RTS Coverage 新增RTS覆盖';
-  document.getElementById('rts-archive-btn').style.display = id ? 'inline-block' : 'none';
+  document.getElementById('rts-delete-btn').style.display = id ? 'inline-block' : 'none';
   const r = id ? RTS_ASSIGN.find(x=>x.id===id) : null;
 
   const engSel = document.getElementById('rts-engineer');
@@ -3567,7 +3600,7 @@ function openRtsModal(id){
   regSel.innerHTML = B_REGIONS.map(rg=>`<option value="${rg}">${rg}</option>`).join('');
   regSel.value = r ? r.region2 : B_REGIONS[0];
 
-  refreshRtsRegion3Options(r ? r.region3||'' : '');
+  refreshRtsRegion3Options(r && r.region3 ? [r.region3] : []);
 
   const subWrap = document.getElementById('rts-sublines');
   const selected = r ? (r.sub_lines==='ALL' ? LEGACY_LINE_ABBR : r.sub_lines.split(',').filter(Boolean)) : LEGACY_LINE_ABBR;
@@ -3587,30 +3620,48 @@ async function saveRtsRow(){
   const checked = [...document.querySelectorAll('.rts-subline-chk:checked')].map(el=>el.value);
   if(!checked.length){ alert('Pick at least one sub-line 请至少选择一个子产线'); return; }
   const sub_lines = checked.length===LEGACY_LINE_ABBR.length ? 'ALL' : checked.join(',');
-  const patch = {
+
+  const wholeRegion = document.getElementById('rts-region3-whole').checked;
+  const region3s = wholeRegion ? [''] : [...document.querySelectorAll('.rts-region3-chk:checked')].map(el=>el.value);
+  if(!region3s.length){ alert('Pick "Whole Region II" or at least one Region III 请选择"整个二级区域"或至少一个三级区域'); return; }
+
+  const base = {
     engineer_id, engineer_name,
     region2: document.getElementById('rts-region2').value,
-    region3: document.getElementById('rts-region3').value.trim(),
     sub_lines,
     email: document.getElementById('rts-email').value.trim(),
     notes: document.getElementById('rts-notes').value.trim(),
   };
+
   if(currentRtsEdit){
+    // First checked Region III (or "whole region") updates the row being
+    // edited; any additional checked Region IIIs become new rows (same
+    // engineer/sub-lines/email/notes on each) — mirrors the GTS multi-category
+    // pattern, without changing the underlying one-row-per-Region-III schema.
+    const patch = {...base, region3: region3s[0]};
     await DB.updateRtsAssignment(currentRtsEdit, patch);
     const idx = RTS_ASSIGN.findIndex(r=>r.id===currentRtsEdit);
     if(idx>=0) RTS_ASSIGN[idx] = {...RTS_ASSIGN[idx], ...patch};
+    for(const r3 of region3s.slice(1)){
+      const rec = await DB.addRtsAssignment({...base, region3: r3});
+      RTS_ASSIGN.push(rec);
+    }
   } else {
-    const rec = await DB.addRtsAssignment(patch);
-    RTS_ASSIGN.push(rec);
+    for(const r3 of region3s){
+      const rec = await DB.addRtsAssignment({...base, region3: r3});
+      RTS_ASSIGN.push(rec);
+    }
   }
   closeRtsModal();
   renderRtsTable();
 }
-async function archiveRtsRow(){
+async function deleteRtsRow(){
   if(!requireHQ()) return;
   if(!currentRtsEdit) return;
-  if(!confirm('Archive (hide) this row? Data is kept, not deleted.\n归档隐藏此行？数据保留不会被删除。')) return;
-  await DB.archiveRtsAssignment(currentRtsEdit);
+  const row = RTS_ASSIGN.find(r=>r.id===currentRtsEdit);
+  const label = row ? `${row.engineer_name} — ${row.region2}${row.region3 ? ' / '+row.region3.replace(' REGION','') : ' (whole region)'}` : 'this row';
+  if(!confirm(`Permanently delete "${label}"? This cannot be undone.\n永久删除 "${label}"？此操作不可撤销。`)) return;
+  await DB.deleteRtsAssignment(currentRtsEdit);
   RTS_ASSIGN = RTS_ASSIGN.filter(r=>r.id!==currentRtsEdit);
   closeRtsModal();
   renderRtsTable();
