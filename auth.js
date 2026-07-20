@@ -39,13 +39,13 @@
   //           adopt the same convention if useful.
   const ACCOUNTS = {
     'MRHQIVD':  { pass: 'Thomas', region: 'ALL', label: 'HQ · 总部', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI', 'SUP', 'TRN', 'SLA'] },
-    'MRINIVD':  { pass: 'Vallal', region: 'IN', label: 'India · 印度', platforms: ['TLA', 'QE', 'RTS'] },
-    'MREUIVD':  { pass: 'Tom', region: 'EU', label: 'Europe · 欧洲', platforms: ['TLA', 'QE', 'RTS'] },
-    'MRAPIVD':  { pass: 'Reed', region: 'AP', label: 'APAC · 亚太', platforms: ['TLA', 'QE', 'RTS'] },
-    'MRCAIVD':  { pass: 'Ace', region: 'CA', label: 'Central Asia · 中亚', platforms: ['TLA', 'QE', 'RTS'] },
-    'MRLAIVD':  { pass: 'Manuel', region: 'LA', label: 'LATAM · 拉美', platforms: ['TLA', 'QE', 'RTS'] },
-    'MRMEAIVD':  { pass: 'Rain', region: 'MEA', label: 'MEA · 中东非', platforms: ['TLA', 'QE', 'RTS'] },
-    'MRRUSIVD':  { pass: 'Evgeniy', region: 'RUS', label: 'Russia · 俄罗斯', platforms: ['TLA', 'QE', 'RTS'] },
+    'MRINIVD':  { pass: 'Vallal', region: 'IN', label: 'India · 印度', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI'] },
+    'MREUIVD':  { pass: 'Tom', region: 'EU', label: 'Europe · 欧洲', platforms: ['TLA', 'QE', 'RTS', 'NPI', 'KB'] },
+    'MRAPIVD':  { pass: 'Reed', region: 'AP', label: 'APAC · 亚太', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI'] },
+    'MRCAIVD':  { pass: 'Ace', region: 'CA', label: 'Central Asia · 中亚', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI'] },
+    'MRLAIVD':  { pass: 'Manuel', region: 'LA', label: 'LATAM · 拉美', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI'] },
+    'MRMEAIVD':  { pass: 'Rain', region: 'MEA', label: 'MEA · 中东非', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI'] },
+    'MRRUSIVD':  { pass: 'Evgeniy', region: 'RUS', label: 'Russia · 俄罗斯', platforms: ['TLA', 'QE', 'RTS', 'KB', 'NPI'] },
   };
 
   const PLATFORM_LABELS = {

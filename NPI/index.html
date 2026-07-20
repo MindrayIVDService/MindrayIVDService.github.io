@@ -73,6 +73,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:v
 .b-wa{background:var(--wal);color:#92610A}
 .b-er{background:var(--erl);color:#B91C1C}
 .b-gy{background:var(--s100);color:var(--s500)}
+.b-bl{background:var(--pl);color:var(--pd)}
 .b-pu{background:var(--pul);color:#5B21B6}
 .b-bl{background:var(--pl);color:var(--pd)}
 .tbl-wrap{background:var(--wh);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
@@ -1099,7 +1100,7 @@ details.dcx summary:hover{color:var(--pd)}
 </div>
 
 <script>
-const ITEMS_CATALOG = [{"id":"launch_date","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"International Launch Date","item_cn":"国际上市日期","field_type":"month","options":null,"delivery_standard_en":"Confirmed international first-ship month, format YYYY-MM. Should match the date used to trigger MCSR/MCST training push and spare-parts pre-stock.","delivery_standard_cn":"确认的国际首发月份，格式YYYY-MM，需与MCSR/MCST培训推送及备件预备货时间对齐。"},{"id":"qual_plan","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"Qualification Acquisition Strategy — Plan","item_cn":"资质获取策略-资质方案","field_type":"select","options":["New F2F program","New self-study program","Merged into existing F2F program"],"delivery_standard_en":"Decide how CS engineers get qualified on this product: a brand-new instructor-led (F2F) program, a brand-new self-study/online program, or folding it into an existing F2F program for a related model.","delivery_standard_cn":"明确本产品CS工程师资质获取方式：新增面授（F2F）课程、新增自学课程，或并入相近机型已有的面授课程。"},{"id":"service_strategy_doc","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"New Product Service Strategy Document","item_cn":"新产品服务策略文件","field_type":"select","options":["Available","Not Available"],"delivery_standard_en":"A published service-strategy document covering warranty terms, subcontracting model, spare-parts responsibility and cost assumptions.","delivery_standard_cn":"已发布的服务策略文件，需覆盖保修条款、分包模式、备件责任及成本假设。"},{"id":"install_guide","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Scenario-based Installation Guide","item_cn":"场景化安装指南","field_type":"deliverable","options":null,"delivery_standard_en":"Step-by-step illustrated install guide covering unboxing, hardware assembly, fluidics priming and performance verification; validated against an actual first-unit install.","delivery_standard_cn":"图文并茂的安装指南，覆盖开箱、硬件组装、液路灌注及性能验证，需经过首台实际装机验证。"},{"id":"install_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Installation Video","item_cn":"安装视频","field_type":"deliverable","options":null,"delivery_standard_en":"Narrated / subtitled installation video (English audio or subtitles for international use), hosted on TDS, runtime matched to real install duration.","delivery_standard_cn":"带英文配音或字幕的安装视频，上线TDS，时长与实际装机耗时匹配。"},{"id":"maint_guide","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Scenario-based Maintenance Guide","item_cn":"场景化维护指南","field_type":"deliverable","options":null,"delivery_standard_en":"Guide covering scheduled maintenance and common wear-part replacement, written for the customer/CS self-service model where applicable.","delivery_standard_cn":"覆盖计划性维护及常用易损件更换的指南，适配客户/CS自助维护模式。"},{"id":"maint_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Maintenance Video","item_cn":"维护视频","field_type":"deliverable","options":null,"delivery_standard_en":"Video walkthrough of the maintenance-kit replacement procedure, scannable via QR from the maintenance-kit insert.","delivery_standard_cn":"维护包更换操作视频，可通过维护包内说明书扫码观看。"},{"id":"product_ppt","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product PPT (Value / DFS)","item_cn":"产品PPT（新产品价值DFS）","field_type":"deliverable","options":null,"delivery_standard_en":"Standard training deck introducing product positioning, target customers, DFS (Design for Service) highlights and cost/warranty logic.","delivery_standard_cn":"标准培训PPT，包含产品定位、目标客户、DFS服务设计亮点及成本/保修逻辑。"},{"id":"product_ppt_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product PPT Explanation Video","item_cn":"产品PPT讲解视频","field_type":"deliverable","options":null,"delivery_standard_en":"Recorded narration of the Product PPT for asynchronous/self-study training.","delivery_standard_cn":"产品PPT的讲解录屏，用于自学/异步培训。"},{"id":"oral_exam","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Oral Exam Question Bank & Answers","item_cn":"产品口试题库答案","field_type":"deliverable","options":null,"delivery_standard_en":"Oral-exam question bank with model answers, used for practical/verbal qualification assessment.","delivery_standard_cn":"口试题库及标准答案，用于实操/口头资质考核。"},{"id":"written_exam_bank","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Written Exam Question Bank","item_cn":"产品笔试题库","field_type":"deliverable","options":null,"delivery_standard_en":"Written-exam question bank aligned to the course syllabus / knowledge-point checklist.","delivery_standard_cn":"与课程大纲/知识点清单对齐的笔试题库。"},{"id":"written_exam_answers","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Written Exam Answers","item_cn":"产品笔试答案","field_type":"deliverable","options":null,"delivery_standard_en":"Answer key for the written-exam question bank, version-locked with the question bank.","delivery_standard_cn":"笔试题库对应的标准答案，需与题库版本一致。"},{"id":"f2f_schedule","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Face-to-Face Training Schedule","item_cn":"面授课表","field_type":"deliverable","options":null,"delivery_standard_en":"Day-by-day F2F training agenda (theory / hands-on / exam split) ready to hand to a regional training coordinator.","delivery_standard_cn":"分日面授培训课表（理论/实操/考核安排），可直接交由区域培训协调人使用。"},{"id":"disassembly_list","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Disassembly & Hands-on Practice Item List","item_cn":"拆卸和实操项目清单","field_type":"deliverable","options":null,"delivery_standard_en":"Checklist of components trainees must practice removing/replacing during hands-on sessions, mapped to common FRUs.","delivery_standard_cn":"面授实操环节需练习拆装的部件清单，对应常用FRU。"},{"id":"hw_diagram","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Hardware / Fluidic Diagram","item_cn":"硬件/液路图","field_type":"deliverable","options":null,"delivery_standard_en":"Labeled hardware block diagram and fluidic-path schematic sufficient for fault-tracing without opening the full service manual.","delivery_standard_cn":"带标注的硬件框图与液路原理图，足以支撑故障排查而无需翻阅完整维修手册。"},{"id":"tis_catalog","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"TIS Parts Catalog / Online Manual","item_cn":"TIS零件图册/在线手册齐套","field_type":"deliverable","options":null,"delivery_standard_en":"Exploded parts diagrams and the full service manual published and searchable in TIS.","delivery_standard_cn":"TIS系统内零件爆炸图及完整维修手册均已发布并可检索。"},{"id":"tis_photos","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"TIS Recommended Materials / Kit Photos","item_cn":"TIS推荐物料/维护包实物照片","field_type":"deliverable","options":null,"delivery_standard_en":"Real photos (not renders) of recommended spare parts and the maintenance kit contents, uploaded to TIS.","delivery_standard_cn":"TIS中上传的推荐备件及维护包实物照片（非效果图）。"},{"id":"material_list","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Material / Maintenance Kit / Tooling Code List","item_cn":"推荐物料清单/维护包/工装编码","field_type":"deliverable","options":null,"delivery_standard_en":"Coded list of recommended stocking materials, maintenance-kit BOM and any special tooling, ready for regional pre-stock ordering.","delivery_standard_cn":"带编码的推荐备货物料清单、维护包BOM及专用工装清单，可直接用于区域备货下单。"},{"id":"mcsr_mcst_course","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"MCSR/MCST Courses","item_cn":"MCSR/MCST课程","field_type":"deliverable","options":null,"delivery_standard_en":"Published MCSR (service) and MCST (clinical/technical, where applicable) course content in the qualification system, matching the Qualification Plan chosen above.","delivery_standard_cn":"资质系统中已发布的MCSR（服务）及MCST（临床/技术，如适用）课程内容，需与上方选定的资质方案一致。"},{"id":"iqoqpq_reports","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Install/Maintenance/Repair Report Templates (IQ/OQ/PQ)","item_cn":"安装/维护/维修报告标准化文件","field_type":"deliverable","options":null,"delivery_standard_en":"Standardized IQ/OQ/PQ report templates so every install/maintenance/repair produces a consistent, auditable record.","delivery_standard_cn":"标准化的IQ/OQ/PQ报告模板，确保每次安装/维护/维修都有统一、可追溯的记录。"},{"id":"demo_software","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Demo Software","item_cn":"Demo软件","field_type":"deliverable","options":null,"delivery_standard_en":"Offline demo/simulation software available for training and pre-sales use without a physical unit.","delivery_standard_cn":"可在无实机情况下用于培训及售前演示的离线Demo/模拟软件。"},{"id":"rts_enablement","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"RTS Training & Enablement Completed","item_cn":"完成RTS培训赋能","field_type":"deliverable","options":null,"delivery_standard_en":"All items above have been formally trained to the RTS team (not just published) — RTS confirms readiness to cascade training to CS/distributors.","delivery_standard_cn":"以上所有交付项已对RTS团队完成正式培训（而非仅发布），RTS确认具备向CS/经销商继续赋能的能力。"}];
+const ITEMS_CATALOG = [{"id":"launch_date","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"International Launch Date","item_cn":"国际上市日期","field_type":"month","options":null,"delivery_standard_en":"Confirmed international first-ship month, format YYYY-MM. Should match the date used to trigger MCSR/MCST training push and spare-parts pre-stock.","delivery_standard_cn":"确认的国际首发月份，格式YYYY-MM，需与MCSR/MCST培训推送及备件预备货时间对齐。"},{"id":"qual_plan","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"Qualification Acquisition Strategy — Plan","item_cn":"资质获取策略-资质方案","field_type":"select","options":["New F2F program","New self-study program","Merged into existing F2F program"],"delivery_standard_en":"Decide how CS engineers get qualified on this product: a brand-new instructor-led (F2F) program, a brand-new self-study/online program, or folding it into an existing F2F program for a related model.","delivery_standard_cn":"明确本产品CS工程师资质获取方式：新增面授（F2F）课程、新增自学课程，或并入相近机型已有的面授课程。"},{"id":"service_strategy_doc","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"New Product Service Strategy Document","item_cn":"新产品服务策略文件","field_type":"select","options":["Available","Not Available"],"delivery_standard_en":"A published service-strategy document covering warranty terms, subcontracting model, spare-parts responsibility and cost assumptions.","delivery_standard_cn":"已发布的服务策略文件，需覆盖保修条款、分包模式、备件责任及成本假设。"},{"id":"install_guide","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Scenario-based Installation Guide","item_cn":"场景化安装指南","field_type":"deliverable","options":null,"delivery_standard_en":"Step-by-step illustrated install guide covering unboxing, hardware assembly, fluidics priming and performance verification; validated against an actual first-unit install.","delivery_standard_cn":"图文并茂的安装指南，覆盖开箱、硬件组装、液路灌注及性能验证，需经过首台实际装机验证。"},{"id":"install_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Installation Video","item_cn":"安装视频","field_type":"deliverable","options":null,"delivery_standard_en":"Narrated / subtitled installation video (English audio or subtitles for international use), hosted on TDS, runtime matched to real install duration.","delivery_standard_cn":"带英文配音或字幕的安装视频，上线TDS，时长与实际装机耗时匹配。"},{"id":"maint_guide","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Scenario-based Maintenance Guide","item_cn":"场景化维护指南","field_type":"deliverable","options":null,"delivery_standard_en":"Guide covering scheduled maintenance and common wear-part replacement, written for the customer/CS self-service model where applicable.","delivery_standard_cn":"覆盖计划性维护及常用易损件更换的指南，适配客户/CS自助维护模式。"},{"id":"maint_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Maintenance Video","item_cn":"维护视频","field_type":"deliverable","options":null,"delivery_standard_en":"Video walkthrough of the maintenance-kit replacement procedure, scannable via QR from the maintenance-kit insert.","delivery_standard_cn":"维护包更换操作视频，可通过维护包内说明书扫码观看。"},{"id":"product_ppt","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product PPT (Value / DFS)","item_cn":"产品PPT（新产品价值DFS）","field_type":"deliverable","options":null,"delivery_standard_en":"Standard training deck introducing product positioning, target customers, DFS (Design for Service) highlights and cost/warranty logic.","delivery_standard_cn":"标准培训PPT，包含产品定位、目标客户、DFS服务设计亮点及成本/保修逻辑。"},{"id":"product_ppt_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product PPT Explanation Video","item_cn":"产品PPT讲解视频","field_type":"deliverable","options":null,"delivery_standard_en":"Recorded narration of the Product PPT for asynchronous/self-study training.","delivery_standard_cn":"产品PPT的讲解录屏，用于自学/异步培训。"},{"id":"oral_exam","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Oral Exam Question Bank & Answers","item_cn":"产品口试题库答案","field_type":"deliverable","options":null,"delivery_standard_en":"Oral-exam question bank with model answers, used for practical/verbal qualification assessment.","delivery_standard_cn":"口试题库及标准答案，用于实操/口头资质考核。"},{"id":"written_exam_bank","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Written Exam Question Bank & Answers","item_cn":"产品笔试题库及答案","field_type":"deliverable","options":null,"delivery_standard_en":"Written-exam question bank with its answer key, aligned to the course syllabus / knowledge-point checklist and version-locked together.","delivery_standard_cn":"与课程大纲/知识点清单对齐的笔试题库及配套标准答案，题库与答案需保持同一版本。"},{"id":"f2f_schedule","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Face-to-Face Training Schedule","item_cn":"面授课表","field_type":"deliverable","options":null,"delivery_standard_en":"Day-by-day F2F training agenda (theory / hands-on / exam split) ready to hand to a regional training coordinator.","delivery_standard_cn":"分日面授培训课表（理论/实操/考核安排），可直接交由区域培训协调人使用。"},{"id":"disassembly_list","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Disassembly & Hands-on Practice Item List","item_cn":"拆卸和实操项目清单","field_type":"deliverable","options":null,"delivery_standard_en":"Checklist of components trainees must practice removing/replacing during hands-on sessions, mapped to common FRUs.","delivery_standard_cn":"面授实操环节需练习拆装的部件清单，对应常用FRU。"},{"id":"hw_diagram","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Hardware / Fluidic Diagram","item_cn":"硬件/液路图","field_type":"deliverable","options":null,"delivery_standard_en":"Labeled hardware block diagram and fluidic-path schematic sufficient for fault-tracing without opening the full service manual.","delivery_standard_cn":"带标注的硬件框图与液路原理图，足以支撑故障排查而无需翻阅完整维修手册。"},{"id":"tis_catalog","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"TIS Parts Catalog / Online Manual","item_cn":"TIS零件图册/在线手册齐套","field_type":"deliverable","options":null,"delivery_standard_en":"Exploded parts diagrams and the full service manual published and searchable in TIS.","delivery_standard_cn":"TIS系统内零件爆炸图及完整维修手册均已发布并可检索。"},{"id":"tis_photos","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"TIS Recommended Materials / Kit Photos","item_cn":"TIS推荐物料/维护包实物照片","field_type":"deliverable","options":null,"delivery_standard_en":"Real photos (not renders) of recommended spare parts and the maintenance kit contents, uploaded to TIS.","delivery_standard_cn":"TIS中上传的推荐备件及维护包实物照片（非效果图）。"},{"id":"material_list","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Material / Maintenance Kit / Tooling Code List","item_cn":"推荐物料清单/维护包/工装编码","field_type":"deliverable","options":null,"delivery_standard_en":"Coded list of recommended stocking materials, maintenance-kit BOM and any special tooling, ready for regional pre-stock ordering.","delivery_standard_cn":"带编码的推荐备货物料清单、维护包BOM及专用工装清单，可直接用于区域备货下单。"},{"id":"mcsr_mcst_course","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"MCSR/MCST Courses","item_cn":"MCSR/MCST课程","field_type":"deliverable","options":null,"delivery_standard_en":"Published MCSR (service) and MCST (clinical/technical, where applicable) course content in the qualification system, matching the Qualification Plan chosen above.","delivery_standard_cn":"资质系统中已发布的MCSR（服务）及MCST（临床/技术，如适用）课程内容，需与上方选定的资质方案一致。"},{"id":"iqoqpq_reports","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Install/Maintenance/Repair Report Templates (IQ/OQ/PQ)","item_cn":"安装/维护/维修报告标准化文件","field_type":"deliverable","options":null,"delivery_standard_en":"Standardized IQ/OQ/PQ report templates so every install/maintenance/repair produces a consistent, auditable record.","delivery_standard_cn":"标准化的IQ/OQ/PQ报告模板，确保每次安装/维护/维修都有统一、可追溯的记录。"},{"id":"demo_software","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Demo Software","item_cn":"Demo软件","field_type":"deliverable","options":null,"delivery_standard_en":"Offline demo/simulation software available for training and pre-sales use without a physical unit.","delivery_standard_cn":"可在无实机情况下用于培训及售前演示的离线Demo/模拟软件。"},{"id":"rts_enablement","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"RTS Training & Enablement Completed","item_cn":"完成RTS培训赋能","field_type":"deliverable","options":null,"delivery_standard_en":"All items above have been formally trained to the RTS team (not just published) — RTS confirms readiness to cascade training to CS/distributors.","delivery_standard_cn":"以上所有交付项已对RTS团队完成正式培训（而非仅发布），RTS确认具备向CS/经销商继续赋能的能力。"}];
 const PRODUCTS_SEED = [{"name_en":"CL-9000i","name_cn":"","sub_line":"CLIA","owner_gts":"","owner_rts":""},{"name_en":"BS-5000","name_cn":"","sub_line":"Biochemistry","owner_gts":"","owner_rts":""},{"name_en":"CX3000/CX2000","name_cn":"","sub_line":"Coagulation","owner_gts":"","owner_rts":""},{"name_en":"CAL 9000","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""},{"name_en":"CAL 7000","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""},{"name_en":"BC-6800 Plus","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""},{"name_en":"FA-M400","name_cn":"","sub_line":"Coagulation","owner_gts":"","owner_rts":""},{"name_en":"MT 7000","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""}];
 // ============================================================================
 // EXTERNAL DATA — large read-only snapshots (never touched by Supabase live
@@ -2188,14 +2189,14 @@ let bFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL', newOnly
 let _cmMap = null, _cmLayer = null, _cmGeoCache = null;
 let cmSort = {key:'regionII', dir:1};
 
-const CM_WARNING_COLOR = {grey:'#E5E7EB', salmon:'#FCA5A5', red:'#DC2626', yellow:'#F59E0B', lightgreen:'#86EFAC', deepgreen:'#065F46'};
+const CM_WARNING_COLOR = {grey:'#E5E7EB', salmon:'#FCA5A5', red:'#DC2626', yellow:'#F59E0B', blue:'#60A5FA', lightgreen:'#86EFAC', deepgreen:'#065F46'};
 const CM_WARNING_LABEL = {
   grey:'No shipment', salmon:'Shipped, not installed',
   red:'Installed, no coverage', yellow:'Coverage gap',
-  lightgreen:'MCSR covered', deepgreen:'Fully covered'
+  blue:'Staffed, awaiting install', lightgreen:'MCSR covered', deepgreen:'Fully covered'
 };
-const CM_WARNING_ORDER = {red:0, salmon:1, yellow:2, lightgreen:3, deepgreen:4, grey:5};
-const CM_WARNING_BADGE = {grey:'b-gy', salmon:'b-er', red:'b-er', yellow:'b-wa', lightgreen:'b-ok', deepgreen:'b-ok'};
+const CM_WARNING_ORDER = {red:0, salmon:1, yellow:2, lightgreen:3, deepgreen:4, blue:5, grey:6};
+const CM_WARNING_BADGE = {grey:'b-gy', salmon:'b-er', red:'b-er', yellow:'b-wa', blue:'b-bl', lightgreen:'b-ok', deepgreen:'b-ok'};
 const B_REGIONS = ['APAC','CENTRAL ASIA','EUROPE','INDIA','LATAM','MEA','RUSSIA'];
 
 // ============================================================================
@@ -2258,6 +2259,20 @@ function mcCategoryScheme(mcsrCategory){
   }
   return 'F2F'; // unknown -> conservative default (requires MCST for deep-green), surfaces gaps rather than hiding them
 }
+// Whether this category has an MCST course at all, per Page D's mcst_name
+// field. '/' (or blank) means the category was never assigned an MCST
+// course — internal engineers can never be qualified on it, so it should
+// never be held back from "fully covered" for lacking MCST. Independent of
+// mcCategoryScheme(), which is about training delivery mode, not whether
+// MCST exists.
+function mcCategoryRequiresMCST(mcsrCategory){
+  const nk = normKey(mcsrCategory);
+  const src = (MC_ROWS && MC_ROWS.length) ? MC_ROWS : MC_ROWS_SEED;
+  for(const r of src){
+    if(normKey(r.mcsr_category)===nk) return !!(r.mcst_name && r.mcst_name.trim() && r.mcst_name.trim()!=='/');
+  }
+  return true; // unknown -> conservative default, matches mcCategoryScheme's fallback
+}
 function mcCategoryIsNew(mcsrCategory){
   const nk = normKey(mcsrCategory);
   return MC_ROWS.some(r=>normKey(r.mcsr_category)===nk && r.new_product);
@@ -2295,12 +2310,29 @@ function computeLifecycleStageCounts(){
   const eos = catsOf('停止服务');
   return {preLaunch, launch, mature, discontinued, eos};
 }
-function computeWarningTier(out, installed, imN, cmN, itN, scheme){
+function computeWarningTier(out, installed, imN, cmN, itN, requiresMcst){
   if(out===0) return 'grey';
-  if(installed===0) return (imN===0 && cmN===0) ? 'salmon' : 'yellow';
+  const anyMcsr = imN>0 || cmN>0;
+  const bothMcsr = imN>0 && cmN>0;
+  if(installed===0){
+    // Not installed yet. Staffing here is "ready for when it lands", not an
+    // active gap — a device with nobody trained (salmon) is a materially
+    // different situation from one that's already fully staffed on both
+    // sides (blue). Collapsing both into "yellow" (coverage gap) used to
+    // misreport fully-staffed-but-not-yet-installed categories as having a
+    // gap when they don't.
+    if(!anyMcsr) return 'salmon';
+    if(!bothMcsr) return 'yellow';
+    return 'blue';
+  }
   if(imN===0 && cmN===0) return 'red';
   if((imN>0) !== (cmN>0)) return 'yellow';
-  if(scheme==='F2F' && itN===0) return 'lightgreen';
+  // requiresMcst comes from Page D's mcst_name field (mcCategoryRequiresMCST),
+  // NOT the learning-type scheme — a category can be face-to-face-trained yet
+  // have no MCST course at all (mcst_name === '/'), e.g. AP-100 / TDR-200.
+  // Gating on scheme=='F2F' held those at lightgreen forever since itN can
+  // never be >0 when no course exists to qualify anyone on.
+  if(requiresMcst && itN===0) return 'lightgreen';
   return 'deepgreen';
 }
 
@@ -2337,10 +2369,10 @@ function bAggregate(){
   models.forEach(m=>{
     const bucket = COVERAGE_MAP.byModel[m.key];
     if(!bucket) return;
-    const scheme = mcCategoryScheme(m.model);
+    const requiresMcst = mcCategoryRequiresMCST(m.model);
     (bucket.regions||[]).forEach(r=>{
       if(!regionMatches(r.regionII, r.regionIII, bFilters.region, bFilters.region3)) return;
-      const w = computeWarningTier(r.out, r.installed, r.internalMCSR.length, r.channelMCSR.length, r.internalMCST.length, scheme);
+      const w = computeWarningTier(r.out, r.installed, r.internalMCSR.length, r.channelMCSR.length, r.internalMCST.length, requiresMcst);
       const k = r.regionII+'||'+r.regionIII;
       let acc = regionsMap[k];
       if(!acc) acc = regionsMap[k] = {regionII:r.regionII, regionIII:r.regionIII, countries:new Set(), out:0, installed:0, internalMCSR:new Set(), internalMCST:new Set(), channelMCSR:new Set(), warning:w};
@@ -2353,7 +2385,7 @@ function bAggregate(){
     });
     Object.entries(bucket.countries||{}).forEach(([code,c])=>{
       if(!regionMatches(c.regionII, c.regionIII, bFilters.region, bFilters.region3)) return;
-      const w = computeWarningTier(c.out, c.installed, c.internalMCSR.length, c.channelMCSR.length, c.internalMCST.length, scheme);
+      const w = computeWarningTier(c.out, c.installed, c.internalMCSR.length, c.channelMCSR.length, c.internalMCST.length, requiresMcst);
       let acc = countriesMap[code];
       if(!acc) acc = countriesMap[code] = {regionII:c.regionII, regionIII:c.regionIII, out:0, installed:0, internalMCSR:new Set(), internalMCST:new Set(), channelMCSR:new Set(), warning:w};
       acc.out += c.out; acc.installed += c.installed;
@@ -2472,7 +2504,11 @@ function renderCoverageMap(){
   const countries = agg.countries;
   const modelObj = dModels().find(m=>m.key===bFilters.model);
   label.textContent = modelObj ? modelObj.model : '';
-  renderCoverageTable(agg);
+  // Only meaningful to hide the MCST line when ONE specific model is picked —
+  // under "All Models" the aggregated bucket mixes categories that may or may
+  // not require MCST, so there's no single right answer to hide/show.
+  const showMcst = !(modelObj && !mcCategoryRequiresMCST(modelObj.model));
+  renderCoverageTable(agg, showMcst);
 
   if(!container || typeof L === 'undefined') return;
   if(!_cmMap) container.innerHTML = ''; // clear any leftover placeholder markup before (re)initializing
@@ -2485,7 +2521,7 @@ function renderCoverageMap(){
     return `<b>${esc(name)}</b> — ${CM_WARNING_LABEL[c.warning]}<br>` +
       `Out: <b>${c.out}</b> &nbsp; Installed: <b>${c.installed}</b><br>` +
       `Internal MCSR (${c.internalMCSR.length}): ${wrapNames(c.internalMCSR)}<br>` +
-      `Internal MCST (${c.internalMCST.length}): ${wrapNames(c.internalMCST)}<br>` +
+      (showMcst ? `Internal MCST (${c.internalMCST.length}): ${wrapNames(c.internalMCST)}<br>` : '') +
       `Channel MCSR (${c.channelMCSR.length}): ${wrapNames(c.channelMCSR)}`;
   }
   function styleFeature(feature){ return {fillColor: colorFor(feature.id), weight:1, color:'#fff', fillOpacity:0.85}; }
@@ -2531,9 +2567,11 @@ function setCmSort(key){
   if(cmSort.key===key) cmSort.dir *= -1; else cmSort = {key, dir:1};
   renderCoverageMap();
 }
-function renderCoverageTable(agg){
+function renderCoverageTable(agg, showMcst){
+  if(showMcst===undefined) showMcst = true;
+  const cols = CM_COLUMNS.filter(c => showMcst || c.key!=='internalMCST');
   const thead = document.getElementById('cm-thead-row');
-  thead.innerHTML = CM_COLUMNS.map(c=>{
+  thead.innerHTML = cols.map(c=>{
     const active = cmSort.key===c.key;
     const arrow = active ? (cmSort.dir===1?'▲':'▼') : '▲▼';
     return `<th class="th-sort${active?' active':''}" style="min-width:${c.width}" onclick="setCmSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
@@ -2542,7 +2580,7 @@ function renderCoverageTable(agg){
   const tbody = document.getElementById('cm-table-body');
   const cnt = document.getElementById('cm-cnt');
   if(!agg){
-    tbody.innerHTML = `<tr><td colspan="${CM_COLUMNS.length}" style="text-align:center;color:var(--s400);padding:24px;font-size:11px">Select a specific model above — this table's gaps only make sense for one model at a time.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--s400);padding:24px;font-size:11px">Select a specific model above — this table's gaps only make sense for one model at a time.</td></tr>`;
     if(cnt) cnt.textContent = '';
     return;
   }
@@ -2560,15 +2598,22 @@ function renderCoverageTable(agg){
       if(av<bv) return -1*cmSort.dir; if(av>bv) return 1*cmSort.dir; return 0;
     });
   }
-  tbody.innerHTML = rows.map(r=>`<tr>
-    <td><b>${esc(r.regionII)}</b></td><td style="white-space:normal">${esc((r.regionIII||'').replace(' REGION',''))}<br><span style="font-size:9px;color:var(--s400)">${r.countries.length} countries: ${esc(r.countries.join(', '))}</span></td>
-    <td>${r.out}</td><td>${r.installed}</td>
-    <td style="white-space:normal">${r.internalMCSR.length}${r.internalMCSR.length?'<br><span style="color:var(--s400);font-size:9.5px">'+esc(r.internalMCSR.join(', '))+'</span>':''}</td>
-    <td style="white-space:normal">${r.internalMCST.length}${r.internalMCST.length?'<br><span style="color:var(--s400);font-size:9.5px">'+esc(r.internalMCST.join(', '))+'</span>':''}</td>
-    <td style="white-space:normal">${r.channelMCSR.length}${r.channelMCSR.length?'<br><span style="color:var(--s400);font-size:9.5px">'+esc(r.channelMCSR.join(', '))+'</span>':''}</td>
-    <td><span class="badge ${CM_WARNING_BADGE[r.warning]}">${CM_WARNING_LABEL[r.warning]}</span></td>
-  </tr>`).join('');
-  if(cnt) cnt.textContent = rows.length+' regions · '+Object.keys(agg.countries).length+' countries';
+  const nameList = arr => arr.length ? '<br><span style="color:var(--s400);font-size:9.5px">'+esc(arr.join(', '))+'</span>' : '';
+  const cellFor = (c, r) => {
+    switch(c.key){
+      case 'regionII': return `<td><b>${esc(r.regionII)}</b></td>`;
+      case 'regionIII': return `<td style="white-space:normal">${esc((r.regionIII||'').replace(' REGION',''))}<br><span style="font-size:9px;color:var(--s400)">${r.countries.length} countries: ${esc(r.countries.join(', '))}</span></td>`;
+      case 'out': return `<td>${r.out}</td>`;
+      case 'installed': return `<td>${r.installed}</td>`;
+      case 'internalMCSR': return `<td style="white-space:normal">${r.internalMCSR.length}${nameList(r.internalMCSR)}</td>`;
+      case 'internalMCST': return `<td style="white-space:normal">${r.internalMCST.length}${nameList(r.internalMCST)}</td>`;
+      case 'channelMCSR': return `<td style="white-space:normal">${r.channelMCSR.length}${nameList(r.channelMCSR)}</td>`;
+      case 'warning': return `<td><span class="badge ${CM_WARNING_BADGE[r.warning]}">${CM_WARNING_LABEL[r.warning]}</span></td>`;
+      default: return '<td></td>';
+    }
+  };
+  tbody.innerHTML = rows.map(r => `<tr>${cols.map(c=>cellFor(c,r)).join('')}</tr>`).join('');
+  if(cnt) cnt.textContent = rows.length+' regions · '+Object.keys(agg.countries).length+' countries'+(showMcst?'':' · MCST N/A for this category 该大类无MCST课程');
 }
 
 // ---------------- KPI cards ----------------
@@ -4398,14 +4443,14 @@ function renderCockpit(){
     COVERAGE_MAP.models.forEach(m=>{
       if(!mcCategoryIsKm(m.model)) return;
       const bucket = COVERAGE_MAP.byModel[m.key]; if(!bucket) return;
-      const scheme = mcCategoryScheme(m.model);
+      const requiresMcst = mcCategoryRequiresMCST(m.model);
       Object.keys(bucket.countries||{}).forEach(iso=>{
         const c = bucket.countries[iso];
         if(!regionMatchesScope(c.regionII)) return;
         // compute the tier here — the raw JSON has no .warning field (it is
         // computed at render time in bAggregate), so reading c.warning
         // directly always saw undefined and this KPI silently stayed at 0
-        const w = computeWarningTier(c.out, c.installed, c.internalMCSR.length, c.channelMCSR.length, c.internalMCST.length, scheme);
+        const w = computeWarningTier(c.out, c.installed, c.internalMCSR.length, c.channelMCSR.length, c.internalMCST.length, requiresMcst);
         if(w==='red'||w==='salmon'){
           redCountryPairs++;
           (redByModel[m.model] = redByModel[m.model]||[]).push(iso);
