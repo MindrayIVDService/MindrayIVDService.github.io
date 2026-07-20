@@ -292,7 +292,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="ni" onclick="nav('lifecycle',this)"><span class="ni-ic">♻️</span><span class="ni-text"><span class="ni-en">Mature Product Mgmt</span><span class="ni-cn">成熟产品管理</span></span></div>
     <div class="ni" onclick="nav('quality',this)"><span class="ni-ic">🩺</span><span class="ni-text"><span class="ni-en">Quality &amp; FTFR / QE Watch</span><span class="ni-cn">质量与技术监控</span></span><span class="ni-sub">live</span></div>
     <div class="sb-sec">D · EOL / EOS</div>
-    <div class="ni" onclick="nav('eos',this)"><span class="ni-ic">🌗</span><span class="ni-text"><span class="ni-en">EOL / EOS Management</span><span class="ni-cn">停产停服管理</span></span><span class="ni-sub">planned</span></div>
+    <div class="ni" onclick="nav('eos',this)"><span class="ni-ic">🌗</span><span class="ni-text"><span class="ni-en">EOL / EOS Management</span><span class="ni-cn">停产停服管理</span></span><span class="ni-sub">v1</span></div>
     <div class="sb-sec">Reference</div>
     <div class="ni" onclick="nav('mcmap',this)"><span class="ni-ic">📖</span><span class="ni-text"><span class="ni-en">Model / Course Mapping</span><span class="ni-cn">机型资质课程底表</span></span></div>
     <div class="ni" onclick="nav('team',this)"><span class="ni-ic">🧑‍🤝‍🧑</span><span class="ni-text"><span class="ni-en">Team Coverage</span><span class="ni-cn">团队分工</span></span></div>
@@ -769,15 +769,24 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="ph-sub">Graceful sunset: EOL ≠ EOS — the install base keeps running. Planned modules layer install-base, spares &amp; replacement risk on Page C data. 停产≠停服；规划模块口径已定义。</div></div>
 
   <div class="ph-card">
-    <div class="ct">⏳ EOS Countdown Ledger 停服倒计时 <span class="badge b-plan">PLANNED</span></div>
-    <details class="dcx"><summary>Data contract · dimensions / logic / source 取值口径</summary>
-    <table class="spec">
-      <tr><th>Field 要素</th><th>Definition 定义</th></tr>
-      <tr><td>维度</td><td>已停产未停服机型 × 区域</td></tr>
-      <tr><td>核心指标</td><td>距EOS月数、全球/分区域存量装机、估算在保台数、近12月工单量</td></tr>
-      <tr><td>取值来源</td><td>C页台账 <code>eol_time / eos_time</code> ＋ Equipment data（Product Model 经底表映射到机型大类；Out Date + 标准保修期估算在保）</td></tr>
-      <tr><td>预警逻辑</td><td>距EOS ≤24个月 → 启动客户通知计划（黄）；≤12个月 → 红；存量&gt;100台且未发通知 → 置顶</td></tr>
-    </table></details>
+    <div class="ct">⏳ EOS Countdown Ledger 停服倒计时 <span class="badge b-ok">LIVE — v1</span></div>
+    <div class="ph-sub" style="margin:2px 0 10px">
+      Global install base &amp; est. under-warranty units are computed live from Equipment data (2020→now, lifetime).
+      EOL dates are inferred where a model has shipped nothing in 12+ months (see Page C note per model); EOS dates
+      are <b>not yet set for any model</b> — click a row to open it on Page C and fill in EOS date once support
+      cutoff is decided. 全球存量与在保台数按Equipment data实时计算；EOL日期已按停发货12个月以上规则推算，EOS日期尚未录入任何机型——点击行可跳转C页台账填写。
+      <br><span style="color:var(--s400)">Deferred from original spec this round 本轮暂未实现: (1) region-level install-base breakdown — v1 shows global totals only, region split needs per-region equipment stats keyed by legacy model, not yet wired up; (2) near-12-month ticket volume — QE_FTFR source only carries a bare month name, no year, not reliable for a 12-month window. Will revisit both if there's demand.</span>
+    </div>
+    <div class="krow" id="eos-kpi" style="margin-bottom:12px"></div>
+    <div class="tbl-wrap">
+      <div class="tbl-toolbar" style="flex-wrap:wrap">
+        <span class="flbl">Status 状态</span>
+        <div class="fg" id="eos-status-filters"></div>
+        <input type="text" class="tsearch" id="eos-search" placeholder="🔍 Search model / category 搜索机型/大类" oninput="renderEosTable()" style="margin-left:auto;width:190px">
+      </div>
+      <div class="tbl-scroll" style="max-height:460px"><table><thead><tr id="eos-thead"></tr></thead><tbody id="eos-tbody"></tbody></table></div>
+      <div class="hidden-note" id="eos-cnt" style="padding:8px 14px"></div>
+    </div>
   </div>
 
   <div class="ph-card">
@@ -1195,6 +1204,7 @@ function nav(page, el){
   if(page==='cockpit'){ try{ renderCockpit(); }catch(e){} }
   if(page==='bready'){ try{ renderMe(); renderFt(); }catch(e){} }
   if(page==='quality'){ try{ renderQf(); renderQq(); }catch(e){} }
+  if(page==='eos'){ try{ renderEosTable(); }catch(e){} }
   window.scrollTo(0,0);
   setTimeout(resizeAllCharts, 0);
 }
@@ -3157,7 +3167,117 @@ async function refreshLegacyData(){
   if(btn) btn.textContent = '…';
   LEGACY_MODELS = await DB.listLegacyModels();
   renderLifecycleKPI(); renderLifecycleCharts(); renderLifecycleTable();
+  renderEosTable();
   if(btn) btn.textContent = '⟳';
+}
+
+// ============================================================================
+// PAGE D: EOS COUNTDOWN LEDGER (v1 — live)
+// ============================================================================
+// Global install base / under-warranty come straight from equipment.json's
+// per-category lifecycle (via legacyEffectiveCategory, same mapping Page C's
+// own KPIs use) — not re-derived here, so it can never drift out of step
+// with the rest of the site's install-base numbers.
+function eosGlobalStats(model){
+  const eq = matchEquip(legacyEffectiveCategory(model));
+  if(!eq) return {out:0, installed:0, underWarranty:0, lastShip:null};
+  return {out:eq.outCount||0, installed:eq.installedCount||0, underWarranty:eq.underWarrantyCount||0, lastShip:eq.lastShipDate||null};
+}
+function monthsBetween(fromISO, toISO){
+  const a = new Date(fromISO+'-01'), b = new Date(toISO+'-01');
+  return (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth());
+}
+// Tier logic mirrors the original spec: ≤12mo to EOS = red, ≤24mo = yellow,
+// EOS unset but install base is big enough to matter = flagged (amber,
+// distinct from "not applicable") so it doesn't quietly sit at the bottom.
+function eosTier(model, eosTime, installBase){
+  if(!eosTime){
+    return installBase > 100 ? 'flag' : 'unset';
+  }
+  const months = monthsBetween(todayStr().slice(0,7), eosTime);
+  if(months <= 12) return 'red';
+  if(months <= 24) return 'yellow';
+  return 'ok';
+}
+const EOS_TIER_LABEL = {red:'≤12mo to EOS', yellow:'≤24mo to EOS', ok:'On track', flag:'EOS not set · install base >100', unset:'EOS not set'};
+const EOS_TIER_BADGE = {red:'b-er', yellow:'b-wa', ok:'b-ok', flag:'b-wa', unset:'b-gy'};
+const EOS_TIER_ORDER = {red:0, flag:1, yellow:2, unset:3, ok:4};
+
+function eosCandidates(){
+  return LEGACY_MODELS.filter(m=>m.status==='停产' || m.status==='停止服务').map(m=>{
+    const stats = eosGlobalStats(m.model);
+    const tier = eosTier(m.model, m.eos_time, stats.installed);
+    return {...m, category: legacyEffectiveCategory(m.model), ...stats, tier};
+  });
+}
+function renderEosKPI(){
+  const rows = eosCandidates();
+  const unset = rows.filter(r=>!r.eos_time).length;
+  const within12 = rows.filter(r=>r.tier==='red').length;
+  const totalInstalled = rows.reduce((s,r)=>s+r.installed, 0);
+  const totalWarranty = rows.reduce((s,r)=>s+r.underWarranty, 0);
+  const cards = [
+    {lbl:'EOS Not Yet Scheduled 未设EOS日期', val: unset+' / '+rows.length, sub:'set eos_time on Page C to activate the countdown', cls: unset ? 'wa' : 'ok'},
+    {lbl:'≤12mo to EOS 距停服≤12个月', val: within12, sub:'needs a customer notification plan now', cls: within12 ? 'er' : 'ok'},
+    {lbl:'Install Base (EOL+EOS models) 存量装机', val: totalInstalled.toLocaleString(), sub: rows.length+' models tracked · lifetime, all regions', cls:'pu'},
+    {lbl:'Est. Still Under Warranty 估算在保台数', val: totalWarranty.toLocaleString(), sub:'as of '+todayStr()+' · from per-unit Warranty End Date', cls:'wa'},
+  ];
+  document.getElementById('eos-kpi').innerHTML = cards.map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
+}
+let eosStatusFilter = 'ALL';
+let eosSort = {key:'tier', dir:1};
+function renderEosStatusFilters(){
+  const el = document.getElementById('eos-status-filters');
+  if(!el) return;
+  const opts = ['ALL','停产','停止服务'];
+  el.innerHTML = opts.map(o=>`<span class="pt${eosStatusFilter===o?' on':''}" onclick="eosStatusFilter='${o}';renderEosStatusFilters();renderEosTable()">${o==='ALL'?'All 全部':o}</span>`).join('');
+}
+const EOS_COLS = [
+  {key:'model', en:'Model', cn:'型号', width:'110px'},
+  {key:'category', en:'MCSR Category', cn:'机型大类', width:'170px'},
+  {key:'status', en:'Status', cn:'状态', width:'70px'},
+  {key:'launch_time', en:'Launch', cn:'上市', width:'70px'},
+  {key:'eol_time', en:'EOL', cn:'停产', width:'70px'},
+  {key:'eos_time', en:'EOS', cn:'停服', width:'70px'},
+  {key:'installed', en:'Install Base', cn:'存量装机', width:'80px'},
+  {key:'underWarranty', en:'Under Warranty', cn:'在保台数', width:'90px'},
+  {key:'tier', en:'Countdown', cn:'倒计时', width:'150px'},
+];
+function setEosSort(key){ if(eosSort.key===key) eosSort.dir*=-1; else eosSort={key,dir:1}; renderEosTable(); }
+function renderEosTable(){
+  renderEosStatusFilters();
+  const thead = document.getElementById('eos-thead');
+  if(!thead) return; // Page D not yet rendered this session
+  thead.innerHTML = EOS_COLS.map(c=>{
+    const active = eosSort.key===c.key;
+    const arrow = active ? (eosSort.dir===1?'▲':'▼') : '▲▼';
+    return `<th class="th-sort${active?' active':''}" style="min-width:${c.width}" onclick="setEosSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
+  }).join('');
+  renderEosKPI();
+  const q = (document.getElementById('eos-search').value||'').toUpperCase();
+  let rows = eosCandidates();
+  if(eosStatusFilter!=='ALL') rows = rows.filter(r=>r.status===eosStatusFilter);
+  if(q) rows = rows.filter(r=>[r.model,r.category].some(v=>v && v.toUpperCase().includes(q)));
+  rows.sort((a,b)=>{
+    let av,bv;
+    if(eosSort.key==='tier'){ av=EOS_TIER_ORDER[a.tier]; bv=EOS_TIER_ORDER[b.tier]; }
+    else if(eosSort.key==='installed' || eosSort.key==='underWarranty'){ av=a[eosSort.key]; bv=b[eosSort.key]; }
+    else { av=(a[eosSort.key]||'').toString(); bv=(b[eosSort.key]||'').toString(); }
+    if(av<bv) return -1*eosSort.dir; if(av>bv) return 1*eosSort.dir; return 0;
+  });
+  document.getElementById('eos-tbody').innerHTML = rows.map(r=>`<tr class="editable" onclick="openLegacyModal('${r.id}')" title="Click to edit on Page C 点击跳转C页编辑">
+    <td><b>${esc(r.model)}</b></td>
+    <td>${esc(r.category)}</td>
+    <td>${esc(r.status)}</td>
+    <td>${esc(r.launch_time)||'—'}</td>
+    <td>${esc(r.eol_time)||'—'}</td>
+    <td>${esc(r.eos_time)||'<span style="color:var(--s400)">Not set</span>'}</td>
+    <td>${r.installed.toLocaleString()} <span style="color:var(--s400);font-size:9.5px">/ ${r.out.toLocaleString()} out</span></td>
+    <td>${r.underWarranty.toLocaleString()}</td>
+    <td><span class="badge ${EOS_TIER_BADGE[r.tier]}">${EOS_TIER_LABEL[r.tier]}</span></td>
+  </tr>`).join('');
+  const cnt = document.getElementById('eos-cnt');
+  if(cnt) cnt.textContent = rows.length+' / '+eosCandidates().length+' models (停产 + 停止服务)';
 }
 
 // ============================================================================
@@ -4531,7 +4651,18 @@ function renderCockpit(){
     const nTrend=Object.values(grp).filter(n=>n>=3).length;
     if(nTrend) risksC.push({dot:'var(--wa)', html:`<b>${nTrend}</b> trending issues (same model × classification ≥3 QE)${scopeTag} 趋势问题`, page:'quality'});
   }catch(e){}
-  risksD.push({dot:'var(--s300)', html:'EOL/EOS module is planned — no live data yet 停产停服模块规划中，暂无实时数据', page:'eos'});
+  try{
+    const eosRows = eosCandidates();
+    const unset = eosRows.filter(r=>!r.eos_time);
+    const bigUnset = unset.filter(r=>r.installed>100).length;
+    const within12 = eosRows.filter(r=>r.tier==='red').length;
+    if(within12) risksD.push({dot:'var(--er)', html:`<b>${within12}</b> model(s) ≤12 months to EOS 距停服≤12个月`, page:'eos'});
+    if(bigUnset) risksD.push({dot:'var(--wa)', html:`<b>${bigUnset}</b> discontinued model(s) with install base &gt;100 have no EOS date set 存量&gt;100台但未设停服日期`, page:'eos'});
+    if(!eosRows.length) risksD.push({dot:'var(--s300)', html:'No discontinued models on Page C yet 台账中暂无停产机型', page:'eos'});
+    else if(!within12 && !bigUnset) risksD.push({dot:'var(--ok)', html:`${eosRows.length} discontinued model(s) tracked, none urgent 已跟踪${eosRows.length}个停产机型，暂无紧急项`, page:'eos'});
+  }catch(e){
+    risksD.push({dot:'var(--s300)', html:'EOL/EOS module is planned — no live data yet 停产停服模块规划中，暂无实时数据', page:'eos'});
+  }
 
   const renderRisks = (id, arr, cap) => {
     const el = document.getElementById(id);
