@@ -869,7 +869,8 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap" style="margin-bottom:16px">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <h3>GTS Ownership<span class="en">GTS负责人</span></h3>
-      <input type="text" class="tsearch" id="gts-search" placeholder="🔍 Search category / name 搜索大类或姓名" oninput="renderGtsTable()" style="margin-left:auto">
+      <div class="fg" id="gts-line-filters" style="margin-left:14px"></div>
+      <input type="text" class="tsearch" id="gts-search" placeholder="🔍 Search category / name 搜索大类或姓名" oninput="renderGtsTable()" style="margin-left:auto;width:170px">
       <button class="btn btn-gy" onclick="exportGtsCSV()">⬇ Export CSV</button>
       <button class="btn btn-p" id="gts-add-btn" onclick="openGtsModal()">+ Add Row 新增一行</button>
     </div>
@@ -2984,7 +2985,7 @@ function renderLfCatFilters(){
 }
 const LF_COLUMNS = [
   {key:'category_group', en:'Line', cn:'产线', width:'56px'},
-  {key:'category', en:'Category', cn:'类别', width:'80px'},
+  {key:'category', en:'MCSR Category', cn:'机型大类', width:'110px'},
   {key:'process_code', en:'Process Code', cn:'工艺代码', width:'70px'},
   {key:'model', en:'Model', cn:'机型', width:'90px'},
   {key:'serial', en:'Serial', cn:'序列号', width:'70px'},
@@ -3428,13 +3429,30 @@ function applyTeamPermissionsUI(){
 
 // ---------------- GTS ownership ----------------
 const GTS_COLS = [
-  {key:'mcsr_category', en:'MCSR Category', cn:'机型大类', width:'220px'},
-  {key:'gts_name', en:'GTS Name', cn:'GTS姓名', width:'140px'},
+  {key:'subline', en:'Sub-Line', cn:'子产线', width:'80px'},
+  {key:'mcsr_category', en:'MCSR Category', cn:'机型大类', width:'200px'},
+  {key:'gts_name', en:'GTS Name', cn:'GTS姓名', width:'130px'},
   {key:'email', en:'Email', cn:'邮箱', width:'170px'},
   {key:'notes', en:'Notes', cn:'备注', width:''},
 ];
+let gtsLineFilter = 'ALL';
+// Sub-line is DERIVED from the category via the Page D registry (live mc_rows,
+// falling back to the baked-in seed) — not stored on gts_owners rows, so it
+// can never drift out of sync with Page D.
+function gtsSubline(category){
+  const src = (MC_ROWS && MC_ROWS.length) ? MC_ROWS : MC_ROWS_SEED;
+  const hit = src.find(x=>x.mcsr_category===category);
+  return hit ? canonicalLine(hit.sub_line) : 'Other';
+}
+function renderGtsLineFilters(){
+  const el = document.getElementById('gts-line-filters');
+  if(!el) return;
+  const opts = ['ALL', ...LEGACY_LINE_ABBR];
+  el.innerHTML = opts.map(o=>`<span class="pt${gtsLineFilter===o?' on':''}" onclick="gtsLineFilter='${o}';renderGtsLineFilters();renderGtsTable()">${o==='ALL'?'All 全部':o}</span>`).join('');
+}
 function setGtsSort(key){ if(gtsSort.key===key) gtsSort.dir*=-1; else gtsSort={key,dir:1}; renderGtsTable(); }
 function renderGtsTable(){
+  renderGtsLineFilters();
   const thead = document.getElementById('gts-thead');
   thead.innerHTML = GTS_COLS.map(c=>{
     const active = gtsSort.key===c.key;
@@ -3444,11 +3462,16 @@ function renderGtsTable(){
   }).join('');
   const q = (document.getElementById('gts-search').value||'').toUpperCase();
   let rows = GTS_OWNERS.filter(r=>!q || [r.mcsr_category,r.gts_name,r.email].some(v=>v && v.toUpperCase().includes(q)));
+  if(gtsLineFilter!=='ALL') rows = rows.filter(r=>gtsSubline(r.mcsr_category)===gtsLineFilter);
   rows.sort((a,b)=>{
-    let av=(a[gtsSort.key]||'').toString().toUpperCase(), bv=(b[gtsSort.key]||'').toString().toUpperCase();
+    let av, bv;
+    if(gtsSort.key==='subline'){ av = gtsSubline(a.mcsr_category); bv = gtsSubline(b.mcsr_category); }
+    else { av=(a[gtsSort.key]||'').toString(); bv=(b[gtsSort.key]||'').toString(); }
+    av = av.toUpperCase(); bv = bv.toUpperCase();
     if(av<bv) return -1*gtsSort.dir; if(av>bv) return 1*gtsSort.dir; return 0;
   });
   document.getElementById('gts-tbody').innerHTML = rows.map(r=>`<tr class="editable" onclick="openGtsModal('${r.id}')">
+    <td><span class="pt" style="cursor:default">${esc(gtsSubline(r.mcsr_category))}</span></td>
     <td><b>${esc(r.mcsr_category)}</b></td><td>${esc(r.gts_name)}</td><td>${esc(r.email)}</td><td style="white-space:normal">${esc(r.notes)}</td>
   </tr>`).join('');
   document.getElementById('gts-cnt').textContent = rows.length+' / '+GTS_OWNERS.length+' rows';
@@ -3484,8 +3507,10 @@ function openGtsModal(id){
   document.getElementById('gtsmodal-bg').classList.add('on');
 }
 function closeGtsModal(){ document.getElementById('gtsmodal-bg').classList.remove('on'); currentGtsEdit=null; }
+let gtsSaving = false;
 async function saveGtsRow(){
   if(!requireHQ()) return;
+  if(gtsSaving) return;   // double-click guard — the awaits below take a moment
   const gts_name = document.getElementById('gts-name').value.trim();
   if(!gts_name){ alert('GTS name is required 请填写GTS姓名'); return; }
   const cats = [...document.querySelectorAll('.gts-cat-chk:checked')].map(el=>el.value);
@@ -3493,24 +3518,36 @@ async function saveGtsRow(){
   const email = document.getElementById('gts-email').value.trim();
   const notes = document.getElementById('gts-notes').value.trim();
 
-  if(currentGtsEdit){
-    // First checked category updates the row being edited; any additional
-    // checked categories become new rows (same name/email/notes on each) —
-    // this is how "turn one GTS-category row into coverage for several
-    // categories" works without changing the underlying one-row-per-category schema.
-    const patch = {mcsr_category: cats[0], gts_name, email, notes};
-    await DB.updateGtsOwner(currentGtsEdit, patch);
-    const idx = GTS_OWNERS.findIndex(r=>r.id===currentGtsEdit);
-    if(idx>=0) GTS_OWNERS[idx] = {...GTS_OWNERS[idx], ...patch};
-    for(const cat of cats.slice(1)){
-      const rec = await DB.addGtsOwner({mcsr_category: cat, gts_name, email, notes});
-      GTS_OWNERS.push(rec);
+  // Duplicate guard: skip (category, name) pairs that already exist as another
+  // row — re-saving the same multi-select twice used to create doubled rows.
+  const pairExists = (cat, excludeId) => GTS_OWNERS.some(r =>
+    r.id!==excludeId && r.mcsr_category===cat && r.gts_name.trim().toUpperCase()===gts_name.toUpperCase());
+
+  gtsSaving = true;
+  try{
+    let skipped = [];
+    if(currentGtsEdit){
+      // First checked category updates the row being edited; any additional
+      // checked categories become new rows (same name/email/notes on each).
+      const patch = {mcsr_category: cats[0], gts_name, email, notes};
+      await DB.updateGtsOwner(currentGtsEdit, patch);
+      const idx = GTS_OWNERS.findIndex(r=>r.id===currentGtsEdit);
+      if(idx>=0) GTS_OWNERS[idx] = {...GTS_OWNERS[idx], ...patch};
+      for(const cat of cats.slice(1)){
+        if(pairExists(cat, currentGtsEdit)){ skipped.push(cat); continue; }
+        const rec = await DB.addGtsOwner({mcsr_category: cat, gts_name, email, notes});
+        GTS_OWNERS.push(rec);
+      }
+    } else {
+      for(const cat of cats){
+        if(pairExists(cat, null)){ skipped.push(cat); continue; }
+        const rec = await DB.addGtsOwner({mcsr_category: cat, gts_name, email, notes});
+        GTS_OWNERS.push(rec);
+      }
     }
-  } else {
-    for(const cat of cats){
-      const rec = await DB.addGtsOwner({mcsr_category: cat, gts_name, email, notes});
-      GTS_OWNERS.push(rec);
-    }
+    if(skipped.length) alert(`Skipped ${skipped.length} already-existing row(s) 已跳过重复行: ${skipped.join(', ')}`);
+  } finally {
+    gtsSaving = false;
   }
   closeGtsModal();
   renderGtsTable();
@@ -3527,9 +3564,9 @@ async function deleteGtsRow(){
   renderGtsTable();
 }
 function exportGtsCSV(){
-  let csv = 'MCSRCategory,GTSName,Email,Notes\n';
+  let csv = 'SubLine,MCSRCategory,GTSName,Email,Notes\n';
   GTS_OWNERS.forEach(r=>{
-    const line = [r.mcsr_category, r.gts_name, r.email, (r.notes||'').replace(/\n/g,' ')]
+    const line = [gtsSubline(r.mcsr_category), r.mcsr_category, r.gts_name, r.email, (r.notes||'').replace(/\n/g,' ')]
       .map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
     csv += line+'\n';
   });
