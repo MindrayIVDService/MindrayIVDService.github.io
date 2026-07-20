@@ -342,7 +342,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="cg cg3">
     <div class="card"><div class="ct">Stage Distribution<span class="en">生命周期阶段分布</span></div><div class="ec" id="ov-ec-stage"></div></div>
     <div class="card"><div class="ct">By Product Line<span class="en">产线分布</span></div><div class="ec" id="ov-ec-line"></div></div>
-    <div class="card"><div class="ct">Out Trend (rolling 2y)<span class="en">近2年出库趋势</span><span class="sub">installed = yearly, estimated 装机为年度估算值</span></div><div class="ec" id="ov-ec-trend"></div></div>
+    <div class="card"><div class="ct">Out / Installed Trend<span class="en">出库/装机趋势</span><span class="sub">both real per-year counts, lifetime data 均为真实年度数据，非估算</span></div><div class="ec" id="ov-ec-trend"></div></div>
   </div>
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
@@ -467,7 +467,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="hidden-note" id="lf-readonly-note" style="display:none;margin-bottom:10px">🔒 Read-only for your account — only HQ can edit this table. 仅HQ账号可编辑此表。</div>
   <div class="krow krow5" id="lf-kpi"></div>
   <div class="cg" style="grid-template-columns:1fr">
-    <div class="card"><div class="ct">New Model Launch Timeline<span class="en">新机型上市时间轴</span><span class="sub">Bubble size = cumulative Out qty (rolling 2y) 气泡大小=近2年累计出库台数</span></div><div class="ec-md" id="lf-ec-timeline" style="height:320px"></div></div>
+    <div class="card"><div class="ct">New Model Launch Timeline<span class="en">新机型上市时间轴</span><span class="sub">Bubble size = cumulative Out qty (lifetime) 气泡大小=累计出库台数</span></div><div class="ec-md" id="lf-ec-timeline" style="height:320px"></div></div>
   </div>
   <div class="cg cg3">
     <div class="card"><div class="ct">Stage Mix<span class="en">生命周期阶段占比</span></div><div class="ec-sm" id="lf-ec-donut"></div></div>
@@ -2166,7 +2166,7 @@ function renderOverviewCharts(){
   const lineEntries = Object.entries(byLine).sort((a,b)=>b[1]-a[1]);
   const c2 = chartFor('ov-ec-line');
   c2.setOption({
-    tooltip:{trigger:'axis'}, grid:{left:90,right:36,top:10,bottom:10},
+    tooltip:{trigger:'axis'}, grid:{left:90,right:36,top:10,bottom:28},
     xAxis:{type:'value'}, yAxis:{type:'category', data:lineEntries.map(e=>e[0]).reverse(), axisLabel:{fontSize:10}},
     series:[{type:'bar', data:lineEntries.map(e=>e[1]).reverse(), itemStyle:{color:'#0066CC', borderRadius:[0,4,4,0]}, barMaxWidth:14,
       label:{show:true, position:'right', fontSize:10}}]
@@ -3014,7 +3014,7 @@ function renderLifecycleTimeline(){
   const jittered = timelineJitter(models, 'date');
   const c = chartFor('lf-ec-timeline');
   c.setOption({
-    tooltip:{formatter: p=>p.name+'<br>First intl. shipment: '+p.value[0]+'<br>Out qty (rolling 2y): '+p.value[2]},
+    tooltip:{formatter: p=>p.name+'<br>First intl. shipment: '+p.value[0]+'<br>Out qty (lifetime): '+p.value[2]},
     grid:{left:24,right:24,top:44,bottom:30},
     xAxis:{type:'time', axisLabel:{fontSize:10}},
     yAxis:{type:'value', show:false, min:-3, max:3},
