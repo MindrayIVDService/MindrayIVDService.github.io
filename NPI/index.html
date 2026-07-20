@@ -1200,7 +1200,7 @@ function nav(page, el){
 // ============================================================================
 // HELPERS
 // ============================================================================
-function esc(s){ return (s===null||s===undefined) ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s){ return (s===null||s===undefined) ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 // ============================================================================
 // v39: GENERIC SORTABLE-TABLE HELPER — reused across every plain listing
 // table on the site (Overview ledger, MCSR-E, F2F, FTFR profile/repeat, QE
@@ -2032,7 +2032,11 @@ function buildPortfolio(){
     const dm = dModels().find(m=>m.key===key);
     const eq = matchEquip(catName);
     let out=0, installed=0;
-    if(bucket) Object.values(bucket.countries||{}).forEach(c=>{ out+=c.out; installed+=c.installed; });
+    // Sum from regions (one entry per Region III), NOT from countries — each
+    // member country of a Region III carries the full region's totals, so
+    // summing countries multiply-counts by member count (ASEAN = 7 countries
+    // = 7x). This inflated Page C's out/install figures for LAUNCH categories.
+    if(bucket) (bucket.regions||[]).forEach(r=>{ out+=r.out; installed+=r.installed; });
     rows.push({
       model: catName, line: dm ? sublineAbbr(dm.line) : '--', stage:'LAUNCH',
       status: 'Ramping Up 导入推广中',
@@ -3562,8 +3566,8 @@ function refreshRtsRegion3Options(preselect){
   const wrap = document.getElementById('rts-region3-list');
   const region2 = document.getElementById('rts-region2').value;
   const set = new Set();
-  (COVERAGE_MAP.models||[]).forEach(k=>{
-    const bucket = COVERAGE_MAP.byModel[k];
+  (COVERAGE_MAP.models||[]).forEach(m=>{
+    const bucket = COVERAGE_MAP.byModel[m.key];
     if(!bucket) return;
     (bucket.regions||[]).forEach(r=>{ if(canonicalRegion2(r.regionII)===region2) set.add(r.regionIII); });
   });
@@ -4309,10 +4313,15 @@ function renderCockpit(){
     COVERAGE_MAP.models.forEach(m=>{
       if(!mcCategoryIsKm(m.model)) return;
       const bucket = COVERAGE_MAP.byModel[m.key]; if(!bucket) return;
+      const scheme = mcCategoryScheme(m.model);
       Object.keys(bucket.countries||{}).forEach(iso=>{
         const c = bucket.countries[iso];
         if(!regionMatchesScope(c.regionII)) return;
-        if(c.warning==='red'||c.warning==='salmon'){
+        // compute the tier here — the raw JSON has no .warning field (it is
+        // computed at render time in bAggregate), so reading c.warning
+        // directly always saw undefined and this KPI silently stayed at 0
+        const w = computeWarningTier(c.out, c.installed, c.internalMCSR.length, c.channelMCSR.length, c.internalMCST.length, scheme);
+        if(w==='red'||w==='salmon'){
           redCountryPairs++;
           (redByModel[m.model] = redByModel[m.model]||[]).push(iso);
         }
