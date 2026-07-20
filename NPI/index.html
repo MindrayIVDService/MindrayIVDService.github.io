@@ -826,9 +826,9 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Sub-Line 子产线</span>
       <div class="fg" id="mc-subline-filters"></div>
-      <input type="text" class="tsearch" id="mc-search" placeholder="🔍 Search model / category / course 搜索机型/大类/课程" oninput="renderMcTable()" style="margin-left:auto">
-      <button class="btn btn-p" id="mc-add-btn" onclick="openMcModal()">+ Add Row 新增一行</button>
+      <input type="text" class="tsearch" id="mc-search" placeholder="🔍 Search 搜索机型/大类/课程" oninput="renderMcTable()" style="margin-left:auto;width:175px">
       <button class="btn btn-gy" onclick="exportMcCSV()">⬇ Export CSV</button>
+      <button class="btn btn-p" id="mc-add-btn" onclick="openMcModal()">+ Add Row 新增一行</button>
     </div>
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Filters</span>
@@ -3210,7 +3210,7 @@ function renderMcKPI(){
     {lbl:'MCSR Courses MCSR课程数', val: mcsrCourses.size, sub: f2f+' F2F/Oral · '+self+' Self-learning', cls:'ok'},
     {lbl:'MCST Courses MCST课程数', val: mcstCourses.size, sub: scopeLabel, cls:'ok'},
     {lbl:'KM / New (by MCSR) 按MCSR大类计', val: kmCats.size+' / '+newCats.size, sub:'KM · New MCSR categories', cls:'pu'},
-    {lbl:'Int\'l Out / Installed 国际出库/装机', val: totalOut+' / '+totalInstalled, sub:'rolling ~2y 近2年数据', cls:'pu'}
+    {lbl:'Int\'l Out / Installed 国际出库/装机', val: totalOut+' / '+totalInstalled, sub:'since 2020 · 2020年至今全量', cls:'pu'}
   ];
   document.getElementById('mc-kpi').innerHTML = cards.map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
 }
