@@ -2182,7 +2182,7 @@ function renderOverviewCharts(){
     Object.entries(m.installYearCounts||{}).forEach(([y,c])=>{ yearInst[y] = (yearInst[y]||0) + c; });
   });
   const years = [...new Set([...Object.keys(yearOut), ...Object.keys(yearInst)])]
-    .filter(y => y>='2015' && y<=String(new Date().getFullYear()+1))  // guards against source typos (seen: a '2202' Installation Date)
+    .filter(y => y>='2020' && y<=String(new Date().getFullYear()))  // this system's tracked window starts 2020; older Installation Date values (seen back to 2001, from units shipped before tracking began) and source typos (seen: '2202') are excluded
     .sort();
   const c3 = chartFor('ov-ec-trend');
   c3.setOption({
