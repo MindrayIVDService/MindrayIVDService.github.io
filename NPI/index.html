@@ -1088,8 +1088,8 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="field"><label>Serial 序列号</label><input type="text" id="legacy-serial"></div>
       <div class="field"><label>Status 状态</label>
         <select id="legacy-status">
-          <option value="在线">Online 在线</option>
-          <option value="停产">Discontinued 停产</option>
+          <option value="在线">Mature 在线</option>
+          <option value="停产">EOL 停产</option>
           <option value="停止服务">EOS 停止服务</option>
           <option value="新产品">New 新品</option>
         </select>
@@ -1110,6 +1110,18 @@ details.dcx summary:hover{color:var(--pd)}
 
 <script>
 const ITEMS_CATALOG = [{"id":"launch_date","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"International Launch Date","item_cn":"国际上市日期","field_type":"month","options":null,"delivery_standard_en":"Confirmed international first-ship month, format YYYY-MM. Should match the date used to trigger MCSR/MCST training push and spare-parts pre-stock.","delivery_standard_cn":"确认的国际首发月份，格式YYYY-MM，需与MCSR/MCST培训推送及备件预备货时间对齐。"},{"id":"qual_plan","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"Qualification Acquisition Strategy — Plan","item_cn":"资质获取策略-资质方案","field_type":"select","options":["New F2F program","New self-study program","Merged into existing F2F program"],"delivery_standard_en":"Decide how CS engineers get qualified on this product: a brand-new instructor-led (F2F) program, a brand-new self-study/online program, or folding it into an existing F2F program for a related model.","delivery_standard_cn":"明确本产品CS工程师资质获取方式：新增面授（F2F）课程、新增自学课程，或并入相近机型已有的面授课程。"},{"id":"service_strategy_doc","dimension_en":"Service Strategy","dimension_cn":"服务策略","item_en":"New Product Service Strategy Document","item_cn":"新产品服务策略文件","field_type":"select","options":["Available","Not Available"],"delivery_standard_en":"A published service-strategy document covering warranty terms, subcontracting model, spare-parts responsibility and cost assumptions.","delivery_standard_cn":"已发布的服务策略文件，需覆盖保修条款、分包模式、备件责任及成本假设。"},{"id":"install_guide","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Scenario-based Installation Guide","item_cn":"场景化安装指南","field_type":"deliverable","options":null,"delivery_standard_en":"Step-by-step illustrated install guide covering unboxing, hardware assembly, fluidics priming and performance verification; validated against an actual first-unit install.","delivery_standard_cn":"图文并茂的安装指南，覆盖开箱、硬件组装、液路灌注及性能验证，需经过首台实际装机验证。"},{"id":"install_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Installation Video","item_cn":"安装视频","field_type":"deliverable","options":null,"delivery_standard_en":"Narrated / subtitled installation video (English audio or subtitles for international use), hosted on TDS, runtime matched to real install duration.","delivery_standard_cn":"带英文配音或字幕的安装视频，上线TDS，时长与实际装机耗时匹配。"},{"id":"maint_guide","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Scenario-based Maintenance Guide","item_cn":"场景化维护指南","field_type":"deliverable","options":null,"delivery_standard_en":"Guide covering scheduled maintenance and common wear-part replacement, written for the customer/CS self-service model where applicable.","delivery_standard_cn":"覆盖计划性维护及常用易损件更换的指南，适配客户/CS自助维护模式。"},{"id":"maint_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Maintenance Video","item_cn":"维护视频","field_type":"deliverable","options":null,"delivery_standard_en":"Video walkthrough of the maintenance-kit replacement procedure, scannable via QR from the maintenance-kit insert.","delivery_standard_cn":"维护包更换操作视频，可通过维护包内说明书扫码观看。"},{"id":"product_ppt","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product PPT (Value / DFS)","item_cn":"产品PPT（新产品价值DFS）","field_type":"deliverable","options":null,"delivery_standard_en":"Standard training deck introducing product positioning, target customers, DFS (Design for Service) highlights and cost/warranty logic.","delivery_standard_cn":"标准培训PPT，包含产品定位、目标客户、DFS服务设计亮点及成本/保修逻辑。"},{"id":"product_ppt_video","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product PPT Explanation Video","item_cn":"产品PPT讲解视频","field_type":"deliverable","options":null,"delivery_standard_en":"Recorded narration of the Product PPT for asynchronous/self-study training.","delivery_standard_cn":"产品PPT的讲解录屏，用于自学/异步培训。"},{"id":"oral_exam","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Oral Exam Question Bank & Answers","item_cn":"产品口试题库答案","field_type":"deliverable","options":null,"delivery_standard_en":"Oral-exam question bank with model answers, used for practical/verbal qualification assessment.","delivery_standard_cn":"口试题库及标准答案，用于实操/口头资质考核。"},{"id":"written_exam_bank","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Product Written Exam Question Bank & Answers","item_cn":"产品笔试题库及答案","field_type":"deliverable","options":null,"delivery_standard_en":"Written-exam question bank with its answer key, aligned to the course syllabus / knowledge-point checklist and version-locked together.","delivery_standard_cn":"与课程大纲/知识点清单对齐的笔试题库及配套标准答案，题库与答案需保持同一版本。"},{"id":"f2f_schedule","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Face-to-Face Training Schedule","item_cn":"面授课表","field_type":"deliverable","options":null,"delivery_standard_en":"Day-by-day F2F training agenda (theory / hands-on / exam split) ready to hand to a regional training coordinator.","delivery_standard_cn":"分日面授培训课表（理论/实操/考核安排），可直接交由区域培训协调人使用。"},{"id":"disassembly_list","dimension_en":"Training Materials","dimension_cn":"培训材料","item_en":"Disassembly & Hands-on Practice Item List","item_cn":"拆卸和实操项目清单","field_type":"deliverable","options":null,"delivery_standard_en":"Checklist of components trainees must practice removing/replacing during hands-on sessions, mapped to common FRUs.","delivery_standard_cn":"面授实操环节需练习拆装的部件清单，对应常用FRU。"},{"id":"hw_diagram","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Hardware / Fluidic Diagram","item_cn":"硬件/液路图","field_type":"deliverable","options":null,"delivery_standard_en":"Labeled hardware block diagram and fluidic-path schematic sufficient for fault-tracing without opening the full service manual.","delivery_standard_cn":"带标注的硬件框图与液路原理图，足以支撑故障排查而无需翻阅完整维修手册。"},{"id":"tis_catalog","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"TIS Parts Catalog / Online Manual","item_cn":"TIS零件图册/在线手册齐套","field_type":"deliverable","options":null,"delivery_standard_en":"Exploded parts diagrams and the full service manual published and searchable in TIS.","delivery_standard_cn":"TIS系统内零件爆炸图及完整维修手册均已发布并可检索。"},{"id":"tis_photos","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"TIS Recommended Materials / Kit Photos","item_cn":"TIS推荐物料/维护包实物照片","field_type":"deliverable","options":null,"delivery_standard_en":"Real photos (not renders) of recommended spare parts and the maintenance kit contents, uploaded to TIS.","delivery_standard_cn":"TIS中上传的推荐备件及维护包实物照片（非效果图）。"},{"id":"material_list","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Material / Maintenance Kit / Tooling Code List","item_cn":"推荐物料清单/维护包/工装编码","field_type":"deliverable","options":null,"delivery_standard_en":"Coded list of recommended stocking materials, maintenance-kit BOM and any special tooling, ready for regional pre-stock ordering.","delivery_standard_cn":"带编码的推荐备货物料清单、维护包BOM及专用工装清单，可直接用于区域备货下单。"},{"id":"mcsr_mcst_course","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"MCSR/MCST Courses","item_cn":"MCSR/MCST课程","field_type":"deliverable","options":null,"delivery_standard_en":"Published MCSR (service) and MCST (clinical/technical, where applicable) course content in the qualification system, matching the Qualification Plan chosen above.","delivery_standard_cn":"资质系统中已发布的MCSR（服务）及MCST（临床/技术，如适用）课程内容，需与上方选定的资质方案一致。"},{"id":"iqoqpq_reports","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Install/Maintenance/Repair Report Templates (IQ/OQ/PQ)","item_cn":"安装/维护/维修报告标准化文件","field_type":"deliverable","options":null,"delivery_standard_en":"Standardized IQ/OQ/PQ report templates so every install/maintenance/repair produces a consistent, auditable record.","delivery_standard_cn":"标准化的IQ/OQ/PQ报告模板，确保每次安装/维护/维修都有统一、可追溯的记录。"},{"id":"demo_software","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"Demo Software","item_cn":"Demo软件","field_type":"deliverable","options":null,"delivery_standard_en":"Offline demo/simulation software available for training and pre-sales use without a physical unit.","delivery_standard_cn":"可在无实机情况下用于培训及售前演示的离线Demo/模拟软件。"},{"id":"rts_enablement","dimension_en":"Service Readiness","dimension_cn":"服务准备度","item_en":"RTS Training & Enablement Completed","item_cn":"完成RTS培训赋能","field_type":"deliverable","options":null,"delivery_standard_en":"All items above have been formally trained to the RTS team (not just published) — RTS confirms readiness to cascade training to CS/distributors.","delivery_standard_cn":"以上所有交付项已对RTS团队完成正式培训（而非仅发布），RTS确认具备向CS/经销商继续赋能的能力。"}];
+
+// Items that must be complete before OFFICIAL launch (not just "nice to have
+// eventually") — flagged with a star in the Page A matrix per an explicit
+// business call-out. This is a fixed list of item ids, not derived from any
+// field_type or dimension, since e.g. install_video/product_ppt_video/
+// disassembly_list/tis_catalog/demo_software are also 'deliverable' items
+// but were NOT included in the must-complete list.
+const MUST_COMPLETE_BEFORE_LAUNCH = new Set([
+  'install_guide', 'maint_guide', 'product_ppt', 'oral_exam', 'written_exam_bank',
+  'f2f_schedule', 'hw_diagram', 'tis_photos', 'material_list', 'mcsr_mcst_course',
+  'iqoqpq_reports', 'rts_enablement',
+]);
 const PRODUCTS_SEED = [{"name_en":"CL-9000i","name_cn":"","sub_line":"CLIA","owner_gts":"","owner_rts":""},{"name_en":"BS-5000","name_cn":"","sub_line":"Biochemistry","owner_gts":"","owner_rts":""},{"name_en":"CX3000/CX2000","name_cn":"","sub_line":"Coagulation","owner_gts":"","owner_rts":""},{"name_en":"CAL 9000","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""},{"name_en":"CAL 7000","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""},{"name_en":"BC-6800 Plus","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""},{"name_en":"FA-M400","name_cn":"","sub_line":"Coagulation","owner_gts":"","owner_rts":""},{"name_en":"MT 7000","name_cn":"","sub_line":"Hematology","owner_gts":"","owner_rts":""}];
 // ============================================================================
 // EXTERNAL DATA — large read-only snapshots (never touched by Supabase live
@@ -1749,7 +1761,7 @@ function renderPreLaunchTable(){
   document.getElementById('pl-hidden-note').textContent = hiddenCount>0 ? `${hiddenCount} product(s) at 100% hidden — untick "Hide" above to see them. 已隐藏${hiddenCount}个已100%完成的产品` : '';
   document.getElementById('pl-dims-cnt').textContent = PRODUCTS.length+' products × '+ITEMS.length+' items';
 
-  let thead = '<thead><tr><th style="min-width:70px">Section 维度</th><th style="min-width:230px">Deliverable 交付项</th>';
+  let thead = '<thead><tr><th style="min-width:70px">Section 维度</th><th style="min-width:230px">Deliverable 交付项 <span style="font-weight:400;color:var(--s400);font-size:9px">(★ = must complete before official launch 须在正式上市前完成)</span></th>';
   visible.forEach(p=>{
     const pct = productCompletion(p.id);
     const barColor = pct>=100?'var(--ok)':(pct>=50?'var(--p)':'var(--wa)');
@@ -1775,9 +1787,11 @@ function renderPreLaunchTable(){
     g.items.forEach((item,i)=>{
       tbody += '<tr>';
       if(i===0) tbody += `<td rowspan="${g.items.length}" style="font-weight:700;color:var(--s700);background:var(--s50)">${esc(g.dim)}<br><span style="font-weight:500;color:var(--s400);font-size:9.5px">${esc(g.dimCn)}</span></td>`;
-      const tip = (item.delivery_standard_en||'') + (item.delivery_standard_cn ? ('\n'+item.delivery_standard_cn) : '');
+      const tip = (item.delivery_standard_en||'') + (item.delivery_standard_cn ? ('\n'+item.delivery_standard_cn) : '')
+        + (MUST_COMPLETE_BEFORE_LAUNCH.has(item.id) ? '\n★ Must be completed before official launch 须在正式上市前完成' : '');
       const notScoredTag = !isScored(item) ? ' <span class="badge b-gy" style="font-size:8px;padding:1px 5px">not scored 不计分</span>' : '';
-      tbody += `<td><span class="item-name" title="${esc(tip)}">${esc(item.item_en)}</span>${notScoredTag}<br><span style="font-size:9.5px;color:var(--s400)">${esc(item.item_cn)}</span></td>`;
+      const star = MUST_COMPLETE_BEFORE_LAUNCH.has(item.id) ? '<span style="color:var(--wa)" title="Must be completed before official launch 须在正式上市前完成">★ </span>' : '';
+      tbody += `<td><span class="item-name" title="${esc(tip)}">${star}${esc(item.item_en)}</span>${notScoredTag}<br><span style="font-size:9.5px;color:var(--s400)">${esc(item.item_cn)}</span></td>`;
       visible.forEach(p=>{
         const rec = statusRec(p.id, item.id);
         tbody += `<td class="editable" onclick="openModal('${p.id}','${item.id}')">${cellText(rec, item)}</td>`;
@@ -2014,6 +2028,21 @@ function exportPreLaunchCSV(){
 // PAGE 0: OVERVIEW (portfolio combines A live products + B new-models + C legacy)
 // ============================================================================
 let PORTFOLIO = [];
+// Single source of truth for legacy_models.status display — English label +
+// badge class, reused on the Full Lifecycle Portfolio table, Page C's own
+// Legacy Model Ledger, and Page D's EOS Countdown Ledger. Previously each of
+// these three tables had its own wording for the same underlying status
+// ('Online' vs 'Mature' vs the raw Chinese '在线'), which looked like three
+// different systems disagreeing with each other. Labels are English-only,
+// matching the Portfolio table's existing Stage badges (Pre-Launch/Launch/
+// Mature/EOL) — Chinese status names are shown alongside via each table's
+// existing bilingual formatting, not baked into this constant.
+const LEGACY_STATUS = {
+  '在线':   {label:'Mature', cls:'b-ok'},
+  '停产':   {label:'EOL',    cls:'b-wa'},
+  '停止服务':{label:'EOS',    cls:'b-er'},
+  '新产品': {label:'New',    cls:'b-bl'},
+};
 function buildPortfolio(){
   const rows = [];
   PRODUCTS.forEach(p=>{
@@ -2023,8 +2052,9 @@ function buildPortfolio(){
     rows.push({
       model: p.name_en, line: p.sub_line ? sublineAbbr(p.sub_line) : '--', stage: pct>=100?'LAUNCH':'PRELAUNCH',
       status: pct>=100 ? 'Ready 已就绪' : ('Preparing '+pct+'% 筹备中'),
+      category: legacyEffectiveCategory(p.name_en),
       launch: (launchRec && launchRec.value) || '--', eol:'--',
-      out2y:'--', install2y:'--', owner: (p.owner_rts||p.owner_gts||'RTS Team'),
+      out2y:'--', install2y:'--',
       readiness: pct/100
     });
   });
@@ -2048,12 +2078,15 @@ function buildPortfolio(){
     // member country of a Region III carries the full region's totals, so
     // summing countries multiply-counts by member count (ASEAN = 7 countries
     // = 7x). This inflated Page C's out/install figures for LAUNCH categories.
-    if(bucket) (bucket.regions||[]).forEach(r=>{ out+=r.out; installed+=r.installed; });
+    // Also scope to the account's own region — this used to always sum every
+    // region regardless of who was logged in, so a regional account saw the
+    // full international total instead of their own numbers.
+    if(bucket) (bucket.regions||[]).forEach(r=>{ if(!regionMatchesScope(r.regionII)) return; out+=r.out; installed+=r.installed; });
     rows.push({
       model: catName, line: dm ? sublineAbbr(dm.line) : '--', stage:'LAUNCH',
-      status: 'Ramping Up 导入推广中',
+      status: 'Ramping Up 导入推广中', category: catName,
       launch: eq && eq.firstShipDate ? eq.firstShipDate : '--', eol:'--',
-      out2y: out, install2y: installed, owner:'RTS/CS',
+      out2y: out, install2y: installed,
       readiness: null
     });
   });
@@ -2062,14 +2095,13 @@ function buildPortfolio(){
     // actively-tracked readiness list — folding it into PRELAUNCH would
     // double-count against Page A's own product-count figure. Treat it as an
     // early-LAUNCH item instead.
-    let stage='MATURE', statusLabel='Online 在线';
-    if(m.status==='停产'){ stage='EOL'; statusLabel='Discontinued 停产'; }
-    if(m.status==='停止服务'){ stage='EOL'; statusLabel='EOS 停止服务'; }
-    if(m.status==='新产品'){ stage='LAUNCH'; statusLabel='New (legacy sheet) 新产品'; }
+    const st = LEGACY_STATUS[m.status] || {label:m.status, cls:'b-gy'};
+    const stage = (m.status==='停产' || m.status==='停止服务') ? 'EOL' : (m.status==='新产品' ? 'LAUNCH' : 'MATURE');
     rows.push({
-      model: m.model, line: canonicalLine(m.category_group), stage, status: statusLabel,
+      model: m.model, line: canonicalLine(m.category_group), stage, status: st.label+' '+m.status,
+      category: legacyEffectiveCategory(m.model),
       launch: m.launch_time||'--', eol: m.eol_time||'--',
-      out2y:'--', install2y:'--', owner: m.ts_owner||'--', readiness:null
+      out2y:'--', install2y:'--', readiness:null
     });
   });
   return rows;
@@ -2141,41 +2173,37 @@ function renderOverviewCharts(){
   });
 
   // Yearly Out + yearly Installed, side by side on the same chart (both
-  // per-year, neither cumulative). Per-year Installed dates aren't tracked in
-  // the source data (only each model's lifetime installedCount), so each
-  // model's own installedCount/outCount conversion rate is applied to that
-  // model's own yearCounts to estimate that year's installs — clearly
-  // labeled as an estimate.
-  const yearOut = {}, yearInstEst = {};
+  // per-year, neither cumulative). Both are real counts from the source data
+  // — Out from Outbound Date, Installed from Installation Date (available
+  // since the 2026-07 Equipment data restructure; no longer an estimate).
+  const yearOut = {}, yearInst = {};
   Object.values(EQUIPMENT.lifecycle).forEach(m=>{
-    const rate = m.outCount ? (m.installedCount / m.outCount) : 0;
-    Object.entries(m.yearCounts||{}).forEach(([y,c])=>{
-      yearOut[y] = (yearOut[y]||0) + c;
-      yearInstEst[y] = (yearInstEst[y]||0) + c*rate;
-    });
+    Object.entries(m.yearCounts||{}).forEach(([y,c])=>{ yearOut[y] = (yearOut[y]||0) + c; });
+    Object.entries(m.installYearCounts||{}).forEach(([y,c])=>{ yearInst[y] = (yearInst[y]||0) + c; });
   });
-  const years = Object.keys(yearOut).sort();
+  const years = [...new Set([...Object.keys(yearOut), ...Object.keys(yearInst)])]
+    .filter(y => y>='2015' && y<=String(new Date().getFullYear()+1))  // guards against source typos (seen: a '2202' Installation Date)
+    .sort();
   const c3 = chartFor('ov-ec-trend');
   c3.setOption({
     tooltip:{trigger:'axis'},
-    legend:{data:['Out (yearly) 年度出库','Installed (yearly, est.) 年度装机·估算'], top:0, textStyle:{fontSize:9}},
+    legend:{data:['Out (yearly) 年度出库','Installed (yearly) 年度装机'], top:0, textStyle:{fontSize:9}},
     grid:{left:44,right:16,top:34,bottom:24},
     xAxis:{type:'category', data:years, axisLabel:{fontSize:10}}, yAxis:{type:'value'},
     series:[
-      {name:'Out (yearly) 年度出库', type:'bar', data:years.map(y=>yearOut[y]), itemStyle:{color:'#7C3AED', borderRadius:[4,4,0,0]}, barMaxWidth:34,
+      {name:'Out (yearly) 年度出库', type:'bar', data:years.map(y=>yearOut[y]||0), itemStyle:{color:'#7C3AED', borderRadius:[4,4,0,0]}, barMaxWidth:34,
         label:{show:true, position:'top', fontSize:9}},
-      {name:'Installed (yearly, est.) 年度装机·估算', type:'bar', data:years.map(y=>Math.round(yearInstEst[y]||0)), itemStyle:{color:'#93C5FD', borderRadius:[4,4,0,0]}, barMaxWidth:34,
+      {name:'Installed (yearly) 年度装机', type:'bar', data:years.map(y=>yearInst[y]||0), itemStyle:{color:'#93C5FD', borderRadius:[4,4,0,0]}, barMaxWidth:34,
         label:{show:true, position:'top', fontSize:9}}
     ]
   });
 }
 
 const OV_COLS = [
-  {label:'Model 机型', key:'model'}, {label:'Product Line 产线', key:'line'},
+  {label:'Model 机型', key:'model'}, {label:'MCSR Category 机型大类', key:'category'}, {label:'Product Line 产线', key:'line'},
   {label:'Stage 阶段', key:'stage'}, {label:'Status 状态', key:'status'},
   {label:'Launch / First Out 上市/出库', key:'launch'}, {label:'EOL / EOS 停产/停服', key:'eol'},
-  {label:'Out (rolling 2y) 近2年出库', key:'out2y'}, {label:'Installed (rolling 2y) 近2年装机', key:'install2y'},
-  {label:'Owner 负责人', key:'owner'},
+  {label:'Out (lifetime) 累计出库', key:'out2y'}, {label:'Installed (lifetime) 累计装机', key:'install2y'},
 ];
 function renderOverviewTable(){
   const thEl = document.getElementById('ov-thead');
@@ -2185,8 +2213,8 @@ function renderOverviewTable(){
   rows = sortRows('ov', rows, (r,k)=>r[k]);
   const stageBadge = {PRELAUNCH:'<span class="badge b-bl">Pre-Launch</span>', LAUNCH:'<span class="badge b-pu">Launch</span>', MATURE:'<span class="badge b-ok">Mature</span>', EOL:'<span class="badge b-er">EOL</span>'};
   document.getElementById('ov-tbody').innerHTML = rows.map(r=>`<tr>
-    <td><b>${esc(r.model)}</b></td><td>${esc(r.line)}</td><td>${stageBadge[r.stage]}</td><td>${esc(r.status)}</td>
-    <td>${esc(r.launch)}</td><td>${esc(r.eol)}</td><td>${esc(r.out2y)}</td><td>${esc(r.install2y)}</td><td>${esc(r.owner)}</td>
+    <td><b>${esc(r.model)}</b></td><td>${esc(r.category)}</td><td>${esc(r.line)}</td><td>${stageBadge[r.stage]}</td><td>${esc(r.status)}</td>
+    <td>${esc(r.launch)}</td><td>${esc(r.eol)}</td><td>${esc(r.out2y)}</td><td>${esc(r.install2y)}</td>
   </tr>`).join('');
   document.getElementById('ov-cnt').textContent = rows.length+' / '+PORTFOLIO.length+' records';
 }
@@ -3002,7 +3030,8 @@ function renderLifecycleCharts(){
   const all = LEGACY_MODELS;
   const stageCount = {'在线':0,'停产':0,'停止服务':0,'新产品':0};
   all.forEach(m=>{ if(stageCount[m.status]!==undefined) stageCount[m.status]++; });
-  const stageLabel = {'在线':'Online 在线','停产':'Discontinued 停产','停止服务':'EOS 停服','新产品':'New 新品'};
+  const stageLabel = {};
+  Object.entries(LEGACY_STATUS).forEach(([k,v])=>{ stageLabel[k] = v.label+' '+k; });
   const c1 = chartFor('lf-ec-donut');
   c1.setOption({
     tooltip:{trigger:'item'}, color:['#10B981','#F59E0B','#EF4444','#3385D6'],
@@ -3049,7 +3078,6 @@ const LF_COLUMNS = [
   {key:'eol_time', en:'EOL', cn:'停产时间', width:'70px'},
   {key:'eos_time', en:'EOS', cn:'停止服务', width:'70px'},
   {key:'note', en:'Notes', cn:'备注', width:'160px'},
-  {key:'ts_owner', en:'TS Owner', cn:'TS负责人', width:'70px'},
 ];
 function setLfSort(key){
   if(lfSort.key===key) lfSort.dir *= -1; else lfSort = {key, dir:1};
@@ -3065,7 +3093,8 @@ function renderLifecycleTable(){
 
   renderLfCatFilters();
   const q = (document.getElementById('lf-search').value||'').toUpperCase();
-  const statusBadge = {'在线':'<span class="badge b-ok">Online</span>','停产':'<span class="badge b-wa">Discontinued</span>','停止服务':'<span class="badge b-er">EOS</span>','新产品':'<span class="badge b-bl">New</span>'};
+  const statusBadge = {};
+  Object.entries(LEGACY_STATUS).forEach(([k,v])=>{ statusBadge[k] = `<span class="badge ${v.cls}">${v.label}</span>`; });
   let rows = LEGACY_MODELS.filter(m=>(lfCat==='ALL' || canonicalLine(m.category_group)===lfCat) && (!q || String(m.model).toUpperCase().includes(q)));
   rows.sort((a,b)=>{
     let av=(a[lfSort.key]||'').toString().toUpperCase(), bv=(b[lfSort.key]||'').toString().toUpperCase();
@@ -3075,7 +3104,7 @@ function renderLifecycleTable(){
     <td>${esc(canonicalLine(m.category_group))}</td><td><span class="tag-cat">${esc(m.category)||'<span style=\'color:var(--s300)\'>unassigned</span>'}</span></td><td>${esc(m.process_code)}</td>
     <td><b>${esc(m.model)}</b></td><td>${esc(m.serial)}</td><td>${statusBadge[m.status]||esc(m.status)}</td>
     <td>${esc(m.launch_time)}</td><td>${esc(m.eol_time)}</td><td>${esc(m.eos_time)}</td>
-    <td style="max-width:220px;white-space:normal">${esc(m.note)}</td><td>${esc(m.ts_owner)}</td>
+    <td style="max-width:220px;white-space:normal">${esc(m.note)}</td>
   </tr>`).join('');
   document.getElementById('lf-cnt').textContent = rows.length + ' records';
 }
@@ -3268,7 +3297,7 @@ function renderEosTable(){
   document.getElementById('eos-tbody').innerHTML = rows.map(r=>`<tr class="editable" onclick="openLegacyModal('${r.id}')" title="Click to edit on Page C 点击跳转C页编辑">
     <td><b>${esc(r.model)}</b></td>
     <td>${esc(r.category)}</td>
-    <td>${esc(r.status)}</td>
+    <td><span class="badge ${(LEGACY_STATUS[r.status]||{cls:'b-gy'}).cls}">${(LEGACY_STATUS[r.status]||{label:r.status}).label}</span></td>
     <td>${esc(r.launch_time)||'—'}</td>
     <td>${esc(r.eol_time)||'—'}</td>
     <td>${esc(r.eos_time)||'<span style="color:var(--s400)">Not set</span>'}</td>
@@ -3312,7 +3341,7 @@ function canonicalLine(raw){
   if(!s) return 'Other';
   if(LEGACY_LINE_ABBR.some(l=>l.toLowerCase()===s)) return LEGACY_LINE_ABBR.find(l=>l.toLowerCase()===s);
   if(s.startsWith('biochem')) return 'Biochem';
-  if(s==='clia' || s.includes('immun')) return 'CLIA';
+  if(s.startsWith('clia') || s.includes('immun')) return 'CLIA';
   if(s.startsWith('coag') || s.includes('gulation')) return 'Coag';  // also catches the 'Congulation' typo in some source data
   if(s.startsWith('hema')) return 'Hema';
   if(s.startsWith('micro')) return 'Micro';
@@ -3559,6 +3588,18 @@ function exportMcCSV(){
 // PAGE: TEAM COVERAGE (GTS ownership + RTS region/sub-line assignment)
 // ============================================================================
 let GTS_OWNERS = [], RTS_ASSIGN = [];
+// RTS engineers with a Chinese name get an English nickname appended for
+// easier reference in cross-region calls/emails. Display-only — the
+// underlying engineer_name stays whatever RTS Score has (the Chinese name),
+// so this never touches stored data, only what's rendered on screen/export.
+const RTS_NICKNAME = {
+  '胡祥瑞':'Reed', '乌海兵':'Rain', '郭凯':'Kai', '杨丛国':'Tom',
+  '白哲源':'Frank', '王磊':'Lei', '莫茜':'Milo',
+};
+function rtsDisplayName(name){
+  const nick = RTS_NICKNAME[(name||'').trim()];
+  return nick ? `${name} ${nick}` : (name||'');
+}
 let currentGtsEdit = null, currentRtsEdit = null;
 let gtsSort = {key:'mcsr_category', dir:1}, rtsSort = {key:'engineer_name', dir:1};
 
@@ -3762,7 +3803,7 @@ function renderRtsTable(){
     return `<th class="th-sort${active?' active':''}"${w} onclick="setRtsSort('${c.key}')">${c.en}<br><span class="th-sub-cn">${c.cn}</span><span class="arrow">${arrow}</span></th>`;
   }).join('');
   const q = (document.getElementById('rts-search').value||'').toUpperCase();
-  let rows = RTS_ASSIGN.filter(r=>!q || [r.engineer_name,r.region2,r.region3,r.email].some(v=>v && v.toUpperCase().includes(q)));
+  let rows = RTS_ASSIGN.filter(r=>!q || [r.engineer_name,RTS_NICKNAME[(r.engineer_name||'').trim()],r.region2,r.region3,r.email].some(v=>v && v.toUpperCase().includes(q)));
   rows.sort((a,b)=>{
     let av=(a[rtsSort.key]||'').toString().toUpperCase(), bv=(b[rtsSort.key]||'').toString().toUpperCase();
     if(av<bv) return -1*rtsSort.dir; if(av>bv) return 1*rtsSort.dir; return 0;
@@ -3770,7 +3811,7 @@ function renderRtsTable(){
   document.getElementById('rts-tbody').innerHTML = rows.map(r=>{
     const subLabel = r.sub_lines==='ALL' ? 'All 全部' : r.sub_lines.split(',').filter(Boolean).join(', ');
     return `<tr class="editable" onclick="openRtsModal('${r.id}')">
-    <td><b>${esc(r.engineer_name)}</b></td><td>${esc(r.region2)}</td>
+    <td><b>${esc(rtsDisplayName(r.engineer_name))}</b></td><td>${esc(r.region2)}</td>
     <td>${r.region3 ? esc(r.region3.replace(' REGION','')) : '<span style="color:var(--s400)">Whole region 整个二级区域</span>'}</td>
     <td>${esc(subLabel)}</td><td>${esc(r.email)}</td><td style="white-space:normal">${esc(r.notes)}</td>
   </tr>`;
@@ -3825,7 +3866,7 @@ function openRtsModal(id){
 
   const engSel = document.getElementById('rts-engineer');
   const roster = (RTS_ROSTER && RTS_ROSTER.rows) || [];
-  engSel.innerHTML = roster.map(p=>`<option value="${esc(p.id)}|${esc(p.name)}">${esc(p.name)} (${esc(p.region2)} · ${esc(p.region3)})</option>`).join('');
+  engSel.innerHTML = roster.map(p=>`<option value="${esc(p.id)}|${esc(p.name)}">${esc(rtsDisplayName(p.name))} (${esc(p.region2)} · ${esc(p.region3)})</option>`).join('');
   if(r) engSel.value = r.engineer_id+'|'+r.engineer_name;
   else if(roster.length) engSel.value = roster[0].id+'|'+roster[0].name;
 
@@ -3921,10 +3962,10 @@ async function deleteRtsRow(){
   renderRtsTable();
 }
 function exportRtsCSV(){
-  let csv = 'EngineerID,EngineerName,Region2,Region3,SubLines,Email,Notes\n';
+  let csv = 'EngineerID,EngineerName,Nickname,Region2,Region3,SubLines,Email,Notes\n';
   RTS_ASSIGN.forEach(r=>{
     const subLabel = r.sub_lines==='ALL' ? 'All' : r.sub_lines;
-    const line = [r.engineer_id, r.engineer_name, r.region2, r.region3, subLabel, r.email, (r.notes||'').replace(/\n/g,' ')]
+    const line = [r.engineer_id, r.engineer_name, RTS_NICKNAME[(r.engineer_name||'').trim()]||'', r.region2, r.region3, subLabel, r.email, (r.notes||'').replace(/\n/g,' ')]
       .map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',');
     csv += line+'\n';
   });
