@@ -3396,13 +3396,34 @@ let GTS_OWNERS = [], RTS_ASSIGN = [];
 let currentGtsEdit = null, currentRtsEdit = null;
 let gtsSort = {key:'mcsr_category', dir:1}, rtsSort = {key:'engineer_name', dir:1};
 
+function canEditRtsRow(row){
+  // HQ edits everything. A region-scoped account may edit RTS Coverage rows
+  // (add/modify/delete) only within its own Region II; GTS Ownership stays
+  // HQ-only. Same caveat as every permission on this site: client-side UI
+  // gate, not a real security boundary (Supabase policies are open).
+  if(isHQ()) return true;
+  const scope = userRegionScope();
+  if(!scope) return false;
+  if(!row) return true; // adding — region2 is force-locked to scope in the modal
+  return canonicalRegion2(row.region2) === scope;
+}
 function applyTeamPermissionsUI(){
   const hq = isHQ();
-  ['gts-add-btn','rts-add-btn'].forEach(id=>{
-    const el = document.getElementById(id); if(el) el.style.display = hq ? 'inline-block' : 'none';
-  });
+  const gtsBtn = document.getElementById('gts-add-btn');
+  if(gtsBtn) gtsBtn.style.display = hq ? 'inline-block' : 'none';
+  const rtsBtn = document.getElementById('rts-add-btn');
+  if(rtsBtn) rtsBtn.style.display = (hq || userRegionScope()) ? 'inline-block' : 'none';
   const note = document.getElementById('team-readonly-note');
-  if(note) note.style.display = hq ? 'none' : 'block';
+  if(note){
+    if(hq){ note.style.display = 'none'; }
+    else {
+      const scope = userRegionScope();
+      note.style.display = 'block';
+      note.innerHTML = scope
+        ? `🔒 GTS Ownership is HQ-only. You can add / edit RTS Coverage rows for <b>${esc(scope)}</b> only. GTS表仅HQ可编辑；RTS覆盖分工表您可新增/编辑<b>本区域（${esc(scope)}）</b>的行。`
+        : '🔒 Read-only for your account — only HQ can edit these tables. 仅HQ账号可编辑此表。';
+    }
+  }
 }
 
 // ---------------- GTS ownership ----------------
@@ -3588,11 +3609,17 @@ function toggleRtsRegion3Chk(el){
   if(el.checked) document.getElementById('rts-region3-whole').checked = false;
 }
 function openRtsModal(id){
-  if(!requireHQ('Team Coverage — RTS Assignment')) return;
+  const r0 = id ? RTS_ASSIGN.find(x=>x.id===id) : null;
+  if(!canEditRtsRow(r0)){
+    alert(userRegionScope()
+      ? 'You can only edit RTS Coverage rows for your own region ('+userRegionScope()+') · 只能编辑本区域的RTS覆盖行'
+      : 'Only HQ accounts can edit this table · 仅HQ账号可编辑此表');
+    return;
+  }
   currentRtsEdit = id || null;
   document.getElementById('rtsmodal-title').textContent = id ? 'Edit RTS Coverage 编辑RTS覆盖' : 'Add RTS Coverage 新增RTS覆盖';
   document.getElementById('rts-delete-btn').style.display = id ? 'inline-block' : 'none';
-  const r = id ? RTS_ASSIGN.find(x=>x.id===id) : null;
+  const r = r0;
 
   const engSel = document.getElementById('rts-engineer');
   const roster = (RTS_ROSTER && RTS_ROSTER.rows) || [];
@@ -3600,9 +3627,20 @@ function openRtsModal(id){
   if(r) engSel.value = r.engineer_id+'|'+r.engineer_name;
   else if(roster.length) engSel.value = roster[0].id+'|'+roster[0].name;
 
+  // Region II: HQ picks freely; a region-scoped account is locked to its own
+  // region — single option, disabled, so both new and edited rows can only
+  // land inside that scope.
   const regSel = document.getElementById('rts-region2');
-  regSel.innerHTML = B_REGIONS.map(rg=>`<option value="${rg}">${rg}</option>`).join('');
-  regSel.value = r ? r.region2 : B_REGIONS[0];
+  const scope = userRegionScope();
+  if(isHQ() || !scope){
+    regSel.innerHTML = B_REGIONS.map(rg=>`<option value="${rg}">${rg}</option>`).join('');
+    regSel.value = r ? r.region2 : B_REGIONS[0];
+    regSel.disabled = false;
+  } else {
+    regSel.innerHTML = `<option value="${esc(scope)}">${esc(scope)}</option>`;
+    regSel.value = scope;
+    regSel.disabled = true;
+  }
 
   refreshRtsRegion3Options(r && r.region3 ? [r.region3] : []);
 
@@ -3617,7 +3655,11 @@ function openRtsModal(id){
 }
 function closeRtsModal(){ document.getElementById('rtsmodal-bg').classList.remove('on'); currentRtsEdit=null; }
 async function saveRtsRow(){
-  if(!requireHQ()) return;
+  const editing = currentRtsEdit ? RTS_ASSIGN.find(x=>x.id===currentRtsEdit) : null;
+  if(!canEditRtsRow(editing)){
+    alert('You can only edit RTS Coverage rows for your own region · 只能编辑本区域的RTS覆盖行');
+    return;
+  }
   const engVal = document.getElementById('rts-engineer').value;
   if(!engVal){ alert('Pick an RTS engineer 请选择RTS工程师'); return; }
   const [engineer_id, engineer_name] = engVal.split('|');
@@ -3631,7 +3673,10 @@ async function saveRtsRow(){
 
   const base = {
     engineer_id, engineer_name,
-    region2: document.getElementById('rts-region2').value,
+    // region-scoped accounts always save into their own region, regardless of
+    // anything in the DOM — the select is disabled for them, but a disabled
+    // select is a UI courtesy, not a guarantee
+    region2: (!isHQ() && userRegionScope()) ? userRegionScope() : document.getElementById('rts-region2').value,
     sub_lines,
     email: document.getElementById('rts-email').value.trim(),
     notes: document.getElementById('rts-notes').value.trim(),
@@ -3660,9 +3705,12 @@ async function saveRtsRow(){
   renderRtsTable();
 }
 async function deleteRtsRow(){
-  if(!requireHQ()) return;
   if(!currentRtsEdit) return;
   const row = RTS_ASSIGN.find(r=>r.id===currentRtsEdit);
+  if(!canEditRtsRow(row)){
+    alert('You can only delete RTS Coverage rows for your own region · 只能删除本区域的RTS覆盖行');
+    return;
+  }
   const label = row ? `${row.engineer_name} — ${row.region2}${row.region3 ? ' / '+row.region3.replace(' REGION','') : ' (whole region)'}` : 'this row';
   if(!confirm(`Permanently delete "${label}"? This cannot be undone.\n永久删除 "${label}"？此操作不可撤销。`)) return;
   await DB.deleteRtsAssignment(currentRtsEdit);
