@@ -664,6 +664,10 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="fg" id="qplus-subline-filters"></div>
       <span class="flbl" style="margin-left:10px">Model</span>
       <select id="qplus-model" style="font-size:11px;padding:4px 6px;border:1px solid var(--s200);border-radius:6px;color:var(--s700);max-width:220px" onchange="setQPlusModel(this.value)"></select>
+      <span class="flbl" style="margin-left:10px">VIP</span>
+      <div class="fg" id="qplus-vip-filters"></div>
+      <span class="flbl" style="margin-left:10px">⭐ Top 20</span>
+      <div class="fg" id="qplus-top20-filters"></div>
     </div>
   </div>
 
@@ -684,7 +688,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="krow" id="qf-kpi"></div>
   <div class="cg cg3">
     <div class="card"><div class="ct">FTFR by MCSR Category<span class="en">机型大类</span><span class="sub">past-90d · device-level · dashed = 70% target</span></div><div class="ec ec-md" id="qf-ec-cat"></div></div>
-    <div class="card"><div class="ct">FTFR by Region<span class="en">区域</span></div><div class="ec ec-md" id="qf-ec-region"></div></div>
+    <div class="card"><div class="ct" id="qf-ec-region-title">FTFR by Region<span class="en">区域</span></div><div class="ec ec-md" id="qf-ec-region"></div></div>
     <div class="card"><div class="ct">Monthly Orders &amp; SLA≤24h<span class="en">月度趋势</span></div><div class="ec ec-md" id="qf-ec-trend"></div></div>
   </div>
   <div class="tbl-wrap" style="margin-bottom:12px">
@@ -4219,7 +4223,9 @@ function renderQf(){
   const baseFiltered = FTFR_AGG.orders.filter(o=>
     (!effRegion || canonicalRegion2(o.r2)===effRegion) &&
     (!effRegion3 || o.r3===effRegion3) &&
-    (!narrowed || catsInSub.includes(o.cat))
+    (!narrowed || catsInSub.includes(o.cat)) &&
+    (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) &&
+    (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20)
   );
   const o = ftfrCompute(baseFiltered);
   const repN = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!effRegion3 || r.r3===effRegion3) && (!narrowed || catsInSub.includes(r.cat))).length;
@@ -4234,7 +4240,7 @@ function renderQf(){
 
   // chart: by category (top 14 by devices) — respects region2+region3+sub-line/model
   try{
-    const scoped = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3));
+    const scoped = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20));
     const byCat = {};
     catsInSub.forEach(c=>{ byCat[c] = ftfrCompute(scoped.filter(o=>o.cat===c)); });
     const top = Object.entries(byCat).map(([c,x])=>({c,...x})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
@@ -4250,15 +4256,33 @@ function renderQf(){
   }catch(e){}
   // chart: by region — respects region3 lock and sub-line/model narrowing; always exact now
   try{
-    const scoped2 = FTFR_AGG.orders.filter(o=> (!narrowed || catsInSub.includes(o.cat)));
-    let regs = [...new Set(FTFR_AGG.orders.map(o=>canonicalRegion2(o.r2)))].filter(Boolean).sort();
-    if(effRegion) regs = regs.filter(r=>r===effRegion);
-    const per = regs.map(r=>ftfrCompute(scoped2.filter(o=>canonicalRegion2(o.r2)===r && (!effRegion3 || o.r3===effRegion3))));
+    const scoped2 = FTFR_AGG.orders.filter(o=> (!narrowed || catsInSub.includes(o.cat)) && (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20));
+    let labels, per, byR3;
+    if(effRegion && !effRegion3){
+      // A specific Region II is in scope (via filter or account scope) with
+      // no Region III narrowing yet — auto-expand to that Region II's own
+      // Region III breakdown instead of collapsing to a single bar.
+      byR3 = true;
+      const inRegion = scoped2.filter(o=>canonicalRegion2(o.r2)===effRegion);
+      const r3s = [...new Set(inRegion.map(o=>o.r3))].filter(Boolean).sort();
+      labels = r3s.map(r=>r.replace(' REGION',''));
+      per = r3s.map(r3=>ftfrCompute(inRegion.filter(o=>o.r3===r3)));
+    } else {
+      byR3 = false;
+      let regs = [...new Set(FTFR_AGG.orders.map(o=>canonicalRegion2(o.r2)))].filter(Boolean).sort();
+      if(effRegion) regs = regs.filter(r=>r===effRegion);
+      labels = regs.map(shortR2q);
+      per = regs.map(r=>ftfrCompute(scoped2.filter(o=>canonicalRegion2(o.r2)===r && (!effRegion3 || o.r3===effRegion3))));
+    }
+    const cardTitleEl = document.getElementById('qf-ec-region-title');
+    if(cardTitleEl) cardTitleEl.innerHTML = byR3
+      ? `FTFR by Region III<span class="en">三级区域 · ${esc(effRegion)}</span>`
+      : `FTFR by Region<span class="en">区域</span>`;
     chartFor('qf-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       grid:{left:8,right:34,top:10,bottom:2,containLabel:true},
       xAxis:{type:'value',max:100,axisLabel:{fontSize:9,formatter:'{value}%'}},
-      yAxis:{type:'category',data:regs.map(shortR2q).reverse(),axisLabel:{fontSize:10}},
+      yAxis:{type:'category',data:labels.slice().reverse(),axisLabel:{fontSize:10}},
       series:[{type:'bar',barWidth:13,data:per.map(p=>({value:p.dev?Math.round(p.fix/p.dev*100):0,itemStyle:{color:(p.dev&&p.fix/p.dev>=0.8)?'#10B981':((p.dev&&p.fix/p.dev>=0.7)?'#F59E0B':'#EF4444')}})).reverse(),
         label:{show:true,position:'right',fontSize:9,formatter:'{c}%'},
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
@@ -4293,7 +4317,7 @@ function renderQf(){
   if(th) th.innerHTML=sortableThead('qf', QF_COLS, 'renderQf');
   const q=((document.getElementById('qf-search')||{}).value||'').toLowerCase();
   const min5=(document.getElementById('qf-min5')||{}).checked;
-  const scopedForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3));
+  const scopedForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20));
   let rows = catsInSub
     .map(c=>({c, ...ftfrCompute(scopedForTable.filter(o=>o.cat===c))}))
     .map(x=>({...x, rate: x.dev? x.fix/x.dev : -1, v1rate: x.v1dev? x.v1fix/x.v1dev : -1}))
@@ -4317,7 +4341,7 @@ function renderQf(){
   if(rb) rb.innerHTML = repRows.map(r=>`<tr><td style="font-family:monospace;font-size:10px">${esc(r.sn)}</td><td><b>${esc(r.model)}</b></td><td>${esc(r.cat)}</td><td>${esc(shortR2q(r.r2))} · ${esc(r.r3.replace(' REGION',''))}</td><td><b style="color:var(--er)">${r.n}</b></td><td>${r.vip&&r.vip!=='N'?'<span class="badge b-pu">'+esc(r.vip)+'</span>':''}</td><td style="font-size:10px">${esc(r.cust)}</td></tr>`).join('');
 }
 
-let qplusFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL'};
+let qplusFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL', vip:'ALL', top20:'ALL'};
 function setQPlusRegion(v){ qplusFilters.region=v; qplusFilters.region3='ALL'; renderQPlusFilterBar(); renderQf(); renderQq(); }
 function setQPlusSubline(v){ qplusFilters.subline=v; qplusFilters.model='ALL'; renderQPlusFilterBar(); renderQf(); renderQq(); }
 function setQPlusRegion3(v){ qplusFilters.region3=v; renderQf(); renderQq(); }
@@ -4357,9 +4381,20 @@ function renderQPlusFilterBar(){
   if(subEl) subEl.innerHTML = ['ALL', ...LEGACY_LINE_ABBR].map(l=>
     `<span class="pt${l===qplusFilters.subline?' on':''}" onclick="setQPlusSubline('${l}')">${l==='ALL'?'All 全部':l}</span>`
   ).join('');
+  const vipEl = document.getElementById('qplus-vip-filters');
+  const VIP_LABEL = {ALL:'All 全部', SVIP:'SVIP', VIP1:'VIP1', VIP2:'VIP2', N:'Standard 标准'};
+  if(vipEl) vipEl.innerHTML = ['ALL','SVIP','VIP1','VIP2','N'].map(v=>
+    `<span class="pt${v===qplusFilters.vip?' on':''}" onclick="setQPlusVip('${v}')">${VIP_LABEL[v]}</span>`
+  ).join('');
+  const t20El = document.getElementById('qplus-top20-filters');
+  if(t20El) t20El.innerHTML = ['ALL','Y'].map(v=>
+    `<span class="pt${v===qplusFilters.top20?' on':''}" onclick="setQPlusTop20('${v}')">${v==='ALL'?'All 全部':'Top 20 only'}</span>`
+  ).join('');
   refreshQPlusRegion3Options();
   refreshQPlusModelOptions();
 }
+function setQPlusVip(v){ qplusFilters.vip=v; renderQf(); renderQq(); }
+function setQPlusTop20(v){ qplusFilters.top20=v; renderQf(); renderQq(); }
 // ---------------- QE MODULE ----------------
 function renderQq(){
   try{ renderQPlusFilterBar(); }catch(e){}
@@ -4367,7 +4402,10 @@ function renderQq(){
     (qplusFilters.region==='ALL'||canonicalRegion2(r.r2)===qplusFilters.region) &&
     (qplusFilters.region3==='ALL'||r.r3===qplusFilters.region3) &&
     (qplusFilters.subline==='ALL'||canonicalLine(r.sub)===qplusFilters.subline) &&
-    (qplusFilters.model==='ALL'||legacyEffectiveCategory(r.model)===qplusFilters.model)
+    (qplusFilters.model==='ALL'||legacyEffectiveCategory(r.model)===qplusFilters.model) &&
+    (qplusFilters.vip==='ALL'||r.vip===qplusFilters.vip)
+    // Top20 has no equivalent field in QE_DATA (only in FTFR-BD) — intentionally
+    // not applied here rather than silently filtering every QE row out.
   );
   const closed = R.filter(r=>r.oc==='CLOSED'), open = R.filter(r=>r.oc==='OPEN');
   const cltY = R.filter(r=>r.clt==='Y').length, ctY = R.filter(r=>r.ct==='Y').length;
