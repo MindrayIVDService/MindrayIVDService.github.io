@@ -467,7 +467,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="hidden-note" id="lf-readonly-note" style="display:none;margin-bottom:10px">🔒 Read-only for your account — only HQ can edit this table. 仅HQ账号可编辑此表。</div>
   <div class="krow krow5" id="lf-kpi"></div>
   <div class="cg" style="grid-template-columns:1fr">
-    <div class="card"><div class="ct">Product Lifecycle Timeline<span class="en">产品生命周期时间轴</span><span class="sub">Above axis = new launches 上方=新品上市 · below axis = EOL 下方=停产 · bubble size = cumulative Out qty</span></div><div class="ec-md" id="lf-ec-timeline" style="height:320px"></div></div>
+    <div class="card"><div class="ct">Product Lifecycle Timeline<span class="en">产品生命周期时间轴</span><span class="sub">Above axis = new launches 上方=新品上市 · below axis = EOL 下方=停产 · bubble size = cumulative Out qty</span></div><div class="ec-md" id="lf-ec-timeline" style="height:440px"></div></div>
   </div>
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
@@ -1728,7 +1728,9 @@ function timelineJitter(points, dateKey){
 // side of the axis (sign=+1 above, sign=-1 below) instead of alternating —
 // used by the combined launch/EOL timeline where "which side" carries
 // meaning and can't be used up for decluttering.
-function timelineJitterOneSide(points, dateKey, sign){
+function timelineJitterOneSide(points, dateKey, sign, base, step){
+  base = base==null ? 0.6 : base;
+  step = step==null ? 0.55 : step;
   const sorted = points.slice().sort((a,b)=> new Date(a[dateKey]) - new Date(b[dateKey]));
   const CLUSTER_GAP_DAYS = 25;
   const clusters = [];
@@ -1740,9 +1742,8 @@ function timelineJitterOneSide(points, dateKey, sign){
     prevDate = d;
   });
   if(current.length) clusters.push(current);
-  const BASE = 0.6, STEP = 0.55;
   clusters.forEach(cluster=>{
-    cluster.forEach((p,i)=>{ p._y = sign * (BASE + i*STEP); });
+    cluster.forEach((p,i)=>{ p._y = sign * (base + i*step); });
   });
   return sorted;
 }
@@ -3049,8 +3050,14 @@ function renderLifecycleTimeline(){
     container.innerHTML = '<div class="map-placeholder"><div class="mp-ic">🗓️</div><div class="mp-title">No launch or EOL dates set yet</div><div class="mp-sub">Flag a model New and ship it, or set an EOL date on Page C, to populate this timeline. 请标记新品并出库，或在C页设置停产时间，以生成时间轴。</div></div>';
     return;
   }
-  const jLaunch = timelineJitterOneSide(launches, 'date', 1);
-  const jEol = timelineJitterOneSide(eols, 'date', -1);
+  // Wider one-sided jitter spread than the default (BASE/STEP below) gives
+  // labels more vertical room before they start colliding with neighbors.
+  const jLaunch = timelineJitterOneSide(launches, 'date', 1, 0.9, 0.85);
+  const jEol = timelineJitterOneSide(eols, 'date', -1, 0.9, 0.85);
+  // Truncate very long category names for the on-chart label (full name
+  // still shows in the tooltip) — long strings are the main driver of
+  // label-to-label overlap on a dense timeline.
+  const shortLabel = s => s && s.length>16 ? s.slice(0,14)+'…' : s;
   const c = chartFor('lf-ec-timeline');
   c.setOption({
     tooltip:{formatter: p => p.seriesName==='Launch 上市'
@@ -3059,16 +3066,16 @@ function renderLifecycleTimeline(){
     legend:{data:['Launch 上市','EOL 停产'], top:0, textStyle:{fontSize:10}},
     grid:{left:24,right:24,top:44,bottom:30},
     xAxis:{type:'time', axisLabel:{fontSize:10}},
-    yAxis:{type:'value', show:false, min:-4, max:4},
+    yAxis:{type:'value', show:false, min:-7, max:7},
     series:[
-      {name:'Launch 上市', type:'scatter', symbolSize: v=>Math.max(14, Math.min(38, Math.sqrt(v[2]||1)*3.2)),
+      {name:'Launch 上市', type:'scatter', symbolSize: v=>Math.max(12, Math.min(32, Math.sqrt(v[2]||1)*2.8)),
         data: jLaunch.map(m=>({value:[m.date, m._y, m.out], name:m.name})),
-        label:{show:true, formatter:p=>p.name, position:'top', fontSize:10, fontWeight:600, color:'#334155'},
+        label:{show:true, formatter:p=>shortLabel(p.name), position:'top', distance: p=>6+Math.abs(jLaunch[p.dataIndex]._y)*3, fontSize:9.5, fontWeight:600, color:'#334155'},
         labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
         itemStyle:{color:'#0066CC', opacity:.82, borderColor:'#004FA3', borderWidth:1}},
-      {name:'EOL 停产', type:'scatter', symbolSize: v=>Math.max(14, Math.min(34, Math.sqrt(v[2]||1)*3.2)),
+      {name:'EOL 停产', type:'scatter', symbolSize: v=>Math.max(12, Math.min(28, Math.sqrt(v[2]||1)*2.8)),
         data: jEol.map(m=>({value:[m.date, m._y, m.out], name:m.name})),
-        label:{show:true, formatter:p=>p.name, position:'bottom', fontSize:10, fontWeight:600, color:'#7A1220'},
+        label:{show:true, formatter:p=>shortLabel(p.name), position:'bottom', distance: p=>6+Math.abs(jEol[p.dataIndex]._y)*3, fontSize:9.5, fontWeight:600, color:'#7A1220'},
         labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
         itemStyle:{color:'#EF4444', opacity:.82, borderColor:'#B91C1C', borderWidth:1}}
     ]
@@ -3698,6 +3705,14 @@ function renderGtsTable(){
   people.sort((a,b)=>{
     let av, bv;
     if(gtsSort.key==='gts_name'||gtsSort.key==='email') { av=(a[gtsSort.key]||'').toUpperCase(); bv=(b[gtsSort.key]||'').toUpperCase(); }
+    else if(gtsSort.key==='subline') {
+      av=[...new Set(a.rows.map(r=>gtsSubline(r.mcsr_category)))].sort().join(',').toUpperCase();
+      bv=[...new Set(b.rows.map(r=>gtsSubline(r.mcsr_category)))].sort().join(',').toUpperCase();
+    }
+    else if(gtsSort.key==='mcsr_category') {
+      av=a.rows.map(r=>r.mcsr_category).sort().join(',').toUpperCase();
+      bv=b.rows.map(r=>r.mcsr_category).sort().join(',').toUpperCase();
+    }
     else { av=a.rows.length; bv=b.rows.length; }
     if(av<bv) return -1*gtsSort.dir; if(av>bv) return 1*gtsSort.dir; return 0;
   });
@@ -4685,12 +4700,56 @@ function renderQq(){
 }
 
 // ---------------- F2F MODULE ----------------
-// Course names occasionally carry a stray "_face" suffix duplicating the
-// canonical course — e.g. "...MCSR_Field Course_face" vs "...MCSR_Field
-// Course" are the same course; the non-suffixed name is the correct one.
-// Normalize before grouping/lookup so these don't fork into two rows.
-function normCourseName(name){ return String(name||'').replace(/_face\s*$/i, '').trim(); }
-function ftCat(course){ const k=normCourseName(course); return F2F_DATA.courseMap[k] || F2F_DATA.courseMap[course] || ''; }
+// Course names in the F2F log sometimes carry extra descriptor text beyond
+// the canonical course name recorded in Page D (MC_ROWS) — e.g. a trailing
+// "_face" and/or "_Field Course" suffix, or in some cases a name that's just
+// plain wrong/renamed. Strip the known decorations here so the F2F string
+// lines back up with Page D's mcsr_course_name.
+function normCourseName(name){
+  return String(name||'')
+    .replace(/\(.*?\)/g, '')              // drop parenthetical notes e.g. "(face to face training)"
+    .replace(/[_\s]*face\s*$/i, '')       // trailing "_face"
+    .replace(/[_\s]*field\s*course\s*$/i, '') // trailing "_Field Course" / "FieldCourse"
+    .replace(/\s+/g, ' ').trim();
+}
+// Manual overrides for F2F course strings that don't textually match their
+// Page D course name at all (renamed/typo'd in the training log, not just
+// decorated) — add entries here as they're identified.
+const FT_COURSE_ALIAS = {
+  'UA_URINE PRODUCTS FIELDCOURSE': 'UA_URINE_EU-5600PRO/EU 8600/EU 8600 GT_MCSR',
+};
+let _courseCatIndex = null;
+function courseCatIndex(){
+  if(_courseCatIndex) return _courseCatIndex;
+  const idx = {};
+  MC_ROWS.forEach(r=>{
+    if(!r.mcsr_course_name || !r.mcsr_category) return;
+    const k = normCourseName(r.mcsr_course_name).toUpperCase();
+    (idx[k] = idx[k] || new Set()).add(r.mcsr_category);
+  });
+  _courseCatIndex = idx;
+  return idx;
+}
+// Returns the MCSR categor(y/ies) a training course covers — comma-joined
+// when a single course qualifies multiple categories (e.g. one EU Pro/EU8600
+// course spans three category families). Resolution order: Page D registry
+// (normalized name match) -> alias table -> the generator's own courseMap
+// (covers self-learning-only courses that never appear in Page D).
+function ftCat(course){
+  if(!course) return '';
+  const idx = courseCatIndex();
+  const norm = normCourseName(course).toUpperCase();
+  const aliasTarget = FT_COURSE_ALIAS[course.toUpperCase().trim()] || FT_COURSE_ALIAS[norm];
+  const lookupKey = aliasTarget ? normCourseName(aliasTarget).toUpperCase() : norm;
+  if(idx[lookupKey]) return [...idx[lookupKey]].sort().join(', ');
+  return F2F_DATA.courseMap[course] || F2F_DATA.courseMap[norm] || '';
+}
+// Membership check for the model/category filter pill — a course can now
+// resolve to multiple categories, so this can't be a plain equality test.
+function ftCatMatches(course, wantCat){
+  if(wantCat==='ALL') return true;
+  return ftCat(course).split(',').map(s=>s.trim()).includes(wantCat);
+}
 function median(arr){ if(!arr.length)return null; const s=arr.slice().sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
 function renderFt(){
   const tt=(document.getElementById('ft-tt')||{}).value||'ALL';
@@ -4701,7 +4760,7 @@ function renderFt(){
   const R = base.filter(r=>
     (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) &&
     (bplusFilters.subline==='ALL'||canonicalLine(r.line)===bplusFilters.subline) &&
-    (bplusFilters.model==='ALL'||ftCat(r.course)===bplusFilters.model)
+    (bplusFilters.model==='ALL'||ftCatMatches(r.course, bplusFilters.model))
   );
   const classes=new Set(R.map(r=>r.cid)).size;
   const passN=R.filter(r=>r['pass']==='Y').length;
@@ -4738,7 +4797,7 @@ function renderFt(){
   // by category
   try{
     const cc={};
-    R.forEach(r=>{const c=ftCat(r.course)||'(unmapped)'; (cc[c]=cc[c]||{n:0,m:0}); cc[c].n++; if(r.mcsr==='Y')cc[c].m++;});
+    R.forEach(r=>{const cats=(ftCat(r.course)||'(unmapped)').split(',').map(s=>s.trim()); cats.forEach(c=>{ (cc[c]=cc[c]||{n:0,m:0}); cc[c].n++; if(r.mcsr==='Y')cc[c].m++; });});
     const top=Object.keys(cc).map(k=>({k,...cc[k]})).sort((a,b)=>b.n-a.n).slice(0,12);
     chartFor('ft-ec-cat').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(ps)=>{const x=top[top.length-1-ps[0].dataIndex];return `${x.k}<br>trainees ${x.n} · converted ${x.m} (${Math.round(x.m/x.n*100)}%)`;}},
