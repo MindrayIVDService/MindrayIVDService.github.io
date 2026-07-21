@@ -687,9 +687,9 @@ details.dcx summary:hover{color:var(--pd)}
   <!-- ===== LIVE: FTFR & SLA by Model (v30) ===== -->
   <div class="krow" id="qf-kpi"></div>
   <div class="cg cg3">
-    <div class="card"><div class="ct">FTFR by MCSR Category<span class="en">机型大类</span><span class="sub">past-90d · device-level · dashed = 70% target</span></div><div class="ec ec-md" id="qf-ec-cat"></div></div>
+    <div class="card"><div class="ct" id="qf-ec-cat-title">FTFR by Sub-Line<span class="en">子产线</span></div><div class="ec ec-md" id="qf-ec-cat"></div></div>
     <div class="card"><div class="ct" id="qf-ec-region-title">FTFR by Region<span class="en">区域</span></div><div class="ec ec-md" id="qf-ec-region"></div></div>
-    <div class="card"><div class="ct">Monthly Orders &amp; SLA≤24h<span class="en">月度趋势</span></div><div class="ec ec-md" id="qf-ec-trend"></div></div>
+    <div class="card"><div class="ct">Monthly Orders &amp; Avg SLA<span class="en">工单量与平均耗时</span></div><div class="ec ec-md" id="qf-ec-trend"></div></div>
   </div>
   <div class="tbl-wrap" style="margin-bottom:12px">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
@@ -4171,10 +4171,16 @@ function renderMe(){
 // ============================================================================
 
 function pctTxt(n,d){ return d? Math.round(n/d*100)+'%' : '--'; }
+// SLA target hours by VIP tier — SVIP and VIP1 share the tightest target.
+function slaTargetHours(vip){ return (vip==='VIP1'||vip==='SVIP') ? 24 : (vip==='VIP2' ? 48 : 72); }
 // Computes FTFR/VIP1-FTFR/SLA stats from a pre-filtered slice of
 // FTFR_AGG.orders. FTFR is device-level (grouped by serial) and only counts
 // orders flagged past-90-days (o.p9); SLA is order-level and uses ALL orders
 // in the slice, matching the source workbook's own definitions exactly.
+// Each order carries raw elapsed hours (o.h) rather than fixed ≤24h/≤48h
+// flags, because the on-time target itself depends on the order's VIP tier
+// (SVIP/VIP1 -> 24h, VIP2 -> 48h, everyone else -> 72h) — a single fixed
+// threshold can't express that.
 function ftfrCompute(rows){
   const p9 = rows.filter(o=>o.p9);
   const bySerial = {}, serialVip = {};
@@ -4185,8 +4191,18 @@ function ftfrCompute(rows){
   const v1s = serials.filter(sn=>['VIP1','SVIP'].includes(serialVip[sn]));
   const v1dev = v1s.length;
   const v1fix = v1s.filter(sn=>bySerial[sn]===1).length;
-  const slaRows = rows.filter(o=>o.sla);
-  return { dev, fix, v1dev, v1fix, slaN: slaRows.length, s24: slaRows.filter(o=>o.s24).length, s48: slaRows.filter(o=>o.s48).length, orders: rows.length };
+  const slaRows = rows.filter(o=>o.h!=null);
+  let slaSum=0, slaOnTime=0;
+  const tier = {t24:{n:0,ok:0}, t48:{n:0,ok:0}, t72:{n:0,ok:0}};
+  slaRows.forEach(o=>{
+    slaSum += o.h;
+    const target = slaTargetHours(o.vip);
+    const ok = o.h<=target;
+    if(ok) slaOnTime++;
+    const key = target===24?'t24':(target===48?'t48':'t72');
+    tier[key].n++; if(ok) tier[key].ok++;
+  });
+  return { dev, fix, v1dev, v1fix, slaN: slaRows.length, slaOnTime, avgH: slaRows.length? (slaSum/slaRows.length) : null, tier, orders: rows.length };
 }
 function pctBadge(n,d,goodAt,warnAt){
   if(!d) return '<span class="badge b-gy">--</span>';
@@ -4201,67 +4217,97 @@ function shortR2q(s){ return String(s||'').replace(' REGION','').replace('CENTRA
 function renderQf(){
   try{ renderQPlusFilterBar(); }catch(e){}
   // ============================================================================
-  // v41 rebuild: FTFR_AGG.orders is now one row per FTFR-BD repair order
-  // (~6,613 rows: sn/cat/r2/r3/vip/mo/p9/sla/s24/s48), not a set of
-  // precomputed buckets. Any combination of region2 + region3 + category can
-  // be filtered directly and fed through ftfrCompute() — no more "this
-  // combination wasn't precomputed, showing --" degradation, and Region III
-  // now genuinely narrows FTFR (its source data always had it; the old
-  // byCat/byRegion pre-aggregation just hadn't kept it).
+  // v41 rebuild: FTFR_AGG.orders is one row per FTFR-BD repair order
+  // (sn/cat/r2/r3/vip/mo/p9/h — h = raw SLA hours, target varies by VIP tier).
+  // Any combination of region2 + region3 + category can be filtered directly
+  // and fed through ftfrCompute().
   // ============================================================================
   const scope = userRegionScope();
   const effRegion = qplusFilters.region!=='ALL' ? qplusFilters.region : scope;
   const effRegion3 = qplusFilters.region3!=='ALL' ? qplusFilters.region3 : null;
-  const sublineSel = qplusFilters.subline!=='ALL' ? qplusFilters.subline : null;
+  const sublineSel = qplusFilters.subline; // array
+  const vipSel = qplusFilters.vip; // array
   const cats = [...new Set(FTFR_AGG.orders.map(o=>o.cat))].filter(Boolean).sort();
   const modelSel = qplusFilters.model!=='ALL' && cats.includes(qplusFilters.model) ? qplusFilters.model : null;
-  let catsInSub = sublineSel ? cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===sublineSel) : cats;
+  let catsInSub = sublineSel.length ? cats.filter(c=>sublineSel.includes(canonicalLine(lineOfMcsrCategory(c)||''))) : cats;
   if(modelSel) catsInSub = catsInSub.filter(c=>c===modelSel);
-  const narrowed = !!(sublineSel || modelSel);
-  const scopeNote = [effRegion, effRegion3 && effRegion3.replace(' REGION',''), (modelSel||sublineSel)].filter(Boolean).join(' · ');
+  const narrowed = !!(sublineSel.length || modelSel);
+  const scopeNote = [effRegion, effRegion3 && effRegion3.replace(' REGION',''), (modelSel||sublineSel.join('+'))].filter(Boolean).join(' · ');
+  const vipTop20Match = o => (vipSel.length===0 || vipSel.includes(o.vip)) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20);
 
   const baseFiltered = FTFR_AGG.orders.filter(o=>
     (!effRegion || canonicalRegion2(o.r2)===effRegion) &&
     (!effRegion3 || o.r3===effRegion3) &&
     (!narrowed || catsInSub.includes(o.cat)) &&
-    (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) &&
-    (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20)
+    vipTop20Match(o)
   );
   const o = ftfrCompute(baseFiltered);
-  const repN = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!effRegion3 || r.r3===effRegion3) && (!narrowed || catsInSub.includes(r.cat))).length;
+  const repN = FTFR_AGG.repeat.filter(r=>
+    (!effRegion || canonicalRegion2(r.r2)===effRegion) &&
+    (!effRegion3 || r.r3===effRegion3) &&
+    (!narrowed || catsInSub.includes(r.cat)) &&
+    vipTop20Match(r)
+  ).length;
 
   const kEl = document.getElementById('qf-kpi');
   if(kEl) kEl.innerHTML = [
     {lbl:'FTFR (past 90d) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices fixed first time'+(scopeNote?' · '+scopeNote:''), cls: o.dev? (o.fix/o.dev>=0.8?'ok':'wa') : 'wa'},
     {lbl:'VIP1 FTFR (incl. SVIP)', val: pctTxt(o.v1fix,o.v1dev), sub: 'target ≥70% · '+o.v1fix+'/'+o.v1dev+(scopeNote?' · '+scopeNote:''), cls: o.v1dev? (o.v1fix/o.v1dev>=0.7?'ok':'er') : 'wa'},
-    {lbl:'SLA ≤24h', val: pctTxt(o.s24,o.slaN), sub: o.s24+' / '+o.slaN+' completed orders'+(scopeNote?' · '+scopeNote:''), cls: o.slaN? (o.s24/o.slaN>=0.5?'ok':'wa') : 'wa'},
-    {lbl:'Repeat Devices (≥3) 多次维修', val: repN>=60?'60+':repN, sub:'attribution needed'+(scopeNote?' · '+scopeNote:''), cls:'er'},
-  ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
+  ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('')
+  // Card 3: on-time rate is a different target per VIP tier (SVIP/VIP1=24h,
+  // VIP2=48h, everyone else=72h) — one number can't represent all three, so
+  // this card shows all three side by side instead of picking one.
+  + `<div class="k ${o.slaN? 'ok':'wa'}"><div class="k-lbl">On-Time Repair by Tier 分级维修及时率</div>
+      <div style="display:flex;justify-content:space-between;margin-top:2px">
+        <div style="text-align:center"><div style="font-size:15px;font-weight:700">${pctTxt(o.tier.t24.ok,o.tier.t24.n)}</div><div style="font-size:8.5px;color:var(--s500)">SVIP/VIP1 ≤24h<br>${o.tier.t24.ok}/${o.tier.t24.n}</div></div>
+        <div style="text-align:center"><div style="font-size:15px;font-weight:700">${pctTxt(o.tier.t48.ok,o.tier.t48.n)}</div><div style="font-size:8.5px;color:var(--s500)">VIP2 ≤48h<br>${o.tier.t48.ok}/${o.tier.t48.n}</div></div>
+        <div style="text-align:center"><div style="font-size:15px;font-weight:700">${pctTxt(o.tier.t72.ok,o.tier.t72.n)}</div><div style="font-size:8.5px;color:var(--s500)">Others ≤72h<br>${o.tier.t72.ok}/${o.tier.t72.n}</div></div>
+      </div></div>`
+  + `<div class="k er"><div class="k-lbl">Repeat Devices (≥3) 多次维修</div><div class="k-val">${repN>=60?'60+':repN}</div><div class="k-sub">attribution needed${scopeNote?' · '+scopeNote:''}</div></div>`;
 
-  // chart: by category (top 14 by devices) — respects region2+region3+sub-line/model
+  // chart 1: FTFR — defaults to BY SUB-LINE (individual categories are too
+  // numerous to fit one chart legibly); drills into that sub-line's own
+  // categories only when exactly one sub-line is selected (and no model).
   try{
-    const scoped = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20));
-    const byCat = {};
-    catsInSub.forEach(c=>{ byCat[c] = ftfrCompute(scoped.filter(o=>o.cat===c)); });
-    const top = Object.entries(byCat).map(([c,x])=>({c,...x})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
+    const scoped = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && vipTop20Match(o));
+    const drillIntoCats = sublineSel.length===1 && !modelSel;
+    let top, titleMode;
+    if(drillIntoCats){
+      const catsHere = cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===sublineSel[0]);
+      const byCat = {};
+      catsHere.forEach(c=>{ byCat[c] = ftfrCompute(scoped.filter(o=>o.cat===c)); });
+      top = Object.entries(byCat).map(([c,x])=>({label:c,...x})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
+      titleMode = sublineSel[0];
+    } else {
+      const linesWanted = sublineSel.length ? sublineSel : LEGACY_LINE_ABBR;
+      const byLine = {};
+      linesWanted.forEach(line=>{
+        const catsHere = cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===line);
+        byLine[line] = ftfrCompute(scoped.filter(o=>catsHere.includes(o.cat)));
+      });
+      top = Object.entries(byLine).map(([line,x])=>({label:line,...x})).filter(x=>x.dev>0).sort((a,b)=>b.dev-a.dev);
+      titleMode = null;
+    }
+    const cat1TitleEl = document.getElementById('qf-ec-cat-title');
+    if(cat1TitleEl) cat1TitleEl.innerHTML = titleMode
+      ? `FTFR by Model<span class="en">机型 · ${esc(titleMode)}</span>`
+      : `FTFR by Sub-Line<span class="en">子产线</span>`;
     chartFor('qf-ec-cat').setOption({
-      tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(ps)=>{const x=top[ps[0].dataIndex];return `${x.c}<br>FTFR: ${Math.round(x.fix/x.dev*100)}% (${x.fix}/${x.dev} devices)`}},
-      grid:{left:8,right:36,top:10,bottom:2,containLabel:true},
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'},formatter:(ps)=>{const x=top[ps[0].dataIndex];return `${x.label}<br>FTFR: ${Math.round(x.fix/x.dev*100)}% (${x.fix}/${x.dev} devices)`}},
+      grid:{left:8,right:70,top:10,bottom:2,containLabel:true},
       xAxis:{type:'value',max:100,axisLabel:{fontSize:9,formatter:'{value}%'}},
-      yAxis:{type:'category',data:top.map(x=>x.c).reverse(),axisLabel:{fontSize:9.5}},
+      yAxis:{type:'category',data:top.map(x=>x.label).reverse(),axisLabel:{fontSize:9.5}},
       series:[{type:'bar',barWidth:11,data:top.map(x=>({value:Math.round(x.fix/x.dev*100),itemStyle:{color:x.fix/x.dev>=0.8?'#10B981':(x.fix/x.dev>=0.7?'#F59E0B':'#EF4444')}})).reverse(),
-        label:{show:true,position:'right',fontSize:9,formatter:'{c}%'},
+        label:{show:true,position:'right',fontSize:9,formatter:(p)=>{const x=top[top.length-1-p.dataIndex];return p.value+'% ('+x.fix+'/'+x.dev+')';}},
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart: by region — respects region3 lock and sub-line/model narrowing; always exact now
+  // chart 2: by region — respects region3 lock and sub-line/model narrowing;
+  // INT SHARED is excluded (not a comparable region for this breakdown).
   try{
-    const scoped2 = FTFR_AGG.orders.filter(o=> (!narrowed || catsInSub.includes(o.cat)) && (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20));
+    const scoped2 = FTFR_AGG.orders.filter(o=> (!narrowed || catsInSub.includes(o.cat)) && vipTop20Match(o));
     let labels, per, byR3;
     if(effRegion && !effRegion3){
-      // A specific Region II is in scope (via filter or account scope) with
-      // no Region III narrowing yet — auto-expand to that Region II's own
-      // Region III breakdown instead of collapsing to a single bar.
       byR3 = true;
       const inRegion = scoped2.filter(o=>canonicalRegion2(o.r2)===effRegion);
       const r3s = [...new Set(inRegion.map(o=>o.r3))].filter(Boolean).sort();
@@ -4269,7 +4315,7 @@ function renderQf(){
       per = r3s.map(r3=>ftfrCompute(inRegion.filter(o=>o.r3===r3)));
     } else {
       byR3 = false;
-      let regs = [...new Set(FTFR_AGG.orders.map(o=>canonicalRegion2(o.r2)))].filter(Boolean).sort();
+      let regs = [...new Set(FTFR_AGG.orders.map(o=>canonicalRegion2(o.r2)))].filter(r=>r && r!=='INT SHARED').sort();
       if(effRegion) regs = regs.filter(r=>r===effRegion);
       labels = regs.map(shortR2q);
       per = regs.map(r=>ftfrCompute(scoped2.filter(o=>canonicalRegion2(o.r2)===r && (!effRegion3 || o.r3===effRegion3))));
@@ -4280,70 +4326,86 @@ function renderQf(){
       : `FTFR by Region<span class="en">区域</span>`;
     chartFor('qf-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
-      grid:{left:8,right:34,top:10,bottom:2,containLabel:true},
+      grid:{left:8,right:70,top:10,bottom:2,containLabel:true},
       xAxis:{type:'value',max:100,axisLabel:{fontSize:9,formatter:'{value}%'}},
       yAxis:{type:'category',data:labels.slice().reverse(),axisLabel:{fontSize:10}},
       series:[{type:'bar',barWidth:13,data:per.map(p=>({value:p.dev?Math.round(p.fix/p.dev*100):0,itemStyle:{color:(p.dev&&p.fix/p.dev>=0.8)?'#10B981':((p.dev&&p.fix/p.dev>=0.7)?'#F59E0B':'#EF4444')}})).reverse(),
-        label:{show:true,position:'right',fontSize:9,formatter:'{c}%'},
+        label:{show:true,position:'right',fontSize:9,formatter:(pt)=>{const x=per[per.length-1-pt.dataIndex];return pt.value+'% ('+x.fix+'/'+x.dev+')';}},
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart: monthly trend — now also respects the current filters (previously
-  // forced global since the old pre-aggregation only kept a global month table)
+  // chart 3: monthly order volume + average SLA hours (not a threshold %) —
+  // shows the actual pace of repairs alongside how long they're taking.
   try{
     const MONTH_ORDER=['Dec','Jan','Feb','Mar','Apr','May','Jun'];
     const mScoped = baseFiltered;
     const byM = {};
-    MONTH_ORDER.forEach(m=>{ const rows=mScoped.filter(o=>o.mo===m); const sla=rows.filter(o=>o.sla); byM[m]={orders:rows.length, slaN:sla.length, s24:sla.filter(o=>o.s24).length}; });
+    MONTH_ORDER.forEach(m=>{
+      const rows=mScoped.filter(o=>o.mo===m);
+      const hs = rows.map(o=>o.h).filter(h=>h!=null);
+      byM[m]={orders:rows.length, avgH: hs.length? (hs.reduce((a,b)=>a+b,0)/hs.length) : null};
+    });
     chartFor('qf-ec-trend').setOption({
       tooltip:{trigger:'axis'},
       legend:{textStyle:{fontSize:9}},
       grid:{left:8,right:14,top:30,bottom:2,containLabel:true},
       xAxis:{type:'category',data:MONTH_ORDER,axisLabel:{fontSize:9}},
-      yAxis:[{type:'value',name:'orders',axisLabel:{fontSize:9}},{type:'value',max:100,axisLabel:{fontSize:9,formatter:'{value}%'}}],
+      yAxis:[{type:'value',name:'orders',axisLabel:{fontSize:9}},{type:'value',name:'avg hours',axisLabel:{fontSize:9}}],
       series:[
-        {name:'Orders',type:'bar',barWidth:16,itemStyle:{color:'#93C5FD'},data:MONTH_ORDER.map(m=>byM[m].orders)},
-        {name:'SLA≤24h',type:'line',yAxisIndex:1,smooth:true,itemStyle:{color:'#0066CC'},data:MONTH_ORDER.map(m=>byM[m].slaN?Math.round(byM[m].s24/byM[m].slaN*100):null)}
+        {name:'Orders 工单量',type:'bar',barWidth:16,itemStyle:{color:'#93C5FD'},data:MONTH_ORDER.map(m=>byM[m].orders)},
+        {name:'Avg SLA (h) 平均耗时',type:'line',yAxisIndex:1,smooth:true,itemStyle:{color:'#0066CC'},data:MONTH_ORDER.map(m=>byM[m].avgH!=null?Math.round(byM[m].avgH*10)/10:null)}
       ]
     }, true);
   }catch(e){}
   // table: model quality profile
   const QF_COLS = [
     {label:'Category', key:'c'}, {label:'Devices (90d)', key:'dev'}, {label:'Fixed 1st', key:'fix'},
-    {label:'FTFR', key:'rate'}, {label:'VIP1 FTFR', key:'v1rate'}, {label:'SLA≤24h', key:'s24'},
-    {label:'SLA≤48h', key:'s48'}, {label:'Total Orders', key:'orders'},
+    {label:'FTFR', key:'rate'}, {label:'VIP1 FTFR', key:'v1rate'}, {label:'On-Time (tiered)', key:'onrate'},
+    {label:'Avg SLA (h)', key:'avgH'}, {label:'Total Orders', key:'orders'},
   ];
   const th=document.getElementById('qf-thead');
   if(th) th.innerHTML=sortableThead('qf', QF_COLS, 'renderQf');
   const q=((document.getElementById('qf-search')||{}).value||'').toLowerCase();
   const min5=(document.getElementById('qf-min5')||{}).checked;
-  const scopedForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && (qplusFilters.vip==='ALL' || o.vip===qplusFilters.vip) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20));
+  const scopedForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && vipTop20Match(o));
   let rows = catsInSub
     .map(c=>({c, ...ftfrCompute(scopedForTable.filter(o=>o.cat===c))}))
-    .map(x=>({...x, rate: x.dev? x.fix/x.dev : -1, v1rate: x.v1dev? x.v1fix/x.v1dev : -1}))
+    .map(x=>({...x, rate: x.dev? x.fix/x.dev : -1, v1rate: x.v1dev? x.v1fix/x.v1dev : -1, onrate: x.slaN? x.slaOnTime/x.slaN : -1}))
     .filter(x=>(!min5||x.dev>=5) && (!q||x.c.toLowerCase().includes(q)));
   const stQf = SORT_STATE['qf'];
   rows = stQf && stQf.key ? sortRows('qf', rows, (r,k)=>r[k]) : rows.sort((a,b)=> a.rate-b.rate);
   const tb=document.getElementById('qf-tbody');
-  if(tb) tb.innerHTML = rows.map(x=>`<tr><td><b>${esc(x.c)}</b></td><td>${x.dev}</td><td>${x.fix}</td><td>${pctBadge(x.fix,x.dev,80,70)}</td><td>${x.v1dev?pctBadge(x.v1fix,x.v1dev,70,60):'<span class="badge b-gy">--</span>'}</td><td>${pctTxt(x.s24,x.slaN)}</td><td>${pctTxt(x.s48,x.slaN)}</td><td>${x.orders}</td></tr>`).join('');
+  if(tb) tb.innerHTML = rows.map(x=>`<tr><td><b>${esc(x.c)}</b></td><td>${x.dev}</td><td>${x.fix}</td><td>${pctBadge(x.fix,x.dev,80,70)}</td><td>${x.v1dev?pctBadge(x.v1fix,x.v1dev,70,60):'<span class="badge b-gy">--</span>'}</td><td>${pctTxt(x.slaOnTime,x.slaN)}</td><td>${x.avgH!=null?Math.round(x.avgH*10)/10:'--'}</td><td>${x.orders}</td></tr>`).join('');
   const cnt=document.getElementById('qf-cnt'); if(cnt) cnt.textContent=rows.length+' categories';
-  // table: repeat-repair devices — now also respects Region III
+  // table: repeat-repair devices — respects region/region3/subline/model/vip/top20
   const QR_COLS = [
     {label:'Serial No.', key:'sn'}, {label:'Model', key:'model'}, {label:'Category', key:'cat'},
     {label:'Region', key:'r2'}, {label:'Repairs', key:'n'}, {label:'VIP', key:'vip'}, {label:'Customer', key:'cust'},
   ];
   const rh=document.getElementById('qr-thead');
   if(rh) rh.innerHTML=sortableThead('qr', QR_COLS, 'renderQf');
-  let repRows = FTFR_AGG.repeat.filter(r=>regionMatchesScope(r.r2) && (!effRegion3 || r.r3===effRegion3) && (!narrowed || catsInSub.includes(r.cat)));
+  let repRows = FTFR_AGG.repeat.filter(r=>
+    (!effRegion || canonicalRegion2(r.r2)===effRegion) &&
+    (!effRegion3 || r.r3===effRegion3) &&
+    (!narrowed || catsInSub.includes(r.cat)) &&
+    vipTop20Match(r)
+  );
   const stQr = SORT_STATE['qr'];
   if(stQr && stQr.key) repRows = sortRows('qr', repRows, (r,k)=>r[k]);
   const rb=document.getElementById('qr-tbody');
   if(rb) rb.innerHTML = repRows.map(r=>`<tr><td style="font-family:monospace;font-size:10px">${esc(r.sn)}</td><td><b>${esc(r.model)}</b></td><td>${esc(r.cat)}</td><td>${esc(shortR2q(r.r2))} · ${esc(r.r3.replace(' REGION',''))}</td><td><b style="color:var(--er)">${r.n}</b></td><td>${r.vip&&r.vip!=='N'?'<span class="badge b-pu">'+esc(r.vip)+'</span>':''}</td><td style="font-size:10px">${esc(r.cust)}</td></tr>`).join('');
 }
 
-let qplusFilters = {region:'ALL', region3:'ALL', subline:'ALL', model:'ALL', vip:'ALL', top20:'ALL'};
+
+let qplusFilters = {region:'ALL', region3:'ALL', subline:[], model:'ALL', vip:[], top20:'ALL'};
 function setQPlusRegion(v){ qplusFilters.region=v; qplusFilters.region3='ALL'; renderQPlusFilterBar(); renderQf(); renderQq(); }
-function setQPlusSubline(v){ qplusFilters.subline=v; qplusFilters.model='ALL'; renderQPlusFilterBar(); renderQf(); renderQq(); }
+function setQPlusSubline(v){
+  // multi-select toggle; empty array = "All"
+  const i = qplusFilters.subline.indexOf(v);
+  if(i===-1) qplusFilters.subline.push(v); else qplusFilters.subline.splice(i,1);
+  qplusFilters.model='ALL';
+  renderQPlusFilterBar(); renderQf(); renderQq();
+}
 function setQPlusRegion3(v){ qplusFilters.region3=v; renderQf(); renderQq(); }
 function setQPlusModel(v){ qplusFilters.model=v; renderQf(); renderQq(); }
 function refreshQPlusRegion3Options(){
@@ -4364,7 +4426,7 @@ function refreshQPlusRegion3Options(){
 function refreshQPlusModelOptions(){
   const sel = document.getElementById('qplus-model');
   if(!sel) return;
-  const models = dModels().filter(m=> qplusFilters.subline==='ALL' || canonicalLine(m.line)===qplusFilters.subline);
+  const models = dModels().filter(m=> qplusFilters.subline.length===0 || qplusFilters.subline.includes(canonicalLine(m.line)));
   sel.innerHTML = '<option value="ALL">All Models</option>'
     + models.map(m=>`<option value="${esc(m.model)}">${esc(m.model)}</option>`).join('');
   if(!models.some(m=>m.model===qplusFilters.model)) qplusFilters.model='ALL';
@@ -4377,15 +4439,20 @@ function renderQPlusFilterBar(){
     if(r==='ALL' ? userRegionScope() : !regionMatchesScope(r)) return lockedChip(label);
     return `<span class="pt${r===qplusFilters.region?' on':''}" onclick="setQPlusRegion('${r}')">${label}</span>`;
   }).join('');
+  // Sub-line and VIP are multi-select: "All" clears the selection, each pill
+  // toggles independently. An empty array means "no filter" (= All), same
+  // meaning as before, just now expressed as absence rather than a sentinel.
   const subEl = document.getElementById('qplus-subline-filters');
-  if(subEl) subEl.innerHTML = ['ALL', ...LEGACY_LINE_ABBR].map(l=>
-    `<span class="pt${l===qplusFilters.subline?' on':''}" onclick="setQPlusSubline('${l}')">${l==='ALL'?'All 全部':l}</span>`
-  ).join('');
+  if(subEl) subEl.innerHTML = `<span class="pt${qplusFilters.subline.length===0?' on':''}" onclick="qplusFilters.subline=[];qplusFilters.model='ALL';renderQPlusFilterBar();renderQf();renderQq()">All 全部</span>`
+    + LEGACY_LINE_ABBR.map(l=>
+      `<span class="pt${qplusFilters.subline.includes(l)?' on':''}" onclick="setQPlusSubline('${l}')">${l}</span>`
+    ).join('');
   const vipEl = document.getElementById('qplus-vip-filters');
-  const VIP_LABEL = {ALL:'All 全部', SVIP:'SVIP', VIP1:'VIP1', VIP2:'VIP2', N:'Standard 标准'};
-  if(vipEl) vipEl.innerHTML = ['ALL','SVIP','VIP1','VIP2','N'].map(v=>
-    `<span class="pt${v===qplusFilters.vip?' on':''}" onclick="setQPlusVip('${v}')">${VIP_LABEL[v]}</span>`
-  ).join('');
+  const VIP_LABEL = {SVIP:'SVIP', VIP1:'VIP1', VIP2:'VIP2', N:'Standard 标准'};
+  if(vipEl) vipEl.innerHTML = `<span class="pt${qplusFilters.vip.length===0?' on':''}" onclick="qplusFilters.vip=[];renderQPlusFilterBar();renderQf();renderQq()">All 全部</span>`
+    + ['SVIP','VIP1','VIP2','N'].map(v=>
+      `<span class="pt${qplusFilters.vip.includes(v)?' on':''}" onclick="setQPlusVip('${v}')">${VIP_LABEL[v]}</span>`
+    ).join('');
   const t20El = document.getElementById('qplus-top20-filters');
   if(t20El) t20El.innerHTML = ['ALL','Y'].map(v=>
     `<span class="pt${v===qplusFilters.top20?' on':''}" onclick="setQPlusTop20('${v}')">${v==='ALL'?'All 全部':'Top 20 only'}</span>`
@@ -4393,7 +4460,11 @@ function renderQPlusFilterBar(){
   refreshQPlusRegion3Options();
   refreshQPlusModelOptions();
 }
-function setQPlusVip(v){ qplusFilters.vip=v; renderQf(); renderQq(); }
+function setQPlusVip(v){
+  const i = qplusFilters.vip.indexOf(v);
+  if(i===-1) qplusFilters.vip.push(v); else qplusFilters.vip.splice(i,1);
+  renderQPlusFilterBar(); renderQf(); renderQq();
+}
 function setQPlusTop20(v){ qplusFilters.top20=v; renderQf(); renderQq(); }
 // ---------------- QE MODULE ----------------
 function renderQq(){
@@ -4401,9 +4472,9 @@ function renderQq(){
   const R = QE_DATA.rows.filter(r=>
     (qplusFilters.region==='ALL'||canonicalRegion2(r.r2)===qplusFilters.region) &&
     (qplusFilters.region3==='ALL'||r.r3===qplusFilters.region3) &&
-    (qplusFilters.subline==='ALL'||canonicalLine(r.sub)===qplusFilters.subline) &&
+    (qplusFilters.subline.length===0||qplusFilters.subline.includes(canonicalLine(r.sub))) &&
     (qplusFilters.model==='ALL'||legacyEffectiveCategory(r.model)===qplusFilters.model) &&
-    (qplusFilters.vip==='ALL'||r.vip===qplusFilters.vip)
+    (qplusFilters.vip.length===0||qplusFilters.vip.includes(r.vip))
     // Top20 has no equivalent field in QE_DATA (only in FTFR-BD) — intentionally
     // not applied here rather than silently filtering every QE row out.
   );
