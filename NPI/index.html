@@ -467,12 +467,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="hidden-note" id="lf-readonly-note" style="display:none;margin-bottom:10px">🔒 Read-only for your account — only HQ can edit this table. 仅HQ账号可编辑此表。</div>
   <div class="krow krow5" id="lf-kpi"></div>
   <div class="cg" style="grid-template-columns:1fr">
-    <div class="card"><div class="ct">New Model Launch Timeline<span class="en">新机型上市时间轴</span><span class="sub">Bubble size = cumulative Out qty (lifetime) 气泡大小=累计出库台数</span></div><div class="ec-md" id="lf-ec-timeline" style="height:320px"></div></div>
-  </div>
-  <div class="cg cg3">
-    <div class="card"><div class="ct">Stage Mix<span class="en">生命周期阶段占比</span></div><div class="ec-sm" id="lf-ec-donut"></div></div>
-    <div class="card"><div class="ct">Biochem vs Immuno Count<span class="en">生化 vs 免疫机型数</span></div><div class="ec-sm" id="lf-ec-cat"></div></div>
-    <div class="card"><div class="ct">EOL Year Distribution<span class="en">停产年份分布</span></div><div class="ec-sm" id="lf-ec-eol"></div></div>
+    <div class="card"><div class="ct">Product Lifecycle Timeline<span class="en">产品生命周期时间轴</span><span class="sub">Above axis = new launches 上方=新品上市 · below axis = EOL 下方=停产 · bubble size = cumulative Out qty</span></div><div class="ec-md" id="lf-ec-timeline" style="height:320px"></div></div>
   </div>
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
@@ -572,8 +567,8 @@ details.dcx summary:hover{color:var(--pd)}
   <!-- ===== LIVE: Channel MCSR-E Attainment (v29) ===== -->
   <div class="krow" id="me-kpi"></div>
   <div class="cg cg3">
-    <div class="card"><div class="ct">Attainment &amp; Gap by Region<span class="en">区域达成缺口</span></div><div class="ec" id="me-ec-region"></div></div>
-    <div class="card"><div class="ct">Gap by Sub-Line<span class="en">子产线缺口</span></div><div class="ec" id="me-ec-subline"></div></div>
+    <div class="card"><div class="ct" id="me-ec-region-title">Attainment &amp; Gap by Region<span class="en">区域达成缺口</span></div><div class="ec" id="me-ec-region"></div></div>
+    <div class="card"><div class="ct" id="me-ec-subline-title">Gap by Sub-Line<span class="en">子产线缺口</span></div><div class="ec" id="me-ec-subline"></div></div>
     <div class="card"><div class="ct">Monthly Gap Burn-down<span class="en">缺口收敛</span><span class="sub">source: MCSR-E side table</span></div><div class="ec" id="me-ec-trend"></div></div>
   </div>
   <div class="tbl-wrap">
@@ -1726,6 +1721,28 @@ function timelineJitter(points, dateKey){
       const magnitude = Math.ceil((i+1)/2) * STEP;
       p._y = (i%2===0 ? 1 : -1) * magnitude;
     });
+  });
+  return sorted;
+}
+// Same clustering idea as timelineJitter, but keeps every point on one fixed
+// side of the axis (sign=+1 above, sign=-1 below) instead of alternating —
+// used by the combined launch/EOL timeline where "which side" carries
+// meaning and can't be used up for decluttering.
+function timelineJitterOneSide(points, dateKey, sign){
+  const sorted = points.slice().sort((a,b)=> new Date(a[dateKey]) - new Date(b[dateKey]));
+  const CLUSTER_GAP_DAYS = 25;
+  const clusters = [];
+  let current = [], prevDate = null;
+  sorted.forEach(p=>{
+    const d = new Date(p[dateKey]);
+    if(prevDate!==null && (d-prevDate)/86400000 <= CLUSTER_GAP_DAYS) current.push(p);
+    else { if(current.length) clusters.push(current); current=[p]; }
+    prevDate = d;
+  });
+  if(current.length) clusters.push(current);
+  const BASE = 0.6, STEP = 0.55;
+  clusters.forEach(cluster=>{
+    cluster.forEach((p,i)=>{ p._y = sign * (BASE + i*STEP); });
   });
   return sorted;
 }
@@ -3006,60 +3023,55 @@ function renderLifecycleKPI(){
 }
 
 function renderLifecycleTimeline(){
-  const models = newCategoriesSplit().shipped.map(catName=>{
+  const launches = newCategoriesSplit().shipped.map(catName=>{
     const eq = matchEquip(catName);
     return {name:catName, date: eq?eq.firstShipDate:null, out: eq?eq.outCount:0};
   }).filter(m=>m.date);
+
+  // EOL bubbles: one per MCSR category (not per serial/process-code row) —
+  // several models/serials often share one category, and the raw model
+  // strings are frequently too long to render legibly on a timeline, so this
+  // groups by category and uses the earliest recorded EOL date per category.
+  const eolByCat = {};
+  LEGACY_MODELS.forEach(m=>{
+    if(!m.eol_time || !m.category) return;
+    const d = new Date(m.eol_time);
+    if(isNaN(d)) return;
+    if(!eolByCat[m.category] || d < eolByCat[m.category]._d) eolByCat[m.category] = {name:m.category, date:m.eol_time, _d:d};
+  });
+  const eols = Object.values(eolByCat).map(m=>{
+    const eq = matchEquip(m.name);
+    return {name:m.name, date:m.date, out: eq?eq.outCount:0};
+  });
+
   const container = document.getElementById('lf-ec-timeline');
-  if(!models.length){
-    container.innerHTML = '<div class="map-placeholder"><div class="mp-ic">🗓️</div><div class="mp-title">No shipped new models yet</div><div class="mp-sub">Flag a model New on Page D and ship it to populate this timeline. 请在D页标记新品并出库以生成时间轴。</div></div>';
+  if(!launches.length && !eols.length){
+    container.innerHTML = '<div class="map-placeholder"><div class="mp-ic">🗓️</div><div class="mp-title">No launch or EOL dates set yet</div><div class="mp-sub">Flag a model New and ship it, or set an EOL date on Page C, to populate this timeline. 请标记新品并出库，或在C页设置停产时间，以生成时间轴。</div></div>';
     return;
   }
-  const jittered = timelineJitter(models, 'date');
+  const jLaunch = timelineJitterOneSide(launches, 'date', 1);
+  const jEol = timelineJitterOneSide(eols, 'date', -1);
   const c = chartFor('lf-ec-timeline');
   c.setOption({
-    tooltip:{formatter: p=>p.name+'<br>First intl. shipment: '+p.value[0]+'<br>Out qty (lifetime): '+p.value[2]},
+    tooltip:{formatter: p => p.seriesName==='Launch 上市'
+      ? (p.name+'<br>Launch: '+p.value[0]+'<br>Out qty (lifetime): '+p.value[2])
+      : (p.name+'<br>EOL: '+p.value[0])},
+    legend:{data:['Launch 上市','EOL 停产'], top:0, textStyle:{fontSize:10}},
     grid:{left:24,right:24,top:44,bottom:30},
     xAxis:{type:'time', axisLabel:{fontSize:10}},
-    yAxis:{type:'value', show:false, min:-3, max:3},
-    series:[{type:'scatter', symbolSize: v=>Math.max(14, Math.min(38, Math.sqrt(v[2])*3.2)),
-      data: jittered.map(m=>({value:[m.date, m._y, m.out], name:m.name})),
-      label:{show:true, formatter:p=>p.name, position:'top', fontSize:10, fontWeight:600, color:'#334155'},
-      labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
-      itemStyle:{color:'#0066CC', opacity:.82, borderColor:'#004FA3', borderWidth:1}}]
-  });
-}
-
-function renderLifecycleCharts(){
-  const all = LEGACY_MODELS;
-  const stageCount = {'在线':0,'停产':0,'停止服务':0,'新产品':0};
-  all.forEach(m=>{ if(stageCount[m.status]!==undefined) stageCount[m.status]++; });
-  const stageLabel = {};
-  Object.entries(LEGACY_STATUS).forEach(([k,v])=>{ stageLabel[k] = v.label+' '+k; });
-  const c1 = chartFor('lf-ec-donut');
-  c1.setOption({
-    tooltip:{trigger:'item'}, color:['#10B981','#F59E0B','#EF4444','#3385D6'],
-    series:[{type:'pie', radius:['45%','72%'], label:{show:true, fontSize:10, formatter:'{b}: {c}'}, data:Object.entries(stageCount).map(([k,v])=>({name:stageLabel[k],value:v}))}]
-  });
-  const byLine = {};
-  all.forEach(m=>{ const k=canonicalLine(m.category_group); byLine[k]=(byLine[k]||0)+1; });
-  const c2 = chartFor('lf-ec-cat');
-  c2.setOption({
-    tooltip:{trigger:'item'},
-    series:[{type:'pie', radius:['45%','72%'], label:{show:true, fontSize:9.5, formatter:'{b}: {c}'}, data:Object.entries(byLine).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({name:k,value:v}))}]
-  });
-  const eolYears = {};
-  all.forEach(m=>{
-    const my = String(m.eol_time||'').match(/(\d{4})/);
-    if(my) eolYears[my[1]] = (eolYears[my[1]]||0)+1;
-  });
-  const years = Object.keys(eolYears).sort();
-  const c3 = chartFor('lf-ec-eol');
-  c3.setOption({
-    tooltip:{trigger:'axis'}, grid:{left:32,right:14,top:24,bottom:24},
-    xAxis:{type:'category', data:years, axisLabel:{fontSize:9}}, yAxis:{type:'value'},
-    series:[{type:'bar', data:years.map(y=>eolYears[y]), itemStyle:{color:'#EF4444', borderRadius:[4,4,0,0]},
-      label:{show:true, position:'top', fontSize:9}}]
+    yAxis:{type:'value', show:false, min:-4, max:4},
+    series:[
+      {name:'Launch 上市', type:'scatter', symbolSize: v=>Math.max(14, Math.min(38, Math.sqrt(v[2]||1)*3.2)),
+        data: jLaunch.map(m=>({value:[m.date, m._y, m.out], name:m.name})),
+        label:{show:true, formatter:p=>p.name, position:'top', fontSize:10, fontWeight:600, color:'#334155'},
+        labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
+        itemStyle:{color:'#0066CC', opacity:.82, borderColor:'#004FA3', borderWidth:1}},
+      {name:'EOL 停产', type:'scatter', symbolSize: v=>Math.max(14, Math.min(34, Math.sqrt(v[2]||1)*3.2)),
+        data: jEol.map(m=>({value:[m.date, m._y, m.out], name:m.name})),
+        label:{show:true, formatter:p=>p.name, position:'bottom', fontSize:10, fontWeight:600, color:'#7A1220'},
+        labelLayout:{hideOverlap:true, moveOverlap:'shiftY'},
+        itemStyle:{color:'#EF4444', opacity:.82, borderColor:'#B91C1C', borderWidth:1}}
+    ]
   });
 }
 
@@ -3168,7 +3180,7 @@ async function saveLegacyModel(){
     LEGACY_MODELS.push(rec);
   }
   closeLegacyModal();
-  renderLifecycleKPI(); renderLifecycleCharts(); renderLifecycleTable();
+  renderLifecycleKPI(); renderLifecycleTimeline(); renderLifecycleTable();
   PORTFOLIO = buildPortfolio(); renderOverviewKPI(); renderOverviewCharts(); renderOverviewTable();
 }
 async function archiveLegacyModelRow(){
@@ -3178,7 +3190,7 @@ async function archiveLegacyModelRow(){
   await DB.archiveLegacyModel(currentLegacyEdit);
   LEGACY_MODELS = LEGACY_MODELS.filter(m=>m.id!==currentLegacyEdit);
   closeLegacyModal();
-  renderLifecycleKPI(); renderLifecycleCharts(); renderLifecycleTable();
+  renderLifecycleKPI(); renderLifecycleTimeline(); renderLifecycleTable();
   PORTFOLIO = buildPortfolio(); renderOverviewKPI(); renderOverviewCharts(); renderOverviewTable();
 }
 function exportLegacyCSV(){
@@ -3199,7 +3211,7 @@ async function refreshLegacyData(){
   const btn = document.querySelector('#lf-db-banner .btn-refresh');
   if(btn) btn.textContent = '…';
   LEGACY_MODELS = await DB.listLegacyModels();
-  renderLifecycleKPI(); renderLifecycleCharts(); renderLifecycleTable();
+  renderLifecycleKPI(); renderLifecycleTimeline(); renderLifecycleTable();
   renderEosTable();
   if(btn) btn.textContent = '⟳';
 }
@@ -3673,18 +3685,31 @@ function renderGtsTable(){
   const q = (document.getElementById('gts-search').value||'').toUpperCase();
   let rows = GTS_OWNERS.filter(r=>!q || [r.mcsr_category,r.gts_name,r.email].some(v=>v && v.toUpperCase().includes(q)));
   if(gtsLineFilter!=='ALL') rows = rows.filter(r=>gtsSubline(r.mcsr_category)===gtsLineFilter);
-  rows.sort((a,b)=>{
+  // One row per person: each GTS owner's MCSR categories become clickable
+  // chips inside a single row, instead of repeating the person on one row
+  // per category.
+  const groups = {};
+  rows.forEach(r=>{
+    const key = (r.gts_name||'')+'|'+(r.email||'');
+    (groups[key] = groups[key] || {gts_name:r.gts_name, email:r.email, rows:[]}).rows.push(r);
+  });
+  let people = Object.values(groups);
+  people.forEach(p=>p.rows.sort((a,b)=>a.mcsr_category.localeCompare(b.mcsr_category)));
+  people.sort((a,b)=>{
     let av, bv;
-    if(gtsSort.key==='subline'){ av = gtsSubline(a.mcsr_category); bv = gtsSubline(b.mcsr_category); }
-    else { av=(a[gtsSort.key]||'').toString(); bv=(b[gtsSort.key]||'').toString(); }
-    av = av.toUpperCase(); bv = bv.toUpperCase();
+    if(gtsSort.key==='gts_name'||gtsSort.key==='email') { av=(a[gtsSort.key]||'').toUpperCase(); bv=(b[gtsSort.key]||'').toUpperCase(); }
+    else { av=a.rows.length; bv=b.rows.length; }
     if(av<bv) return -1*gtsSort.dir; if(av>bv) return 1*gtsSort.dir; return 0;
   });
-  document.getElementById('gts-tbody').innerHTML = rows.map(r=>`<tr class="editable" onclick="openGtsModal('${r.id}')">
-    <td><span class="pt" style="cursor:default">${esc(gtsSubline(r.mcsr_category))}</span></td>
-    <td><b>${esc(r.mcsr_category)}</b></td><td>${esc(r.gts_name)}</td><td>${esc(r.email)}</td><td style="white-space:normal">${esc(r.notes)}</td>
-  </tr>`).join('');
-  document.getElementById('gts-cnt').textContent = rows.length+' / '+GTS_OWNERS.length+' rows';
+  document.getElementById('gts-tbody').innerHTML = people.map(p=>{
+    const sublines = [...new Set(p.rows.map(r=>gtsSubline(r.mcsr_category)))].join(', ');
+    const chips = p.rows.map(r=>`<span class="pt" style="margin:2px 4px 2px 0;display:inline-block" onclick="event.stopPropagation();openGtsModal('${r.id}')">${esc(r.mcsr_category)}</span>`).join('');
+    const notes = [...new Set(p.rows.map(r=>r.notes).filter(Boolean))].join(' · ');
+    return `<tr>
+    <td>${esc(sublines)}</td><td style="white-space:normal">${chips}</td><td><b>${esc(p.gts_name)}</b></td><td>${esc(p.email)}</td><td style="white-space:normal">${esc(notes)}</td>
+  </tr>`;
+  }).join('');
+  document.getElementById('gts-cnt').textContent = people.length+' people / '+GTS_OWNERS.length+' rows';
 }
 function filterGtsCategories(){
   const q = (document.getElementById('gts-cat-search').value||'').toUpperCase();
@@ -3812,15 +3837,36 @@ function renderRtsTable(){
     let av=(a[rtsSort.key]||'').toString().toUpperCase(), bv=(b[rtsSort.key]||'').toString().toUpperCase();
     if(av<bv) return -1*rtsSort.dir; if(av>bv) return 1*rtsSort.dir; return 0;
   });
-  document.getElementById('rts-tbody').innerHTML = rows.map(r=>{
-    const subLabel = r.sub_lines==='ALL' ? 'All 全部' : r.sub_lines.split(',').filter(Boolean).join(', ');
-    return `<tr class="editable" onclick="openRtsModal('${r.id}')">
-    <td><b>${esc(rtsDisplayName(r.engineer_name))}</b></td><td>${esc(r.region2)}</td>
-    <td>${r.region3 ? esc(r.region3.replace(' REGION','')) : '<span style="color:var(--s400)">Whole region 整个二级区域</span>'}</td>
-    <td>${esc(subLabel)}</td><td>${esc(r.email)}</td><td style="white-space:normal">${esc(r.notes)}</td>
+  // One row per engineer: their Region III + Sub-Lines assignments render as
+  // parallel stacked lines inside two cells (line N of each cell corresponds
+  // to the same underlying assignment), each line individually clickable to
+  // edit that specific assignment.
+  const groups = {};
+  rows.forEach(r=>{
+    const key = (r.engineer_name||'')+'|'+(r.email||'');
+    (groups[key] = groups[key] || {engineer_name:r.engineer_name, email:r.email, rows:[]}).rows.push(r);
+  });
+  const people = Object.values(groups);
+  document.getElementById('rts-tbody').innerHTML = people.map(p=>{
+    const region2s = [...new Set(p.rows.map(r=>r.region2))];
+    const multiRegion2 = region2s.length>1;
+    const region3Html = p.rows.map(r=>{
+      const r3Label = r.region3 ? esc(r.region3.replace(' REGION','')) : '<span style="color:var(--s400)">Whole region 整个二级区域</span>';
+      const prefix = multiRegion2 ? `<span style="color:var(--s400);font-size:10px">${esc(r.region2)} · </span>` : '';
+      return `<div class="editable" style="cursor:pointer" onclick="event.stopPropagation();openRtsModal('${r.id}')">${prefix}${r3Label}</div>`;
+    }).join('');
+    const subHtml = p.rows.map(r=>{
+      const subLabel = r.sub_lines==='ALL' ? 'All 全部' : r.sub_lines.split(',').filter(Boolean).join(', ');
+      return `<div class="editable" style="cursor:pointer" onclick="event.stopPropagation();openRtsModal('${r.id}')">${esc(subLabel)}</div>`;
+    }).join('');
+    const notes = [...new Set(p.rows.map(r=>r.notes).filter(Boolean))].join(' · ');
+    return `<tr>
+    <td><b>${esc(rtsDisplayName(p.engineer_name))}</b></td><td>${esc(region2s.join(', '))}</td>
+    <td style="white-space:normal">${region3Html}</td>
+    <td style="white-space:normal">${subHtml}</td><td>${esc(p.email)}</td><td style="white-space:normal">${esc(notes)}</td>
   </tr>`;
   }).join('');
-  document.getElementById('rts-cnt').textContent = rows.length+' / '+RTS_ASSIGN.length+' rows';
+  document.getElementById('rts-cnt').textContent = people.length+' people / '+RTS_ASSIGN.length+' rows';
 }
 // Populates #rts-region3-list with a "Whole Region II" checkbox plus one
 // checkbox per Region III actually known for the currently-selected Region
@@ -4089,20 +4135,39 @@ function renderMe(){
     {lbl:'Attainment 达成率', val: a.rate===null?'--':Math.round(a.rate*100)+'%', sub: a.rate>=0.8?'on track':'below 80%', cls: a.rate>=0.8?'ok':(a.rate>=0.6?'wa':'er')},
     {lbl:'Gap 缺口', val:a.gap, sub: gapDists+' distributors with gap', cls: a.gap>0?'er':'ok'},
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
-  // chart: by region
+  // chart: by region — cascades to Region III breakdown when a specific
+  // Region II is selected and no Region III narrowing yet (same pattern as
+  // the FTFR page's "by Region" chart).
   try{
-    let regs = [...new Set(MCSRE_DATA.rows.map(r=>r.r2))].sort();
-    if(bplusFilters.region!=='ALL') regs = regs.filter(r=>canonicalRegion2(r)===bplusFilters.region);
-    const per = regs.map(rg=>meAgg(MCSRE_DATA.rows.filter(r=>r.r2===rg
-      && (bplusFilters.region3==='ALL'||r.r3===bplusFilters.region3)
-      && (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline)
-      && (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model)))));
+    const effRegion = bplusFilters.region!=='ALL' ? bplusFilters.region : null;
+    const effRegion3 = bplusFilters.region3!=='ALL' ? bplusFilters.region3 : null;
+    const scoped = MCSRE_DATA.rows.filter(r=>
+      (bplusFilters.subline==='ALL'||canonicalLine(r.sub)===bplusFilters.subline) &&
+      (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model)));
+    let labels, per, byR3;
+    if(effRegion && !effRegion3){
+      byR3 = true;
+      const inRegion = scoped.filter(r=>canonicalRegion2(r.r2)===effRegion);
+      const r3s = [...new Set(inRegion.map(r=>r.r3))].filter(Boolean).sort();
+      labels = r3s.map(meShortR2);
+      per = r3s.map(r3=>meAgg(inRegion.filter(r=>r.r3===r3)));
+    } else {
+      byR3 = false;
+      let regs = [...new Set(MCSRE_DATA.rows.map(r=>r.r2))].sort();
+      if(effRegion) regs = regs.filter(r=>r===effRegion);
+      labels = regs.map(meShortR2);
+      per = regs.map(rg=>meAgg(scoped.filter(r=>r.r2===rg && (!effRegion3||r.r3===effRegion3))));
+    }
+    const titleEl = document.getElementById('me-ec-region-title');
+    if(titleEl) titleEl.innerHTML = byR3
+      ? `Attainment &amp; Gap by Region III<span class="en">三级区域达成缺口 · ${esc(effRegion)}</span>`
+      : `Attainment &amp; Gap by Region<span class="en">区域达成缺口</span>`;
     chartFor('me-ec-region').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       legend:{data:['Acquired','Gap'],textStyle:{fontSize:10}},
       grid:{left:8,right:34,top:28,bottom:2,containLabel:true},
       xAxis:{type:'value',axisLabel:{fontSize:9}},
-      yAxis:{type:'category',data:regs.map(meShortR2),axisLabel:{fontSize:10}},
+      yAxis:{type:'category',data:labels,axisLabel:{fontSize:10}},
       series:[
         {name:'Acquired',type:'bar',stack:'t',data:per.map(p=>p.capped),itemStyle:{color:'#10B981'},barWidth:14},
         {name:'Gap',type:'bar',stack:'t',data:per.map(p=>p.gap),itemStyle:{color:'#EF4444'},
@@ -4110,21 +4175,41 @@ function renderMe(){
       ]
     }, true);
   }catch(e){}
-  // chart: by subline
+  // chart: by subline — cascades to MCSR-category breakdown when a specific
+  // sub-line is selected and no model narrowing yet.
   try{
-    let subs = [...new Set(MCSRE_DATA.rows.map(r=>r.sub))];
-    if(bplusFilters.subline!=='ALL') subs = subs.filter(s=>canonicalLine(s)===bplusFilters.subline);
-    const perS = subs.map(sb=>meAgg(MCSRE_DATA.rows.filter(r=>r.sub===sb
-      && (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region)
-      && (bplusFilters.region3==='ALL'||r.r3===bplusFilters.region3)
-      && (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model)))));
-    const order = subs.map((s,i)=>({s,g:perS[i].gap,c:perS[i].capped,t:perS[i].target})).sort((x,y)=>y.g-x.g);
+    const effSubline = bplusFilters.subline!=='ALL' ? bplusFilters.subline : null;
+    const scoped2 = MCSRE_DATA.rows.filter(r=>
+      (bplusFilters.region==='ALL'||canonicalRegion2(r.r2)===bplusFilters.region) &&
+      (bplusFilters.region3==='ALL'||r.r3===bplusFilters.region3));
+    let labels2, per2, byCert;
+    if(effSubline && bplusFilters.model==='ALL'){
+      byCert = true;
+      const inSub = scoped2.filter(r=>canonicalLine(r.sub)===effSubline);
+      const certs = [...new Set(inSub.map(r=>r.cert))].filter(Boolean);
+      const perC = certs.map(c=>meAgg(inSub.filter(r=>r.cert===c)));
+      const order = certs.map((c,i)=>({c,g:perC[i].gap})).sort((x,y)=>y.g-x.g);
+      labels2 = order.map(o=>o.c).reverse();
+      per2 = order.map(o=>o.g).reverse();
+    } else {
+      byCert = false;
+      let subs = [...new Set(MCSRE_DATA.rows.map(r=>r.sub))];
+      if(effSubline) subs = subs.filter(s=>canonicalLine(s)===effSubline);
+      const perS = subs.map(sb=>meAgg(scoped2.filter(r=>r.sub===sb && (bplusFilters.model==='ALL'||normModelKey(r.cert)===normModelKey(bplusFilters.model)))));
+      const order = subs.map((s,i)=>({s,g:perS[i].gap})).sort((x,y)=>y.g-x.g);
+      labels2 = order.map(o=>o.s).reverse();
+      per2 = order.map(o=>o.g).reverse();
+    }
+    const titleEl2 = document.getElementById('me-ec-subline-title');
+    if(titleEl2) titleEl2.innerHTML = byCert
+      ? `Gap by MCSR Category<span class="en">机型大类缺口 · ${esc(effSubline)}</span>`
+      : `Gap by Sub-Line<span class="en">子产线缺口</span>`;
     chartFor('me-ec-subline').setOption({
       tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
       grid:{left:8,right:30,top:12,bottom:2,containLabel:true},
       xAxis:{type:'value',axisLabel:{fontSize:9}},
-      yAxis:{type:'category',data:order.map(o=>o.s).reverse(),axisLabel:{fontSize:10}},
-      series:[{type:'bar',data:order.map(o=>o.g).reverse(),itemStyle:{color:'#F59E0B'},barWidth:14,
+      yAxis:{type:'category',data:labels2,axisLabel:{fontSize:10}},
+      series:[{type:'bar',data:per2,itemStyle:{color:'#F59E0B'},barWidth:14,
         label:{show:true,position:'right',fontSize:9}}]
     }, true);
   }catch(e){}
@@ -4600,7 +4685,12 @@ function renderQq(){
 }
 
 // ---------------- F2F MODULE ----------------
-function ftCat(course){ return F2F_DATA.courseMap[course] || ''; }
+// Course names occasionally carry a stray "_face" suffix duplicating the
+// canonical course — e.g. "...MCSR_Field Course_face" vs "...MCSR_Field
+// Course" are the same course; the non-suffixed name is the correct one.
+// Normalize before grouping/lookup so these don't fork into two rows.
+function normCourseName(name){ return String(name||'').replace(/_face\s*$/i, '').trim(); }
+function ftCat(course){ const k=normCourseName(course); return F2F_DATA.courseMap[k] || F2F_DATA.courseMap[course] || ''; }
 function median(arr){ if(!arr.length)return null; const s=arr.slice().sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
 function renderFt(){
   const tt=(document.getElementById('ft-tt')||{}).value||'ALL';
@@ -4681,7 +4771,7 @@ function renderFt(){
   if(th) th.innerHTML=sortableThead('ft', FT_COLS, 'renderFt');
   const q=((document.getElementById('ft-search')||{}).value||'').toLowerCase();
   const gc={};
-  R.forEach(r=>{ const k=r.course; (gc[k]=gc[k]||[]).push(r); });
+  R.forEach(r=>{ const k=normCourseName(r.course); (gc[k]=gc[k]||[]).push(r); });
   let rows=Object.keys(gc).map(k=>{
     const rr=gc[k];
     const iv2=rr.filter(r=>r.mcsr==='Y'&&r.iv!==null).map(r=>r.iv);
@@ -4879,7 +4969,7 @@ async function init(){
   });
   await safe('renderFuSupport', () => { renderFuKPI(); renderFuTable(); });
   await safe('renderLifecycle', () => {
-    renderLifecycleKPI(); renderLifecycleTimeline(); renderLifecycleCharts(); renderLifecycleTable();
+    renderLifecycleKPI(); renderLifecycleTimeline(); renderLifecycleTable();
   });
   await safe('renderMcMap', () => { renderMcKPI(); renderMcSublineFilters(); renderMcTable(); });
   await safe('renderTeam', () => { applyTeamPermissionsUI(); renderGtsTable(); renderRtsTable(); });
