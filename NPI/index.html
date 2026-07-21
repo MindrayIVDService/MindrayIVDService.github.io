@@ -4173,24 +4173,34 @@ function renderMe(){
 function pctTxt(n,d){ return d? Math.round(n/d*100)+'%' : '--'; }
 // SLA target hours by VIP tier — SVIP and VIP1 share the tightest target.
 function slaTargetHours(vip){ return (vip==='VIP1'||vip==='SVIP') ? 24 : (vip==='VIP2' ? 48 : 72); }
-// Computes FTFR/VIP1-FTFR/SLA stats from a pre-filtered slice of
-// FTFR_AGG.orders. FTFR is device-level (grouped by serial) and only counts
-// orders flagged past-90-days (o.p9); SLA is order-level and uses ALL orders
-// in the slice, matching the source workbook's own definitions exactly.
-// Each order carries raw elapsed hours (o.h) rather than fixed ≤24h/≤48h
-// flags, because the on-time target itself depends on the order's VIP tier
-// (SVIP/VIP1 -> 24h, VIP2 -> 48h, everyone else -> 72h) — a single fixed
-// threshold can't express that.
-function ftfrCompute(rows){
-  const p9 = rows.filter(o=>o.p9);
-  const bySerial = {}, serialVip = {};
-  p9.forEach(o=>{ bySerial[o.sn]=(bySerial[o.sn]||0)+1; if(!(o.sn in serialVip)) serialVip[o.sn]=o.vip; });
-  const serials = Object.keys(bySerial);
-  const dev = serials.length;
-  const fix = serials.filter(sn=>bySerial[sn]===1).length;
-  const v1s = serials.filter(sn=>['VIP1','SVIP'].includes(serialVip[sn]));
-  const v1dev = v1s.length;
-  const v1fix = v1s.filter(sn=>bySerial[sn]===1).length;
+// ============================================================================
+// FTFR vs SLA use two DIFFERENT populations from two different arrays —
+// don't merge them back into one function, that's what caused the earlier
+// mismatch with the TBI platform's numbers.
+//
+// FTFR (device-level, aligned to TBI's definition, 2026-07 clarification):
+//   population = FTFR_AGG.devices — one row per device with >=1 'Breakdown'
+//   order (all-time, NOT a rolling window from today). Each device is
+//   pre-classified server-side: look at its last two Breakdown orders by
+//   Create Datetime; gap >90 days = one-time-fixed (d.ftfrOk=true), gap
+//   <=90 days = repeat repair (d.ftfrOk=false); a device with only one
+//   Breakdown order ever has nothing to compare against, so it's
+//   one-time-fixed by default. No fault-code matching, no order-type other
+//   than Breakdown, no "past 90 days from today" filter.
+//
+// SLA (order-level): population = FTFR_AGG.orders — every order regardless
+//   of type, each carrying raw elapsed hours (o.h); on-time target depends
+//   on the order's VIP tier (SVIP/VIP1->24h, VIP2->48h, else->72h).
+// ============================================================================
+function ftfrDeviceCompute(devRows){
+  const dev = devRows.length;
+  const fix = devRows.filter(d=>d.ftfrOk).length;
+  const v1 = devRows.filter(d=>['VIP1','SVIP'].includes(d.vip));
+  const v1dev = v1.length;
+  const v1fix = v1.filter(d=>d.ftfrOk).length;
+  return { dev, fix, v1dev, v1fix };
+}
+function slaCompute(rows){
   const slaRows = rows.filter(o=>o.h!=null);
   let slaSum=0, slaOnTime=0;
   const tier = {t24:{n:0,ok:0}, t48:{n:0,ok:0}, t72:{n:0,ok:0}};
@@ -4202,7 +4212,13 @@ function ftfrCompute(rows){
     const key = target===24?'t24':(target===48?'t48':'t72');
     tier[key].n++; if(ok) tier[key].ok++;
   });
-  return { dev, fix, v1dev, v1fix, slaN: slaRows.length, slaOnTime, avgH: slaRows.length? (slaSum/slaRows.length) : null, tier, orders: rows.length };
+  return { slaN: slaRows.length, slaOnTime, avgH: slaRows.length? (slaSum/slaRows.length) : null, tier, orders: rows.length };
+}
+// Convenience: FTFR from a filtered devices slice + SLA from a filtered
+// orders slice, merged into one object — for call sites (most of them) that
+// want both at once and already have matching filter predicates for each.
+function ftfrCompute(devRows, orderRows){
+  return { ...ftfrDeviceCompute(devRows), ...slaCompute(orderRows) };
 }
 function pctBadge(n,d,goodAt,warnAt){
   if(!d) return '<span class="badge b-gy">--</span>';
@@ -4217,10 +4233,10 @@ function shortR2q(s){ return String(s||'').replace(' REGION','').replace('CENTRA
 function renderQf(){
   try{ renderQPlusFilterBar(); }catch(e){}
   // ============================================================================
-  // v41 rebuild: FTFR_AGG.orders is one row per FTFR-BD repair order
-  // (sn/cat/r2/r3/vip/mo/p9/h — h = raw SLA hours, target varies by VIP tier).
-  // Any combination of region2 + region3 + category can be filtered directly
-  // and fed through ftfrCompute().
+  // FTFR and SLA come from two different populations now (see ftfrCompute's
+  // comment block): FTFR_AGG.devices for FTFR, FTFR_AGG.orders for SLA. Both
+  // arrays share the same field names (r2/r3/cat/vip/top20) so the same
+  // filter predicates apply to either.
   // ============================================================================
   const scope = userRegionScope();
   const effRegion = qplusFilters.region!=='ALL' ? qplusFilters.region : scope;
@@ -4233,15 +4249,12 @@ function renderQf(){
   if(modelSel) catsInSub = catsInSub.filter(c=>c===modelSel);
   const narrowed = !!(sublineSel.length || modelSel);
   const scopeNote = [effRegion, effRegion3 && effRegion3.replace(' REGION',''), (modelSel||sublineSel.join('+'))].filter(Boolean).join(' · ');
-  const vipTop20Match = o => (vipSel.length===0 || vipSel.includes(o.vip)) && (qplusFilters.top20==='ALL' || o.top20===qplusFilters.top20);
+  const vipTop20Match = x => (vipSel.length===0 || vipSel.includes(x.vip)) && (qplusFilters.top20==='ALL' || x.top20===qplusFilters.top20);
+  const baseMatch = x => (!effRegion || canonicalRegion2(x.r2)===effRegion) && (!effRegion3 || x.r3===effRegion3) && (!narrowed || catsInSub.includes(x.cat)) && vipTop20Match(x);
 
-  const baseFiltered = FTFR_AGG.orders.filter(o=>
-    (!effRegion || canonicalRegion2(o.r2)===effRegion) &&
-    (!effRegion3 || o.r3===effRegion3) &&
-    (!narrowed || catsInSub.includes(o.cat)) &&
-    vipTop20Match(o)
-  );
-  const o = ftfrCompute(baseFiltered);
+  const baseFilteredDev = FTFR_AGG.devices.filter(baseMatch);
+  const baseFilteredOrd = FTFR_AGG.orders.filter(baseMatch);
+  const o = ftfrCompute(baseFilteredDev, baseFilteredOrd);
   const repN = FTFR_AGG.repeat.filter(r=>
     (!effRegion || canonicalRegion2(r.r2)===effRegion) &&
     (!effRegion3 || r.r3===effRegion3) &&
@@ -4251,7 +4264,7 @@ function renderQf(){
 
   const kEl = document.getElementById('qf-kpi');
   if(kEl) kEl.innerHTML = [
-    {lbl:'FTFR (past 90d) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices fixed first time'+(scopeNote?' · '+scopeNote:''), cls: o.dev? (o.fix/o.dev>=0.8?'ok':'wa') : 'wa'},
+    {lbl:'FTFR (all-time, Breakdown only) 一次修复率', val: pctTxt(o.fix,o.dev), sub: o.fix+' / '+o.dev+' devices one-time-fixed'+(scopeNote?' · '+scopeNote:''), cls: o.dev? (o.fix/o.dev>=0.8?'ok':'wa') : 'wa'},
     {lbl:'VIP1 FTFR (incl. SVIP)', val: pctTxt(o.v1fix,o.v1dev), sub: 'target ≥70% · '+o.v1fix+'/'+o.v1dev+(scopeNote?' · '+scopeNote:''), cls: o.v1dev? (o.v1fix/o.v1dev>=0.7?'ok':'er') : 'wa'},
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('')
   // Card 3: on-time rate is a different target per VIP tier (SVIP/VIP1=24h,
@@ -4268,14 +4281,15 @@ function renderQf(){
   // chart 1: FTFR — defaults to BY SUB-LINE (individual categories are too
   // numerous to fit one chart legibly); drills into that sub-line's own
   // categories only when exactly one sub-line is selected (and no model).
+  // FTFR percentages here are device-level (FTFR_AGG.devices), not orders.
   try{
-    const scoped = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && vipTop20Match(o));
+    const scopedDev = FTFR_AGG.devices.filter(x=> (!effRegion || canonicalRegion2(x.r2)===effRegion) && (!effRegion3 || x.r3===effRegion3) && vipTop20Match(x));
     const drillIntoCats = sublineSel.length===1 && !modelSel;
     let top, titleMode;
     if(drillIntoCats){
       const catsHere = cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===sublineSel[0]);
       const byCat = {};
-      catsHere.forEach(c=>{ byCat[c] = ftfrCompute(scoped.filter(o=>o.cat===c)); });
+      catsHere.forEach(c=>{ byCat[c] = ftfrDeviceCompute(scopedDev.filter(x=>x.cat===c)); });
       top = Object.entries(byCat).map(([c,x])=>({label:c,...x})).filter(x=>x.dev>=5).sort((a,b)=>b.dev-a.dev).slice(0,14);
       titleMode = sublineSel[0];
     } else {
@@ -4283,7 +4297,7 @@ function renderQf(){
       const byLine = {};
       linesWanted.forEach(line=>{
         const catsHere = cats.filter(c=>canonicalLine(lineOfMcsrCategory(c)||'')===line);
-        byLine[line] = ftfrCompute(scoped.filter(o=>catsHere.includes(o.cat)));
+        byLine[line] = ftfrDeviceCompute(scopedDev.filter(x=>catsHere.includes(x.cat)));
       });
       top = Object.entries(byLine).map(([line,x])=>({label:line,...x})).filter(x=>x.dev>0).sort((a,b)=>b.dev-a.dev);
       titleMode = null;
@@ -4302,23 +4316,23 @@ function renderQf(){
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart 2: by region — respects region3 lock and sub-line/model narrowing;
-  // INT SHARED is excluded (not a comparable region for this breakdown).
+  // chart 2: by region (device-level FTFR) — respects region3 lock and
+  // sub-line/model narrowing; INT SHARED is excluded (not a comparable region).
   try{
-    const scoped2 = FTFR_AGG.orders.filter(o=> (!narrowed || catsInSub.includes(o.cat)) && vipTop20Match(o));
+    const scoped2 = FTFR_AGG.devices.filter(x=> (!narrowed || catsInSub.includes(x.cat)) && vipTop20Match(x));
     let labels, per, byR3;
     if(effRegion && !effRegion3){
       byR3 = true;
-      const inRegion = scoped2.filter(o=>canonicalRegion2(o.r2)===effRegion);
-      const r3s = [...new Set(inRegion.map(o=>o.r3))].filter(Boolean).sort();
+      const inRegion = scoped2.filter(x=>canonicalRegion2(x.r2)===effRegion);
+      const r3s = [...new Set(inRegion.map(x=>x.r3))].filter(Boolean).sort();
       labels = r3s.map(r=>r.replace(' REGION',''));
-      per = r3s.map(r3=>ftfrCompute(inRegion.filter(o=>o.r3===r3)));
+      per = r3s.map(r3=>ftfrDeviceCompute(inRegion.filter(x=>x.r3===r3)));
     } else {
       byR3 = false;
-      let regs = [...new Set(FTFR_AGG.orders.map(o=>canonicalRegion2(o.r2)))].filter(r=>r && r!=='INT SHARED').sort();
+      let regs = [...new Set(FTFR_AGG.devices.map(x=>canonicalRegion2(x.r2)))].filter(r=>r && r!=='INT SHARED').sort();
       if(effRegion) regs = regs.filter(r=>r===effRegion);
       labels = regs.map(shortR2q);
-      per = regs.map(r=>ftfrCompute(scoped2.filter(o=>canonicalRegion2(o.r2)===r && (!effRegion3 || o.r3===effRegion3))));
+      per = regs.map(r=>ftfrDeviceCompute(scoped2.filter(x=>canonicalRegion2(x.r2)===r && (!effRegion3 || x.r3===effRegion3))));
     }
     const cardTitleEl = document.getElementById('qf-ec-region-title');
     if(cardTitleEl) cardTitleEl.innerHTML = byR3
@@ -4334,11 +4348,10 @@ function renderQf(){
         markLine:{symbol:'none',lineStyle:{type:'dashed',color:'#94A3B8'},label:{fontSize:9},data:[{xAxis:70}]}}]
     }, true);
   }catch(e){}
-  // chart 3: monthly order volume + average SLA hours (not a threshold %) —
-  // shows the actual pace of repairs alongside how long they're taking.
+  // chart 3: monthly order volume + average SLA hours — order-level, unrelated to FTFR.
   try{
     const MONTH_ORDER=['Dec','Jan','Feb','Mar','Apr','May','Jun'];
-    const mScoped = baseFiltered;
+    const mScoped = baseFilteredOrd;
     const byM = {};
     MONTH_ORDER.forEach(m=>{
       const rows=mScoped.filter(o=>o.mo===m);
@@ -4357,9 +4370,9 @@ function renderQf(){
       ]
     }, true);
   }catch(e){}
-  // table: model quality profile
+  // table: model quality profile — FTFR columns from devices, SLA columns from orders
   const QF_COLS = [
-    {label:'Category', key:'c'}, {label:'Devices (90d)', key:'dev'}, {label:'Fixed 1st', key:'fix'},
+    {label:'Category', key:'c'}, {label:'Devices', key:'dev'}, {label:'Fixed 1st', key:'fix'},
     {label:'FTFR', key:'rate'}, {label:'VIP1 FTFR', key:'v1rate'}, {label:'On-Time (tiered)', key:'onrate'},
     {label:'Avg SLA (h)', key:'avgH'}, {label:'Total Orders', key:'orders'},
   ];
@@ -4367,9 +4380,10 @@ function renderQf(){
   if(th) th.innerHTML=sortableThead('qf', QF_COLS, 'renderQf');
   const q=((document.getElementById('qf-search')||{}).value||'').toLowerCase();
   const min5=(document.getElementById('qf-min5')||{}).checked;
-  const scopedForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && vipTop20Match(o));
+  const scopedDevForTable = FTFR_AGG.devices.filter(x=> (!effRegion || canonicalRegion2(x.r2)===effRegion) && (!effRegion3 || x.r3===effRegion3) && vipTop20Match(x));
+  const scopedOrdForTable = FTFR_AGG.orders.filter(o=> (!effRegion || canonicalRegion2(o.r2)===effRegion) && (!effRegion3 || o.r3===effRegion3) && vipTop20Match(o));
   let rows = catsInSub
-    .map(c=>({c, ...ftfrCompute(scopedForTable.filter(o=>o.cat===c))}))
+    .map(c=>({c, ...ftfrCompute(scopedDevForTable.filter(x=>x.cat===c), scopedOrdForTable.filter(o=>o.cat===c))}))
     .map(x=>({...x, rate: x.dev? x.fix/x.dev : -1, v1rate: x.v1dev? x.v1fix/x.v1dev : -1, onrate: x.slaN? x.slaOnTime/x.slaN : -1}))
     .filter(x=>(!min5||x.dev>=5) && (!q||x.c.toLowerCase().includes(q)));
   const stQf = SORT_STATE['qf'];
@@ -4741,7 +4755,7 @@ function renderCockpit(){
 
   // ---- stage C: Mature & Quality (Page C + C+) ----
   const scope=userRegionScope();
-  const ftfrO = ftfrCompute(FTFR_AGG.orders.filter(o=>regionMatchesScope(o.r2)));
+  const ftfrO = ftfrDeviceCompute(FTFR_AGG.devices.filter(x=>regionMatchesScope(x.r2)));
   const vip1Rate = ftfrO.v1dev ? ftfrO.v1fix/ftfrO.v1dev : null;
   let qeClosed=[], qeY=0;
   try{ qeClosed=QE_DATA.rows.filter(r=>r.oc==='CLOSED'); qeY=qeClosed.filter(r=>r.clt==='Y').length; }catch(e){}
@@ -4787,7 +4801,7 @@ function renderCockpit(){
     if(ftfrO.v1dev && vip1Rate < 0.7) risksC.push({dot:'var(--er)', html:`<b>VIP1 FTFR ${Math.round(vip1Rate*100)}%</b>${scopeTagR} below 70% target — attribute repeat repairs`, page:'quality'});
     const catsC = [...new Set(FTFR_AGG.orders.map(o=>o.cat))].filter(Boolean);
     catsC.forEach(c=>{
-      const x = ftfrCompute(FTFR_AGG.orders.filter(o=>o.cat===c && regionMatchesScope(o.r2)));
+      const x = ftfrDeviceCompute(FTFR_AGG.devices.filter(d=>d.cat===c && regionMatchesScope(d.r2)));
       if(x.dev>=10 && x.fix/x.dev<0.7) risksC.push({dot:'var(--er)', html:`<b>${esc(c)}</b> FTFR ${Math.round(x.fix/x.dev*100)}% (${x.dev} devices${scopeTagR||', all regions'}) below 70%`, page:'quality'});
     });
   }catch(e){}
