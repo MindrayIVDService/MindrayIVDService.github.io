@@ -347,7 +347,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
       <h3>Full Product Portfolio Ledger<span class="en">全产品组合台账</span></h3>
-      <input type="text" class="tsearch" id="ov-search" placeholder="🔍 Search model 搜索机型" oninput="renderOverviewTable()">
+      <input type="text" class="tsearch" id="ov-search" placeholder="🔍 Search model 搜索机型" oninput="debounced('ov', renderOverviewTable)">
       <div class="fg" style="margin-left:6px">
         <span class="pt on" data-v="ALL" onclick="setOvStage('ALL',this)">All 全部</span>
         <span class="pt" data-v="PRELAUNCH" onclick="setOvStage('PRELAUNCH',this)">Pre-Launch 上市前</span>
@@ -452,7 +452,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
       <h3>Support Checklist<span class="en">支持清单</span></h3>
-      <input type="text" class="tsearch" id="fu-search" placeholder="🔍 Search model / region" oninput="renderFuTable()">
+      <input type="text" class="tsearch" id="fu-search" placeholder="🔍 Search model / region" oninput="debounced('fu', renderFuTable)">
       <span class="tcnt" id="fu-cnt" style="margin-left:auto"></span>
     </div>
     <div class="tbl-scroll" style="max-height:480px"><table class="tbl-compact"><thead><tr id="fu-thead-row"></tr></thead><tbody id="fu-tbody"></tbody></table></div>
@@ -473,7 +473,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar">
       <h3>Legacy Model Lifecycle Ledger<span class="en">历史机型生命周期台账</span></h3>
       <div class="fg" id="lf-cat-filters"></div>
-      <input type="text" class="tsearch" id="lf-search" placeholder="🔍 Search model 搜索机型" oninput="renderLifecycleTable()">
+      <input type="text" class="tsearch" id="lf-search" placeholder="🔍 Search model 搜索机型" oninput="debounced('lf', renderLifecycleTable)">
       <span class="tcnt" id="lf-cnt" style="margin-left:auto"></span>
       <button class="btn btn-p" id="lf-add-btn" onclick="openLegacyModal()">+ Add Row 新增</button>
       <button class="btn btn-gy" onclick="exportLegacyCSV()">⬇ Export CSV</button>
@@ -575,7 +575,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl" style="font-weight:800;color:var(--s800)">Distributor Certification Detail 渠道明细</span>
       <label class="chk" style="font-size:11px;display:inline-flex;align-items:center;gap:4px;color:var(--s600)"><input type="checkbox" id="me-gaponly" checked onchange="renderMe()"> Gap only 只看有缺口</label>
-      <input type="text" class="tsearch" id="me-search" placeholder="🔍 Search distributor / cert 搜索渠道或认证" oninput="renderMe()" style="margin-left:auto">
+      <input type="text" class="tsearch" id="me-search" placeholder="🔍 Search distributor / cert 搜索渠道或认证" oninput="debounced('me', renderMe)" style="margin-left:auto">
       <span id="me-cnt" style="font-size:10px;color:var(--s400);white-space:nowrap"></span>
     </div>
     <div class="tbl-scroll" style="max-height:520px"><table><thead><tr id="me-thead"></tr></thead><tbody id="me-tbody"></tbody></table></div>
@@ -623,7 +623,7 @@ details.dcx summary:hover{color:var(--pd)}
         <option value="channel">Channel 渠道</option>
         <option value="internal">Internal 内部</option>
       </select>
-      <input type="text" class="tsearch" id="ft-search" placeholder="🔍 Search course / category 搜索课程或大类" oninput="renderFt()" style="margin-left:auto">
+      <input type="text" class="tsearch" id="ft-search" placeholder="🔍 Search course / category 搜索课程或大类" oninput="debounced('ft', renderFt)" style="margin-left:auto">
       <span id="ft-cnt" style="font-size:10px;color:var(--s400)"></span>
     </div>
     <div class="tbl-scroll" style="max-height:460px"><table><thead><tr id="ft-thead"></tr></thead><tbody id="ft-tbody"></tbody></table></div>
@@ -690,7 +690,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl" style="font-weight:800;color:var(--s800)">Model Quality Profile 机型质量档案</span>
       <label class="chk" style="font-size:11px;display:inline-flex;align-items:center;gap:4px;color:var(--s600)"><input type="checkbox" id="qf-min5" checked onchange="renderQf()"> ≥5台故障设备 min 5 devices</label>
-      <input type="text" class="tsearch" id="qf-search" placeholder="🔍 Search category 搜索机型大类" oninput="renderQf()" style="margin-left:auto">
+      <input type="text" class="tsearch" id="qf-search" placeholder="🔍 Search category 搜索机型大类" oninput="debounced('qf', renderQf)" style="margin-left:auto">
       <span id="qf-cnt" style="font-size:10px;color:var(--s400)"></span>
     </div>
     <div class="tbl-scroll" style="max-height:420px"><table><thead><tr id="qf-thead"></tr></thead><tbody id="qf-tbody"></tbody></table></div>
@@ -731,7 +731,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap" style="margin-bottom:12px">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl" style="font-weight:800;color:var(--s800)">Open QE Checklist 未封闭清单</span>
-      <input type="text" class="tsearch" id="qq-search" placeholder="🔍 Search model / region 搜索机型或区域" oninput="renderQq()" style="margin-left:auto">
+      <input type="text" class="tsearch" id="qq-search" placeholder="🔍 Search model / region 搜索机型或区域" oninput="debounced('qq', renderQq)" style="margin-left:auto">
       <span id="qq-cnt" style="font-size:10px;color:var(--s400)"></span>
     </div>
     <div class="tbl-scroll" style="max-height:420px"><table><thead><tr id="qq-thead"></tr></thead><tbody id="qq-tbody"></tbody></table></div>
@@ -781,7 +781,7 @@ details.dcx summary:hover{color:var(--pd)}
       <div class="tbl-toolbar" style="flex-wrap:wrap">
         <span class="flbl">Status 状态</span>
         <div class="fg" id="eos-status-filters"></div>
-        <input type="text" class="tsearch" id="eos-search" placeholder="🔍 Search model / category 搜索机型/大类" oninput="renderEosTable()" style="margin-left:auto;width:190px">
+        <input type="text" class="tsearch" id="eos-search" placeholder="🔍 Search model / category 搜索机型/大类" oninput="debounced('eos', renderEosTable)" style="margin-left:auto;width:190px">
       </div>
       <div class="tbl-scroll" style="max-height:460px"><table><thead><tr id="eos-thead"></tr></thead><tbody id="eos-tbody"></tbody></table></div>
       <div class="hidden-note" id="eos-cnt" style="padding:8px 14px"></div>
@@ -835,7 +835,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <span class="flbl">Sub-Line 子产线</span>
       <div class="fg" id="mc-subline-filters"></div>
-      <input type="text" class="tsearch" id="mc-search" placeholder="🔍 Search 搜索机型/大类/课程" oninput="renderMcTable()" style="margin-left:auto;width:175px">
+      <input type="text" class="tsearch" id="mc-search" placeholder="🔍 Search 搜索机型/大类/课程" oninput="debounced('mc', renderMcTable)" style="margin-left:auto;width:175px">
       <button class="btn btn-gy" onclick="exportMcCSV()">⬇ Export CSV</button>
       <button class="btn btn-p" id="mc-add-btn" onclick="openMcModal()">+ Add Row 新增一行</button>
     </div>
@@ -879,7 +879,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <h3>GTS Ownership<span class="en">GTS负责人</span></h3>
       <div class="fg" id="gts-line-filters" style="margin-left:14px"></div>
-      <input type="text" class="tsearch" id="gts-search" placeholder="🔍 Search category / name 搜索大类或姓名" oninput="renderGtsTable()" style="margin-left:auto;width:170px">
+      <input type="text" class="tsearch" id="gts-search" placeholder="🔍 Search category / name 搜索大类或姓名" oninput="debounced('gts', renderGtsTable)" style="margin-left:auto;width:170px">
       <button class="btn btn-gy" onclick="exportGtsCSV()">⬇ Export CSV</button>
       <button class="btn btn-p" id="gts-add-btn" onclick="openGtsModal()">+ Add Row 新增一行</button>
     </div>
@@ -890,7 +890,7 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="tbl-wrap">
     <div class="tbl-toolbar" style="flex-wrap:wrap">
       <h3>RTS Coverage Assignment<span class="en">RTS覆盖分工</span></h3>
-      <input type="text" class="tsearch" id="rts-search" placeholder="🔍 Search name / region 搜索姓名或区域" oninput="renderRtsTable()" style="margin-left:auto">
+      <input type="text" class="tsearch" id="rts-search" placeholder="🔍 Search name / region 搜索姓名或区域" oninput="debounced('rts', renderRtsTable)" style="margin-left:auto">
       <button class="btn btn-gy" onclick="exportRtsCSV()">⬇ Export CSV</button>
       <button class="btn btn-p" id="rts-add-btn" onclick="openRtsModal()">+ Add Row 新增一行</button>
     </div>
@@ -1009,7 +1009,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="modal-hd"><h3 id="gtsmodal-title">Edit GTS Ownership 编辑GTS负责</h3><span class="x" onclick="closeGtsModal()">✕</span></div>
     <div class="modal-bd">
       <div class="field"><label>MCSR Category 机型大类 * <span style="font-weight:400;color:var(--s400)">(pick one or more 可多选)</span></label>
-        <input type="text" id="gts-cat-search" placeholder="🔍 Filter categories 筛选大类..." oninput="filterGtsCategories()" style="margin-bottom:6px">
+        <input type="text" id="gts-cat-search" placeholder="🔍 Filter categories 筛选大类..." oninput="debounced('gtscat', filterGtsCategories)" style="margin-bottom:6px">
         <div id="gts-categories" style="max-height:180px;overflow:auto;border:1px solid var(--s200);border-radius:6px;padding:8px"></div>
         <div style="font-size:9.5px;color:var(--s400);margin-top:3px">Adding with several boxes checked creates one row per category (same name/email/notes on each) 勾选多个大类会为每个大类各建一行（姓名/邮箱/备注相同）</div>
       </div>
@@ -1204,6 +1204,14 @@ function resizeAllCharts(){
   // on a later CSS-only visibility change — only a real resize() fixes it.
   Object.values(CHART_INSTANCES).forEach(c=>{ try{ c.resize(); }catch(e){} });
 }
+// Generic debounce for search-box inputs — re-filtering/re-rendering a
+// several-hundred-row table on every single keystroke is the main source of
+// typing lag on this site; this waits for a short pause before rendering.
+const _inputDebounce = {};
+function debounced(key, fn, wait){
+  clearTimeout(_inputDebounce[key]);
+  _inputDebounce[key] = setTimeout(fn, wait==null?150:wait);
+}
 
 function nav(page, el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -1273,16 +1281,22 @@ function normPy(s){ return (s||'').toString().replace(/\u00A0/g,' ').replace(/\s
 function todayStr(){ return new Date().toISOString().slice(0,10); }
 function uid(){ return 'p_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 
+const _matchEquipCache = {};
 function matchEquip(modelName){
+  if(Object.prototype.hasOwnProperty.call(_matchEquipCache, modelName)) return _matchEquipCache[modelName];
   const eq = EQUIPMENT.lifecycle;
-  if(eq[modelName]) return eq[modelName];
-  const nk = normKey(modelName);
-  let best=null;
-  Object.keys(eq).forEach(k=>{
-    const nkk = normKey(k);
-    if(nkk===nk || nkk.includes(nk) || nk.includes(nkk)){ if(!best) best = eq[k]; }
-  });
-  return best;
+  let result = eq[modelName] || null;
+  if(!result){
+    const nk = normKey(modelName);
+    let best=null;
+    Object.keys(eq).forEach(k=>{
+      const nkk = normKey(k);
+      if(nkk===nk || nkk.includes(nk) || nk.includes(nkk)){ if(!best) best = eq[k]; }
+    });
+    result = best;
+  }
+  _matchEquipCache[modelName] = result;
+  return result;
 }
 
 // ============================================================================
@@ -5129,7 +5143,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   });
 });
-window.addEventListener('resize', resizeAllCharts);
+window.addEventListener('resize', ()=>debounced('winresize', resizeAllCharts, 120));
 
 </script>
 </body>
