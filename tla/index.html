@@ -329,6 +329,7 @@ MRAuth.requireLogin({
         lockSelect('d-r2',  HYBRID_MAP[user.region],  'renderDashboard');
         lockSelect('fr2',   HYBRID_MAP[user.region],  'renderRecords');
         lockSelect('om-r2', HYBRID_MAP[user.region],  'renderOM');
+        lockSelect('itr2',  HYBRID_MAP[user.region],  'renderITProducts');
         lockSelect('capmap-f-region', ENGLISH_MAP[user.region], 'renderCapRoster');
       }
 
@@ -363,6 +364,11 @@ MRAuth.requireLogin({
     <button class="sb-btn active" id="nav-dashboard" onclick="showPage('dashboard',this)">▦ Dashboard</button>
     <button class="sb-btn" id="nav-records" onclick="showPage('records',this)">≡ Customer Records</button>
     <button class="sb-btn" id="nav-entry" onclick="showPage('entry',this);clearForm()">＋ New / Edit</button>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section">
+    <div class="sb-label">IT Products</div>
+    <button class="sb-btn" id="nav-itproducts" onclick="showPage('itproducts',this)">💻 IT Products</button>
   </div>
   <div class="sb-divider"></div>
   <div class="sb-section">
@@ -686,6 +692,74 @@ MRAuth.requireLogin({
 </div>
 </div>
 
+
+<!-- IT PRODUCTS -->
+<div id="page-itproducts" class="page">
+<div class="page-body">
+  <div class="filter-bar" style="position:sticky;top:46px;z-index:40;background:var(--bg);padding:10px 0 8px;border-bottom:1px solid var(--border);margin-bottom:12px">
+    <input id="it-q" type="text" placeholder="Search hospital, country... 搜索医院/国家" oninput="renderITProducts()" style="min-width:200px">
+    <select id="itr2" onchange="renderITProducts()">
+      <option value="">All Regions (L2) 全部区域</option>
+      <option value="亚太AP">亚太AP</option>
+      <option value="中亚CA">中亚CA</option>
+      <option value="欧洲EU">欧洲EU</option>
+      <option value="印度IN">印度IN</option>
+      <option value="拉美LA">拉美LA</option>
+      <option value="中东非MEA">中东非MEA</option>
+      <option value="俄罗斯RU">俄罗斯RU</option>
+    </select>
+    <select id="it-phase" onchange="renderITProducts()">
+      <option value="">All Phases 全部阶段</option>
+      <option value="M1商机出现 | M1 Business opportunities emerge">M1 商机出现</option>
+      <option value="M2方案设计 | M2 Solution Design">M2 方案设计</option>
+      <option value="M3方案确认 | M3 Solution Confirmation">M3 方案确认</option>
+      <option value="M4安装准备 | M4 Installation Preparation">M4 安装准备</option>
+      <option value="M5安装实施 | M5 Installation & Implementation">M5 安装实施</option>
+      <option value="M6培训交付 | M6 Training & Handover">M6 培训交付</option>
+      <option value="M7磨合跟机 | M7 Run-in Follow-up">M7 磨合跟机</option>
+      <option value="M8项目交付 | M8 Project Closure">M8 项目交付</option>
+    </select>
+    <select id="it-model" onchange="renderITProducts()">
+      <option value="">All Products 全部产品</option>
+      <option value="innosight">innosight</option>
+      <option value="MiniLIS">MiniLIS</option>
+      <option value="Non-standard IT products">Non-standard IT products</option>
+    </select>
+    <select id="it-risk" onchange="renderITProducts()">
+      <option value="">All Status 全部状态</option>
+      <option value="risk">⚠ At-Risk 有风险</option>
+      <option value="m8">M8 Closed 已交付</option>
+    </select>
+    <span class="rec-count" id="it-cnt"></span>
+    <button class="btn btn-primary btn-sm" onclick="addITRecord()">＋ 新增项目 New Project</button>
+  </div>
+
+  <div class="kpi-strip" id="it-kpi-strip" style="grid-template-columns:repeat(6,1fr)"></div>
+
+  <div class="pipeline">
+    <div class="pipe-hdr">Project Phase Pipeline · 阶段分布</div>
+    <div class="pipe-track" id="it-pipe-track"></div>
+  </div>
+
+  <div class="chart-row col12" style="margin-bottom:14px">
+    <div class="chart-card">
+      <div class="chart-title">Regional Distribution · 大区分布</div>
+      <div style="height:175px"><canvas id="c-it-r2"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title" style="color:#B91C1C">⚠ At-Risk Projects · 风险项目</div>
+      <div id="it-risk-list" style="overflow-y:auto;max-height:175px"></div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table><thead><tr>
+      <th>#</th><th>Region</th><th>Country</th><th>Hospital</th>
+      <th>Phase · 阶段</th><th>Product · 产品</th><th>IT Specialist</th><th>Sales</th><th>Risk</th><th></th>
+    </tr></thead><tbody id="it-body"></tbody></table>
+  </div>
+</div>
+</div>
 
 <!-- FUNCTIONS -->
 <div id="page-functions" class="page">
@@ -1494,6 +1568,7 @@ const PAGE_META = {
   omvisits:  ['O&M Visits','运维走访管理 · Monthly Follow-up'],
   pmroles:   ['PM Program Overview','项目管理业务介绍 · PM Roles & Delivery Process'],
   geomap:    ['Global Coverage Map','全球覆盖地图 · Installation & Capability Coverage'],
+  itproducts:['IT Products','信息化产品项目管理 · Informatization Product Projects'],
 };
 // ── Global Coverage Map (Leaflet + world.geo.json, ISO-A3 keyed) ──
 let _geoMap = null, _geoLayer = null, _geoJsonCache = null;
@@ -1735,6 +1810,7 @@ function showPage(name, btn) {
   if (name === 'functions') renderFunctions();
   if (name === 'omvisits')  { renderOM(); }
   if (name === 'geomap')    { renderGeoMap(); renderCapMatrix(); renderCapRoster(); }
+  if (name === 'itproducts') renderITProducts();
 }
 function toast(msg, err=false) {
   const t = document.getElementById('toast');
@@ -2547,7 +2623,409 @@ function omMC(v) {
   return '<span class="mc-pend">~</span>';
 }
 
+// ─────────────────────────────────────
+// IT PRODUCTS (信息化产品项目) — Supabase-backed, editable table
+// ─────────────────────────────────────
+const IT_TABLE = 'it_products';
+let _itData = [];
+
+const IT_PHASES = {
+  "M1商机出现 | M1 Business opportunities emerge": {color:'#64748B', rank:1},
+  "M2方案设计 | M2 Solution Design": {color:'#2563EB', rank:2},
+  "M3方案确认 | M3 Solution Confirmation": {color:'#0284C7', rank:3},
+  "M4安装准备 | M4 Installation Preparation": {color:'#D97706', rank:4},
+  "M5安装实施 | M5 Installation & Implementation": {color:'#EA580C', rank:5},
+  "M6培训交付 | M6 Training & Handover": {color:'#DC2626', rank:6},
+  "M7磨合跟机 | M7 Run-in Follow-up": {color:'#7C3AED', rank:7},
+  "M8项目交付 | M8 Project Closure": {color:'#059669', rank:8},
+};
+function itPColor(p){ return IT_PHASES[p]?.color || '#94a3b8'; }
+function itPShort(p){
+  if(!p) return '—';
+  const m = p.match(/M\d+/);
+  const en = p.split('|')[1]?.trim().split(' ').slice(0,2).join(' ');
+  return (m ? m[0]+' ' : '') + (en||'').slice(0,12);
+}
+
+const IT_FALLBACK = [{"id": "it001", "no": 1, "r2": "亚太AP", "r3": "印尼INDONESIA", "country": "印尼 INDONESIA", "hospital": "Mayapada-MHJS", "phase": "M8项目交付 | M8 Project Closure", "phase_desc": "1.innolab-LIS进度缓慢", "risk": "试剂管理进度滞后", "init_rpt": true, "comp_rpt": true, "install_date": "2025-03-07", "delivery_date": "2025-03-21", "labor": "2 persons × 14days", "sw_status": "正常使用 | Normal Operation", "branch_status": "正常使用 | Normal Operation", "activate_date": "2025-03-21", "reagent_rev": null, "model": "innosight", "campus_count": 7, "tla_model": null, "access_devices": "化免血球全设备", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "Reed", "rts": "Resaldi", "it_gts": "张广龙 / 孙汪海", "sales": "肖达辉 Ade", "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": true, "customer_req": "区检多院区质量管理", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it002", "no": 2, "r2": "俄罗斯RU", "r3": "莫斯科MOSCOW", "country": "俄罗斯 RUSSIA", "hospital": "Smolensk SOKB Centralization", "phase": "M5安装实施 | M5 Installation & Implementation", "phase_desc": "1.中心医院质控管理调试完成\n2.等待其他实验室网络环境ready，启动分支部署", "risk": "1.IVDR试剂占比不足30%\n2.分支实验室网络未连通", "init_rpt": true, "comp_rpt": null, "install_date": "2026-06-01", "delivery_date": null, "labor": "IT:2 persons × 6days", "sw_status": "正常使用 | Normal Operation", "branch_status": "未交付 | Not Delivered", "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 7, "tla_model": "MT8000", "access_devices": "MT80001+6(生化 + 免疫 + 血球 + 凝血 + 尿仪)", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "Oleg", "rts": "Oleg", "it_gts": "张广龙 / 孙汪海", "sales": "Artem", "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "1+6 医院检验标本 IT + 设备方案", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it003", "no": 3, "r2": "中亚CA", "r3": "中亚一区CENTRAL ASIA I", "country": "哈萨克斯坦 Kazakhstan", "hospital": "Alatualab", "phase": "M2方案设计 | M2 Solution Design", "phase_desc": "项目终止", "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 4, "tla_model": null, "access_devices": null, "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "盖浩然", "it_gts": "张广龙 / 朱志超", "sales": "李娜 / 南文奎", "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "连锁实验室质量管理窗口", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it004", "no": 4, "r2": "印度IN", "r3": "印度南区SOUTH INDIA", "country": "印度 India", "hospital": "Centromed", "phase": "M5安装实施 | M5 Installation & Implementation", "phase_desc": "1.设备接入及质控数据回传调试中", "risk": "1.服务器配置未确认-已封闭（6.12）", "init_rpt": true, "comp_rpt": null, "install_date": "2026-06-30", "delivery_date": null, "labor": null, "sw_status": "未交付 | Not Delivered", "branch_status": "未交付 | Not Delivered", "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 7, "tla_model": null, "access_devices": "M680 + 化免设备 + IT 质控试剂管理", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "nageswara", "rts": "vallal", "it_gts": "张广龙 / 朱志超", "sales": "吴腾 / 刘悦", "distributor": null, "qc_mgmt": true, "reagent_mgmt": false, "minilis": false, "smart_display": false, "customer_req": "连锁实验室质控与试剂管理", "remote_sw": "UltraViewer", "remote_ip": null, "account_pwd": null}, {"id": "it005", "no": 5, "r2": "中亚CA", "r3": "中亚一区CENTRAL ASIA I", "country": "哈萨克斯坦 Kazakhstan", "hospital": "Kazakhstan Centralized Laboratory", "phase": "M2方案设计 | M2 Solution Design", "phase_desc": null, "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": "MT8000", "access_devices": "MT8000+INNOLAB (QC+reagent)", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "王友坤", "it_gts": "张广龙 / 朱志超", "sales": "南文奎", "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "集中化实验室 IT 方案", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it006", "no": 6, "r2": "中亚CA", "r3": "中亚二区CENTRAL ASIA II", "country": "吉尔吉斯斯坦 Kyrgyzstan", "hospital": "卫健委 National Health Commission", "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": null, "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": null, "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": null, "it_gts": null, "sales": null, "distributor": null, "qc_mgmt": false, "reagent_mgmt": false, "minilis": false, "smart_display": false, "customer_req": "区域 LIS 互通", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it007", "no": 7, "r2": "亚太AP", "r3": "泰国THAILAND", "country": "泰国 THAILAND", "hospital": "?", "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": null, "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": null, "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": null, "it_gts": null, "sales": null, "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "区域瑞智检落地窗口", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it008", "no": 8, "r2": "拉美LA", "r3": "智利CHILE", "country": "智利 CHILE", "hospital": "?", "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": "项目未定", "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": null, "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": null, "it_gts": null, "sales": null, "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "区域瑞智检落地窗口", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it009", "no": 9, "r2": "欧洲EU", "r3": "东南欧SOUTHEAST EUROPE", "country": "罗马尼亚 Romania", "hospital": "Constanta Hospital", "phase": "M5安装实施 | M5 Installation & Implementation", "phase_desc": "项目暂停，根据客户需求而定", "risk": "项目暂停", "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": "未交付 | Not Delivered", "branch_status": "未交付 | Not Delivered", "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": "MT8000", "access_devices": "TLA + 试剂管理模块", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "alin", "rts": "杨丛国", "it_gts": "张广龙", "sales": "刘景风", "distributor": null, "qc_mgmt": false, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "4 合 1 TLA 试剂管理", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it010", "no": 10, "r2": "中东非MEA", "r3": "中东非MIDDLE EAST", "country": "约旦 Jordan", "hospital": "The National Center for Diabetes Endocrinology and Genetics(NCDEG)", "phase": "M4安装准备 | M4 Installation Preparation", "phase_desc": "推迟至10月份", "risk": "项目周期长、中间存在对接人切换；当前客户无暇顾及此事", "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": "未交付 | Not Delivered", "branch_status": "未交付 | Not Delivered", "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": "MT8000", "access_devices": "国际首条 TLA + 试剂管理", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "叶敏", "it_gts": "张广龙", "sales": "Majed Al Zu'bi", "distributor": null, "qc_mgmt": false, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "国家糖尿病中心试剂管理", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it011", "no": 11, "r2": "中东非MEA", "r3": "沙特SAUDI ARABIA", "country": "沙特 SAUDI ARABIA", "hospital": "AI Borg", "phase": "M5安装实施 | M5 Installation & Implementation", "phase_desc": "1.完成3家分支设备接入\n2.当前进度暂停：等客户需求实现，继续交付工作", "risk": "1.客户需求-研发支持", "init_rpt": true, "comp_rpt": null, "install_date": "2026-04-22", "delivery_date": null, "labor": "3 persons × 4days", "sw_status": "部分使用 | Partial Operation", "branch_status": "部分使用 | Partial Operation", "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 9, "tla_model": null, "access_devices": "M680/BS-240pro/CL-900i/BC-760", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "nisr", "rts": "乌海兵", "it_gts": "张广龙 / 龙加兵", "sales": "shakira 林思敏", "distributor": null, "qc_mgmt": false, "reagent_mgmt": true, "minilis": false, "smart_display": true, "customer_req": "1 中心 9 分支试剂管理", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it012", "no": 12, "r2": "中亚CA", "r3": "中亚二区CENTRAL ASIA II", "country": "乌兹别克斯坦 Uzbekistan", "hospital": "Hayot Lab", "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": "1.试剂管理不主动推", "risk": "1.当前MT8000不具备安装条件无法推进完成MT8000安装，后续再考虑是否上线innosight", "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": "MT8000", "access_devices": "MT8000+HCP+试剂管理", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "盖浩然", "it_gts": "张广龙", "sales": "Vera Wang 王婷", "distributor": null, "qc_mgmt": false, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "MT8000 配套 IT", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it013", "no": 13, "r2": "俄罗斯RU", "r3": "喀山KAZAN", "country": "俄罗斯 RUSSIA", "hospital": "Ufa central lab", "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": null, "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": "MT8000", "access_devices": "MT8000 + 单机", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "oleg", "it_gts": "张广龙 / 孙汪海", "sales": null, "distributor": null, "qc_mgmt": true, "reagent_mgmt": true, "minilis": false, "smart_display": false, "customer_req": "意向推广", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it014", "no": 14, "r2": "亚太AP", "r3": "东盟ASEAN", "country": "柬埔寨 CAMBODIA", "hospital": "维康体检", "phase": "M8项目交付 | M8 Project Closure", "phase_desc": null, "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": "正常使用 | Normal Operation", "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": "BC-5300/BS-240/CL-1000i", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "胡祥瑞", "it_gts": "张广龙/孙汪海", "sales": "钟大林", "distributor": "Danqing", "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": "MiniLIS 报告", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it015", "no": 15, "r2": "中东非MEA", "r3": "非洲中区CENTRAL AFRICA", "country": "乌干达 Uganda", "hospital": "makerere University Hospital", "phase": "M5安装实施 | M5 Installation & Implementation", "phase_desc": "1.需培训本地用服，对终端进行持续支持", "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": "2026-05-14", "delivery_date": null, "labor": "1 persons × 2days", "sw_status": "未交付 | Not Delivered", "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": null, "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "乌海兵", "it_gts": "张广龙 / 朱志超", "sales": "张智豪", "distributor": "代理商", "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": "MiniLIS 调试", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it016", "no": 16, "r2": "印度IN", "r3": "印度南区SOUTH INDIA", "country": "印度 India", "hospital": "PrimeCare Diagnostics", "phase": "M7磨合跟机 | M7 Run-in Follow-up", "phase_desc": "1.待报告模块需求实现启用", "risk": null, "init_rpt": false, "comp_rpt": null, "install_date": "2026-05-12", "delivery_date": null, "labor": "2 persons × 2days", "sw_status": "未交付 | Not Delivered", "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 1, "tla_model": null, "access_devices": "BS-240/BC-5130/CL-900i", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "vallal", "it_gts": "张广龙 / 孙汪海", "sales": "Chelsea 刘悦", "distributor": null, "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": "MiniLIS替代LIS使用", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it017", "no": 17, "r2": "中亚CA", "r3": "中亚三区CENTRAL ASIA III", "country": "亚美尼亚 Armenia", "hospital": null, "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": "项目终止", "risk": "语言 / 接入问题", "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": "凝血设备待确认", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": null, "it_gts": "张广龙", "sales": null, "distributor": null, "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": "亚美尼亚语 / 凝血接入", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it018", "no": 18, "r2": "中东非MEA", "r3": "沙特SAUDI ARABIA", "country": "沙特 SAUDI ARABIA", "hospital": "Nahdi", "phase": "M7磨合跟机 | M7 Run-in Follow-up", "phase_desc": "1.解决断联问题\n2.化免设备联调中", "risk": "VPN/HIS 断联", "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": "部分使用 | Partial Operation", "branch_status": "部分使用 | Partial Operation", "activate_date": null, "reagent_rev": null, "model": "Non-standard IT products", "campus_count": null, "tla_model": null, "access_devices": "BC-760/M680+MiniLIS", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "nasir", "rts": "乌海兵", "it_gts": "韩志骅 / 张广龙", "sales": "shakira 林思敏", "distributor": null, "qc_mgmt": false, "reagent_mgmt": false, "minilis": false, "smart_display": false, "customer_req": "药房连锁 MLIS做中间件数据接口使用，实现双向集成", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it019", "no": 19, "r2": "亚太AP", "r3": "菲律宾PHILIPPINES", "country": "菲律宾 PHILIPPINES", "hospital": "?", "phase": "M1商机出现 | M1 Business opportunities emerge", "phase_desc": "项目未定", "risk": null, "init_rpt": null, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": null, "tla_model": null, "access_devices": "MiniLIS 推广平台", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": null, "it_gts": null, "sales": null, "distributor": null, "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": "中低端 LIS 方案", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it020", "no": 20, "r2": "亚太AP", "r3": "港澳台日HK-TW-MC & JP", "country": "中国香港 Hong Kong, China", "hospital": "Health tech", "phase": "M7磨合跟机 | M7 Run-in Follow-up", "phase_desc": "1.客户正常使用中", "risk": "1、等研发发布新版本软件-已封闭", "init_rpt": null, "comp_rpt": null, "install_date": "2026-06-10", "delivery_date": "2026-07-07", "labor": "1 persons × 1days", "sw_status": "正常使用 | Normal Operation", "branch_status": null, "activate_date": "2026-07-07", "reagent_rev": null, "model": "innosight", "campus_count": 1, "tla_model": null, "access_devices": "CL-1200i", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": "陈楚舒", "rts": "reed", "it_gts": "张广龙/付志凯", "sales": "郭凯珊", "distributor": "Medikonia Limited", "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": "使用MINILIS简化CL-1200i上机操作流程", "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it021", "no": 21, "r2": "拉美LA", "r3": "墨西哥MEXICO", "country": "墨西哥MEXICO", "hospital": "IMSS Bienestar", "phase": "M2方案设计 | M2 Solution Design", "phase_desc": null, "risk": null, "init_rpt": false, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 311, "tla_model": null, "access_devices": null, "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": null, "it_gts": "付志凯/张广龙", "sales": "赵圆Nancy", "distributor": null, "qc_mgmt": false, "reagent_mgmt": true, "minilis": false, "smart_display": true, "customer_req": null, "remote_sw": null, "remote_ip": null, "account_pwd": null}, {"id": "it022", "no": 22, "r2": "亚太AP", "r3": "东盟ASEAN", "country": "柬埔寨 CAMBODIA", "hospital": "柬埔寨王家军总医院", "phase": "M2方案设计 | M2 Solution Design", "phase_desc": null, "risk": null, "init_rpt": false, "comp_rpt": null, "install_date": null, "delivery_date": null, "labor": null, "sw_status": null, "branch_status": null, "activate_date": null, "reagent_rev": null, "model": "innosight", "campus_count": 1, "tla_model": null, "access_devices": "M680\\BC-6200\\BC-720\\BS-430\\CL-1000I", "daily_ia": null, "daily_bc": null, "daily_coag": null, "daily_hema": null, "it_specialist": null, "rts": "reed", "it_gts": "付志凯/张广龙", "sales": null, "distributor": null, "qc_mgmt": false, "reagent_mgmt": false, "minilis": true, "smart_display": false, "customer_req": null, "remote_sw": null, "remote_ip": null, "account_pwd": null}];
+
+async function fetchITData() {
+  try {
+    const { data, error } = await db.from(IT_TABLE).select('*').order('no');
+    if (error) throw error;
+    return data || [];
+  } catch(e) {
+    console.warn('[IT] Supabase fetch failed, using local cache:', e.message);
+    return null;
+  }
+}
+async function upsertITRecord(record) {
+  const { error } = await db.from(IT_TABLE).upsert(record, { onConflict: 'id' });
+  if (error) throw error;
+}
+async function deleteITRecordCloud(id) {
+  const { error } = await db.from(IT_TABLE).delete().eq('id', id);
+  if (error) throw error;
+}
+function itSaveLocal() {
+  localStorage.setItem('it_products_v1', JSON.stringify(_itData));
+}
+async function initITData() {
+  const remote = await fetchITData();
+  if (remote && remote.length) {
+    _itData = remote;
+    itSaveLocal();
+    return;
+  }
+  const cached = localStorage.getItem('it_products_v1');
+  if (cached) { _itData = JSON.parse(cached); return; }
+  _itData = JSON.parse(JSON.stringify(IT_FALLBACK));
+  itSaveLocal();
+}
+
+function itYN(v){ return v===true ? 'Yes / 是' : v===false ? 'No / 否' : '—'; }
+function itYNSelect(id, v, editable){
+  if (!editable) return itYN(v);
+  const cur = v===true?'true':v===false?'false':'';
+  return `<select id="${id}" style="padding:4px 6px;border:1px solid var(--border2);border-radius:4px;font-size:11.5px">
+    <option value="" ${cur===''?'selected':''}>— Unknown</option>
+    <option value="true" ${cur==='true'?'selected':''}>Yes / 是</option>
+    <option value="false" ${cur==='false'?'selected':''}>No / 否</option>
+  </select>`;
+}
+
+function renderITKPI(D) {
+  const total = D.length;
+  const m8 = D.filter(r => r.phase && r.phase.startsWith('M8')).length;
+  const atRisk = D.filter(r => r.risk && r.risk.trim()).length;
+  const regions = new Set(D.map(r=>r.r2).filter(Boolean)).size;
+  const innosight = D.filter(r => r.model === 'innosight').length;
+  const campusSum = D.reduce((s,r)=> s + (Number(r.campus_count)||0), 0);
+  const cards = [
+    {l:'Total Projects · 项目总数', n: total, c:'var(--red)'},
+    {l:'M8 Delivered · 已交付', n: m8, c:'var(--green)'},
+    {l:'At-Risk · 有风险', n: atRisk, c:'#EF4444'},
+    {l:'innosight Projects', n: innosight, c:'var(--blue)'},
+    {l:'Regions Covered · 覆盖大区', n: regions, c:'var(--purple)'},
+    {l:'Hospital Campuses · 接入院区', n: campusSum, c:'var(--amber)'},
+  ];
+  document.getElementById('it-kpi-strip').innerHTML = cards.map(c =>
+    `<div class="kpi-cell" style="--accent:${c.c}">
+      <div class="kpi-lbl">${c.l}</div>
+      <div class="kpi-num" style="color:${c.c}">${c.n}</div>
+    </div>`
+  ).join('');
+}
+
+function renderITPipeline(D) {
+  const order = Object.keys(IT_PHASES);
+  const counts = order.map(p => D.filter(r => r.phase === p).length);
+  const total = counts.reduce((a,b)=>a+b,0) || 1;
+  document.getElementById('it-pipe-track').innerHTML = order.map((p,i) => {
+    const n = counts[i];
+    const w = Math.max(n/total*100, n>0?6:0);
+    if (n===0) return '';
+    return `<div class="pipe-seg" style="flex:${w};background:${IT_PHASES[p].color}" title="${p}">
+      <div class="pipe-n">${n}</div><div class="pipe-l">${itPShort(p)}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--faint);font-size:11px;padding:10px">No data · 暂无数据</div>';
+}
+
+function renderITCharts(D) {
+  const byR2 = {};
+  D.forEach(r => { if(r.r2) byR2[r.r2] = (byR2[r.r2]||0)+1; });
+  const labels = Object.keys(byR2);
+  mk('c-it-r2', {
+    type: 'bar',
+    data: { labels, datasets: [{ data: labels.map(l=>byR2[l]), backgroundColor: '#C8102E', borderRadius: 4 }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, datalabels:{color:'#374151',anchor:'end',align:'top',font:{size:10,weight:700}}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}} }
+  });
+
+  const risky = D.filter(r => r.risk && r.risk.trim());
+  const body = document.getElementById('it-risk-list');
+  if (!risky.length) {
+    body.innerHTML = '<div style="color:var(--faint);font-size:11px;padding:10px">No at-risk projects · 暂无风险项目</div>';
+  } else {
+    body.innerHTML = risky.map((r,i) => `
+      <div class="risk-item">
+        <div class="risk-num">${i+1}</div>
+        <div>
+          <div class="risk-name">${r.hospital||'—'} <span style="font-weight:400;color:var(--muted)">(${r.country||'—'})</span></div>
+          <div class="risk-meta">${itPShort(r.phase)} · ${r.it_specialist||'—'}</div>
+          <div class="risk-desc">${(r.risk||'').split('\n')[0]}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function renderITProducts() {
+  const q     = (document.getElementById('it-q')?.value||'').toLowerCase();
+  const r2    = document.getElementById('itr2')?.value||'';
+  const phase = document.getElementById('it-phase')?.value||'';
+  const model = document.getElementById('it-model')?.value||'';
+  const risk  = document.getElementById('it-risk')?.value||'';
+
+  let D = _itData.slice();
+  if (q) D = D.filter(r => (r.hospital||'').toLowerCase().includes(q) || (r.country||'').toLowerCase().includes(q));
+  if (r2) D = D.filter(r => r.r2 === r2);
+  if (phase) D = D.filter(r => r.phase === phase);
+  if (model) D = D.filter(r => r.model === model);
+  if (risk === 'risk') D = D.filter(r => r.risk && r.risk.trim());
+  if (risk === 'm8') D = D.filter(r => r.phase && r.phase.startsWith('M8'));
+
+  document.getElementById('it-cnt').textContent = D.length + ' records · 条记录';
+  renderITKPI(D);
+  renderITPipeline(D);
+  renderITCharts(D);
+
+  const tb = document.getElementById('it-body');
+  tb.innerHTML = D.map(r => itMainRow(r)).join('') || '<tr><td colspan="10" style="text-align:center;color:var(--faint);padding:20px">No records match filters · 无匹配记录</td></tr>';
+}
+
+function itMainRow(r) {
+  const hasRisk = r.risk && r.risk.trim();
+  return `
+    <tr class="tr-main" onclick="toggleITExp('${r.id}')">
+      <td>${r.no ?? ''}</td>
+      <td>${omR2Badge(r.r2)}</td>
+      <td>${r.country||'—'}</td>
+      <td style="font-weight:600">${r.hospital||'—'}</td>
+      <td><span class="phase-tag" style="background:${itPColor(r.phase)}">${itPShort(r.phase)}</span></td>
+      <td>${r.model||'—'}</td>
+      <td>${r.it_specialist||'—'}</td>
+      <td>${r.sales||'—'}</td>
+      <td>${hasRisk ? '<span class="risk-tag">⚠ Risk</span>' : ''}</td>
+      <td style="white-space:nowrap" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="toggleITExp('${r.id}',true)">✎ Edit</button>
+        <button class="btn btn-sm" onclick="deleteITRow('${r.id}')" style="color:#B91C1C">✕</button>
+      </td>
+    </tr>
+    <tr id="it-exp-${r.id}" class="expand-row" style="display:none">
+      <td colspan="10"><div class="expand-inner" id="it-exp-inner-${r.id}"></div></td>
+    </tr>`;
+}
+
+function itField(r, key) { const v = r[key]; return v===null||v===undefined ? '' : v; }
+
+function itViewGrid(r) {
+  return `
+    <div class="exp-grid">
+      <div>
+        <div class="exp-sec-title">基本信息 Basic Info</div>
+        <div class="exp-row"><span class="exp-k">Region L3</span><span class="exp-v">${r.r3||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Progress</span><span class="exp-v">${(r.phase_desc||'—').replace(/\n/g,'; ')}</span></div>
+        <div class="exp-row"><span class="exp-k">Risk</span><span class="exp-v" style="color:#B91C1C">${(r.risk||'—').replace(/\n/g,'; ')}</span></div>
+        <div class="exp-row"><span class="exp-k">Init Rpt</span><span class="exp-v">${itYN(r.init_rpt)}</span></div>
+        <div class="exp-row"><span class="exp-k">Completion Rpt</span><span class="exp-v">${itYN(r.comp_rpt)}</span></div>
+      </div>
+      <div>
+        <div class="exp-sec-title">进度信息 Progress</div>
+        <div class="exp-row"><span class="exp-k">Install Date</span><span class="exp-v">${r.install_date||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Delivery Date</span><span class="exp-v">${r.delivery_date||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Activate Date</span><span class="exp-v">${r.activate_date||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Labor Input</span><span class="exp-v">${r.labor||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">SW Status</span><span class="exp-v">${r.sw_status||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Branch Status</span><span class="exp-v">${r.branch_status||'—'}</span></div>
+      </div>
+      <div>
+        <div class="exp-sec-title">产品配置 Product Config</div>
+        <div class="exp-row"><span class="exp-k">Campuses</span><span class="exp-v">${r.campus_count ?? '—'}</span></div>
+        <div class="exp-row"><span class="exp-k">TLA Model</span><span class="exp-v">${r.tla_model||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Access Devices</span><span class="exp-v">${r.access_devices||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Daily IA/BC/Coag/Hema</span><span class="exp-v">${[r.daily_ia,r.daily_bc,r.daily_coag,r.daily_hema].map(v=>v??'-').join(' / ')}</span></div>
+        <div class="exp-row"><span class="exp-k">Reagent Rev (万USD/yr)</span><span class="exp-v">${r.reagent_rev ?? '—'}</span></div>
+      </div>
+      <div>
+        <div class="exp-sec-title">人员 & 功能 Personnel & Functions</div>
+        <div class="exp-row"><span class="exp-k">RTS</span><span class="exp-v">${r.rts||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">IT GTS</span><span class="exp-v">${r.it_gts||'—'}</span></div>
+        <div class="exp-row"><span class="exp-k">Distributor</span><span class="exp-v">${r.distributor||'—'}</span></div>
+        <div class="fn-chips">
+          <span class="fn-chip ${r.qc_mgmt?'fn-yes':'fn-no'}">质控管理 QC</span>
+          <span class="fn-chip ${r.reagent_mgmt?'fn-yes':'fn-no'}">试剂管理 Reagent</span>
+          <span class="fn-chip ${r.minilis?'fn-yes':'fn-no'}">MiniLIS</span>
+          <span class="fn-chip ${r.smart_display?'fn-yes':'fn-no'}">智慧大屏 Smart Display</span>
+        </div>
+        <div class="exp-row" style="margin-top:6px"><span class="exp-k">Customer Need</span><span class="exp-v">${r.customer_req||'—'}</span></div>
+      </div>
+    </div>
+    <div class="exp-actions">
+      <button class="btn btn-sm" onclick="toggleITExp('${r.id}',true)">✎ Edit · 编辑</button>
+      <button class="btn btn-sm" onclick="toggleITExp('${r.id}')">Close · 收起</button>
+    </div>`;
+}
+
+function itEditGrid(r) {
+  const id = r.id;
+  const fg = (label, inputHtml) => `<div class="fg"><label>${label}</label>${inputHtml}</div>`;
+  const inp = (k, type='text') => `<input type="${type}" id="it-f-${k}-${id}" value="${itField(r,k)}">`;
+  const txt = (k) => `<textarea id="it-f-${k}-${id}">${itField(r,k)}</textarea>`;
+  return `
+    <div class="form-grid">
+      ${fg('Region L2 二级区域', `<select id="it-f-r2-${id}">${['亚太AP','中亚CA','欧洲EU','印度IN','拉美LA','中东非MEA','俄罗斯RU'].map(o=>`<option value="${o}" ${r.r2===o?'selected':''}>${o}</option>`).join('')}</select>`)}
+      ${fg('Region L3 三级区域', inp('r3'))}
+      ${fg('Country 国家', inp('country'))}
+      ${fg('Hospital 医院名称', inp('hospital'))}
+      ${fg('Phase 项目进展', `<select id="it-f-phase-${id}">${Object.keys(IT_PHASES).map(o=>`<option value="${o}" ${r.phase===o?'selected':''}>${itPShort(o)}</option>`).join('')}</select>`)}
+      ${fg('Product 信息化产品型号', `<input list="it-model-list" id="it-f-model-${id}" value="${itField(r,'model')}"><datalist id="it-model-list"><option value="innosight"><option value="MiniLIS"><option value="Non-standard IT products"></datalist>`)}
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      ${fg('Progress Note 项目进展说明', txt('phase_desc'))}
+      ${fg('Risk 项目风险', txt('risk'))}
+      ${fg('Customer Need 客户需求', txt('customer_req'))}
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      ${fg('Init Report 立项报告', itYNSelect('it-f-init_rpt-'+id, r.init_rpt, true))}
+      ${fg('Completion Rpt 结项报告', itYNSelect('it-f-comp_rpt-'+id, r.comp_rpt, true))}
+      ${fg('Install Date 安装日期', inp('install_date','date'))}
+      ${fg('Delivery Date 交付时间', inp('delivery_date','date'))}
+      ${fg('Activate Date 启用日期', inp('activate_date','date'))}
+      ${fg('Labor Input 内部人力投入', inp('labor'))}
+      ${fg('SW Status 软件交付状态', inp('sw_status'))}
+      ${fg('Branch Status 分支交付状态', inp('branch_status'))}
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      ${fg('Campuses 接入院区数量', inp('campus_count','number'))}
+      ${fg('TLA Model TLA型号', inp('tla_model'))}
+      ${fg('Access Devices 接入设备及型号', inp('access_devices'))}
+      ${fg('Daily IA 免疫', inp('daily_ia','number'))}
+      ${fg('Daily BC 生化', inp('daily_bc','number'))}
+      ${fg('Daily Coag 凝血', inp('daily_coag','number'))}
+      ${fg('Daily Hema 血球', inp('daily_hema','number'))}
+      ${fg('Reagent Rev (万USD/年)', inp('reagent_rev','number'))}
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      ${fg('IT Specialist IT专员', inp('it_specialist'))}
+      ${fg('RTS', inp('rts'))}
+      ${fg('IT GTS', inp('it_gts'))}
+      ${fg('Sales Rep 责任销售', inp('sales'))}
+      ${fg('Distributor 代理商全称', inp('distributor'))}
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      ${fg('QC Mgmt 质控管理', itYNSelect('it-f-qc_mgmt-'+id, r.qc_mgmt, true))}
+      ${fg('Reagent Mgmt 试剂管理', itYNSelect('it-f-reagent_mgmt-'+id, r.reagent_mgmt, true))}
+      ${fg('MiniLIS', itYNSelect('it-f-minilis-'+id, r.minilis, true))}
+      ${fg('Smart Display 智慧大屏', itYNSelect('it-f-smart_display-'+id, r.smart_display, true))}
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      ${fg('Remote SW 远程软件名称', inp('remote_sw'))}
+      ${fg('Remote IP 远程IP地址', inp('remote_ip'))}
+      ${fg('Account & Password 账号&密码', inp('account_pwd'))}
+    </div>
+    <div class="exp-actions">
+      <button class="btn btn-primary btn-sm" onclick="saveITRow('${id}')">💾 Save 保存</button>
+      <button class="btn btn-sm" onclick="toggleITExp('${id}')">✕ Cancel 取消</button>
+    </div>`;
+}
+
+const _itExpMode = {}; // id -> 'view' | 'edit'
+
+function toggleITExp(id, editMode) {
+  const row = document.getElementById('it-exp-'+id);
+  const inner = document.getElementById('it-exp-inner-'+id);
+  if (!row) return;
+  const r = _itData.find(x => x.id === id);
+  if (!r) return;
+  const isOpen = row.style.display !== 'none';
+  const wantEdit = !!editMode;
+
+  if (isOpen && !wantEdit) {
+    row.style.display = 'none';
+    delete _itExpMode[id];
+    return;
+  }
+  _itExpMode[id] = wantEdit ? 'edit' : 'view';
+  inner.innerHTML = wantEdit ? itEditGrid(r) : itViewGrid(r);
+  row.style.display = 'table-row';
+}
+
+async function saveITRow(id) {
+  const r = _itData.find(x => x.id === id);
+  if (!r) return;
+  const g = (k) => document.getElementById('it-f-'+k+'-'+id)?.value ?? '';
+  const gnum = (k) => { const v = g(k); return v==='' ? null : Number(v); };
+  const gyn = (k) => { const v = g(k); return v==='true'?true:v==='false'?false:null; };
+
+  r.r2 = g('r2') || null;
+  r.r3 = g('r3') || null;
+  r.country = g('country') || null;
+  r.hospital = g('hospital') || null;
+  r.phase = g('phase') || null;
+  r.model = g('model') || null;
+  r.phase_desc = g('phase_desc') || null;
+  r.risk = g('risk') || null;
+  r.customer_req = g('customer_req') || null;
+  r.init_rpt = gyn('init_rpt');
+  r.comp_rpt = gyn('comp_rpt');
+  r.install_date = g('install_date') || null;
+  r.delivery_date = g('delivery_date') || null;
+  r.activate_date = g('activate_date') || null;
+  r.labor = g('labor') || null;
+  r.sw_status = g('sw_status') || null;
+  r.branch_status = g('branch_status') || null;
+  r.campus_count = gnum('campus_count');
+  r.tla_model = g('tla_model') || null;
+  r.access_devices = g('access_devices') || null;
+  r.daily_ia = gnum('daily_ia');
+  r.daily_bc = gnum('daily_bc');
+  r.daily_coag = gnum('daily_coag');
+  r.daily_hema = gnum('daily_hema');
+  r.reagent_rev = gnum('reagent_rev');
+  r.it_specialist = g('it_specialist') || null;
+  r.rts = g('rts') || null;
+  r.it_gts = g('it_gts') || null;
+  r.sales = g('sales') || null;
+  r.distributor = g('distributor') || null;
+  r.qc_mgmt = gyn('qc_mgmt');
+  r.reagent_mgmt = gyn('reagent_mgmt');
+  r.minilis = gyn('minilis');
+  r.smart_display = gyn('smart_display');
+  r.remote_sw = g('remote_sw') || null;
+  r.remote_ip = g('remote_ip') || null;
+  r.account_pwd = g('account_pwd') || null;
+
+  itSaveLocal();
+  try {
+    await upsertITRecord(r);
+    toast('IT product record saved ☁ 已保存');
+  } catch(e) {
+    toast('Saved locally (cloud sync failed) 云端同步失败，已本地保存', true);
+  }
+  delete _itExpMode[id];
+  renderITProducts();
+}
+
+function addITRecord() {
+  const maxNo = _itData.reduce((m,r) => Math.max(m, r.no||0), 0);
+  const id = 'it_new_' + Date.now();
+  const rec = {
+    id, no: maxNo + 1, r2:null, r3:null, country:null, hospital:'New Project 新项目',
+    phase: 'M1商机出现 | M1 Business opportunities emerge', phase_desc:null, risk:null,
+    init_rpt:null, comp_rpt:null, install_date:null, delivery_date:null, labor:null,
+    sw_status:null, branch_status:null, activate_date:null, reagent_rev:null,
+    model:'innosight', campus_count:null, tla_model:null, access_devices:null,
+    daily_ia:null, daily_bc:null, daily_coag:null, daily_hema:null,
+    it_specialist:null, rts:null, it_gts:null, sales:null, distributor:null,
+    qc_mgmt:null, reagent_mgmt:null, minilis:null, smart_display:null,
+    customer_req:null, remote_sw:null, remote_ip:null, account_pwd:null,
+  };
+  _itData.unshift(rec);
+  itSaveLocal();
+  renderITProducts();
+  setTimeout(() => toggleITExp(id, true), 30);
+}
+
+async function deleteITRow(id) {
+  if (!confirm('Delete this project record? 确认删除该项目记录？')) return;
+  _itData = _itData.filter(r => r.id !== id);
+  itSaveLocal();
+  try { await deleteITRecordCloud(id); toast('Deleted ☁ 已删除'); }
+  catch(e) { toast('Deleted locally (cloud sync failed) 云端同步失败', true); }
+  renderITProducts();
+}
+
 // ── O&M dynamic month helpers ─────────────────────────
+
 function omMonthLabel(activate, monthIdx) {
   // monthIdx: 1-6
   if (!activate) return 'M' + monthIdx;
@@ -2854,7 +3332,11 @@ function injectRealtimeDot() {
   initOMData().then(() => {
     if (document.getElementById('page-omvisits')?.classList.contains('active')) renderOM();
   });
+  // Init IT Products data (try Supabase → localStorage → seed from workbook)
+  initITData().then(() => {
+    if (document.getElementById('page-itproducts')?.classList.contains('active')) renderITProducts();
+  });
 })();
 </script>
 </body>
-</html>
+</html>
