@@ -101,7 +101,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:v
 .krow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:9px}
 .krow5{grid-template-columns:repeat(5,1fr)}
 .k{background:var(--wh);border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.k::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--p)}
+.k::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--kc,var(--p))}
 .k.ok::before{background:var(--ok)}.k.wa::before{background:var(--wa)}.k.er::before{background:var(--er)}.k.pu::before{background:var(--pu)}
 .k-lbl{font-size:9.5px;color:var(--s500);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
 .k-val{font-size:19px;font-weight:800;color:var(--s900);line-height:1.1}
@@ -144,6 +144,8 @@ tr:hover td{background:var(--s50)}
 .pl-remarks-row td{white-space:normal;font-size:10.5px;color:var(--s600);vertical-align:top;max-width:220px;background:var(--s50)}
 .pl-remarks-row td:first-child{background:var(--s50)}
 .pt{display:inline-flex;align-items:center;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;color:var(--s500);cursor:pointer;background:var(--s100);margin-right:5px}
+.tbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border:1.5px solid var(--s200);border-radius:6px;font-size:10.5px;font-weight:600;cursor:pointer;background:var(--wh);color:var(--s600);font-family:inherit}
+.tbtn:hover{border-color:var(--p);color:var(--p)}
 .pt.on{background:var(--p);color:#fff}
 .pt-row{display:flex;flex-wrap:wrap;gap:0;margin-bottom:12px}
 .flbl{font-size:9.5px;color:var(--s400);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-right:8px}
@@ -463,15 +465,13 @@ details.dcx summary:hover{color:var(--pd)}
     </div>
   </div>
 
-  <div class="ph-sub" style="margin:14px 0 8px">
-    Venue-condition columns (capacity / demo units / tooling &amp; reagent / utilities / catering) and Region II / III / Country have <b>no real data source</b> — <span id="tc-edit-hint"></span>.
-    Business performance columns (sessions, headcount, MCSR, instructors) are computed live from face-to-face record.
-  </div>
-  <div class="tbl-wrap">
+  <div class="tbl-wrap" style="margin-top:14px">
     <div class="tbl-toolbar">
       <input type="text" id="tc-search" placeholder="Search center / country..." oninput="renderTcTable()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px">
       <div class="fg" id="tc-level-filters" style="margin-left:10px"></div>
-      <span id="tc-cnt" style="margin-left:auto;font-size:11px;color:var(--s500)"></span>
+      <span id="tc-edit-hint" style="margin-left:10px;font-size:10.5px;color:var(--s500)"></span>
+      <button class="tbtn" onclick="exportTcCsv()" style="margin-left:auto">⭳ Export CSV</button>
+      <span id="tc-cnt" style="font-size:11px;color:var(--s500)"></span>
     </div>
     <div class="tbl-scroll" style="overflow-x:auto">
     <table><thead><tr id="tc-thead"></tr></thead><tbody id="tc-tbody"></tbody></table>
@@ -752,7 +752,7 @@ function renderHome(){
 
   const tc4=(lbl,list,clr)=>{
     const se=sessions(list),tr2=trainees(list),mc=mcsrN(list);
-    return `<div class="k" style="border-left-color:${clr}"><div class="k-lbl">${lbl}</div>
+    return `<div class="k" style="--kc:${clr}"><div class="k-lbl">${lbl}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-top:4px;border-top:1px solid var(--s100);padding-top:5px">
         <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${clr}">${se}</div><div style="font-size:8px;color:var(--s400)">Sessions</div></div>
         <div style="text-align:center;border-left:1px solid var(--s100);border-right:1px solid var(--s100)"><div style="font-size:16px;font-weight:800;color:${clr}">${tr2}</div><div style="font-size:8px;color:var(--s400)">Trainees</div></div>
@@ -854,9 +854,9 @@ let TC_MAP_INSTANCE = null;
 const TC_LEVEL_COLOR = {'Global TC':'#DC2626','Regional TC':'#0066CC','National  TC':'#7C3AED','Channel TC':'#0A7C5C','Other':'#94A3B8'};
 const TC_LEVEL_DISPLAY = {'Global TC':'Global TC','Regional TC':'Regional TC','National  TC':'National TC','Channel TC':'Channel TC','Other':'Non-certified Channel TC'};
 const TC_LEVEL_CN = {
-  'Global TC':'总部认证培训中心，全球唯一标准制定方',
-  'Regional TC':'区域级认证培训中心，覆盖多国',
-  'National  TC':'国家级认证培训中心',
+  'Global TC':'全球培训中心',
+  'Regional TC':'区域培训中心',
+  'National  TC':'国家培训中心',
   'Channel TC':'认证渠道培训中心',
   'Other':'未认证渠道场地，非正式培训中心'
 };
@@ -959,13 +959,18 @@ function computeTcStats(){
   });
 }
 
+let tcSortKey='sessions', tcSortDir=-1;
+const SUBLINE_COLOR = {};
+(function(){ const palette=['#60A5FA','#818CF8','#34D399','#FBBF24','#2DD4BF','#F472B6']; SUBLINE_LIST.forEach((s,i)=>SUBLINE_COLOR[s]=palette[i%palette.length]); })();
+function tcSort(key){ if(tcSortKey===key) tcSortDir*=-1; else { tcSortKey=key; tcSortDir=-1; } renderTcTable(); }
+
 function renderTcTable(){
   const stats = computeTcStats();
   document.getElementById('tc-real-count').textContent = stats.length;
   document.getElementById('tc-edit-hint').innerHTML = isHQ()
-    ? '<b style="color:var(--p)">you are signed in as HQ — edit any row directly in the table</b>'
-    : (CURRENT_USER ? `<b style="color:var(--p)">you can edit rows owned by your region (${esc(myRegion2()||CURRENT_USER.region)})</b> — other regions are read-only`
-                     : 'editable by HQ or the owning region\'s account (sign in to edit)');
+    ? '<b style="color:var(--p)">signed in as HQ — edit any row</b>'
+    : (CURRENT_USER ? `<b style="color:var(--p)">edit rows in ${esc(myRegion2()||CURRENT_USER.region)} only</b>`
+                     : 'sign in to edit');
 
   document.getElementById('tc-level-filters').innerHTML = ['ALL', ...TC_LEVEL_ORDER].map(l=>
     `<span class="pt${l===tcLevelFilter?' on':''}" onclick="tcLevelFilter='${l}';renderTcTable()">${l==='ALL'?'All':TC_LEVEL_DISPLAY[l]}</span>`
@@ -974,7 +979,7 @@ function renderTcTable(){
   // fixed 5-card column, always in this order, count reacts to the active global filter
   const byLevel = {}; stats.forEach(t=>{ byLevel[t.level]=(byLevel[t.level]||0)+1; });
   document.getElementById('tc-kpi').innerHTML = TC_LEVEL_ORDER.map(lvl=>
-    `<div class="k" style="border-left:4px solid ${tcColor(lvl)};cursor:pointer" onclick="tcLevelFilter='${lvl}';renderTcTable()">
+    `<div class="k" style="--kc:${tcColor(lvl)};cursor:pointer" onclick="tcLevelFilter='${lvl}';renderTcTable()">
        <div class="k-lbl">${TC_LEVEL_DISPLAY[lvl]}</div>
        <div class="k-val">${byLevel[lvl]||0}</div>
        <div class="k-sub" style="line-height:1.4">${TC_LEVEL_CN[lvl]}</div>
@@ -984,15 +989,27 @@ function renderTcTable(){
   const q = (document.getElementById('tc-search').value||'').toUpperCase();
   let rows = stats.filter(t=>
     (tcLevelFilter==='ALL'||t.level===tcLevelFilter) &&
-    (!q || [t.loc,(t.geo&&t.geo.country)||''].some(v=>v&&v.toUpperCase().includes(q)))
-  ).sort((a,b)=>b.sessions-a.sessions);
+    (!q || [t.loc,(t.geo&&t.geo.country)||venueFor(t.loc).country||''].some(v=>v&&v.toUpperCase().includes(q)))
+  );
+  rows.sort((a,b)=>{
+    const ka = tcSortKey==='loc' ? a.loc : (a[tcSortKey]!=null?a[tcSortKey]:-Infinity);
+    const kb = tcSortKey==='loc' ? b.loc : (b[tcSortKey]!=null?b[tcSortKey]:-Infinity);
+    if(typeof ka==='string') return tcSortDir*ka.localeCompare(kb);
+    return tcSortDir*(kb-ka);
+  });
 
-  document.getElementById('tc-thead').innerHTML =
-    '<th>Training Center</th><th>Level</th><th>Region II</th><th>Region III</th><th>Country</th>'+
-    '<th>Sessions</th><th>Trainees (Int./Chan.)</th><th>MCSR Obtained</th><th>MCSR Rate</th><th>Instructors RTS/CS/Ch</th>'+
-    '<th>Capacity</th><th>Demo Units</th><th>Tooling / Reagent</th><th>Utilities</th><th>Catering</th>';
+  const cols = [
+    ['loc','Training Center'],['level','Level'],['region2','Region II'],['region3','Region III'],['country','Country/City'],
+    ['sessions','Sessions'],['trainees','Trainees (Int./Chan.)'],['mcsr','MCSR Obtained'],['mcsr_rate','MCSR Rate'],['instr','Instructors RTS/CS/Ch'],
+    ['capacity','Capacity'],['demo','Demo Units'],['tooling','Tooling / Reagent'],['utilities','Water supply / UPS'],['catering','Catering']
+  ];
+  document.getElementById('tc-thead').innerHTML = cols.map(([key,label])=>
+    `<th onclick="tcSort('${key}')" style="cursor:pointer;white-space:nowrap">${label}${tcSortKey===key?(tcSortDir===1?' \u2191':' \u2193'):''}</th>`
+  ).join('');
 
   const models = [...new Set(COURSE_MASTER.map(r=>r.model))].filter(Boolean).sort();
+  const modelSubline = {}; COURSE_MASTER.forEach(r=>{ if(r.model && !modelSubline[r.model]) modelSubline[r.model]=r.sub_line; });
+  const regionOpts = Object.keys(REGION_MAP);
 
   document.getElementById('tc-tbody').innerHTML = rows.map(t=>{
     const editable = canEditRegion(t.regionOwner);
@@ -1001,22 +1018,37 @@ function renderTcTable(){
     const v = venueFor(t.loc);
     const id = locId(t.loc);
 
-    const txt = (field, ph) => editable
-      ? `<input type="text" value="${esc(v[field]||'')}" placeholder="${ph}" onchange="setVenueField('${esc(t.loc)}','${field}',this.value)" style="width:82px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
-      : (v[field] ? esc(v[field]) : '<span style="color:var(--s300)">—</span>');
+    // Region II: dropdown, options from REGION_MAP keys (no free text)
+    const region2Cell = editable
+      ? `<select onchange="setVenueField('${esc(t.loc)}','region2',this.value)" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px;width:70px">
+           <option value="">—</option>${regionOpts.map(r=>`<option value="${r}" ${v.region2===r?'selected':''}>${r}</option>`).join('')}
+         </select>`
+      : (v.region2 ? esc(v.region2) : '<span style="color:var(--s300)">—</span>');
+    // Region III: dropdown, options depend on chosen Region II
+    const r3opts = v.region2 ? (REGION_MAP[v.region2]||[]) : [];
+    const region3Cell = editable
+      ? `<select onchange="setVenueField('${esc(t.loc)}','region3',this.value)" ${!v.region2?'disabled':''} style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px;width:90px">
+           <option value="">—</option>${r3opts.map(r=>`<option value="${esc(r)}" ${v.region3===r?'selected':''}>${esc(r)}</option>`).join('')}
+         </select>`
+      : (v.region3 ? esc(v.region3) : '<span style="color:var(--s300)">—</span>');
 
     const capacityCell = editable
       ? `<input type="number" min="0" value="${esc(v.capacity||'')}" placeholder="pax" onchange="setVenueField('${esc(t.loc)}','capacity',this.value)" style="width:56px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
       : (v.capacity ? v.capacity+' pax' : '<span style="color:var(--s300)">—</span>');
 
-    const demoTags = (v.demo||[]).map(m=>
-      editable ? `<span class="badge b-bl" style="margin:1px 2px 1px 0;cursor:pointer" onclick="removeDemoModel('${esc(t.loc)}','${esc(m)}')">${esc(m)} ×</span>`
-               : `<span class="badge b-bl" style="margin:1px 2px 1px 0">${esc(m)}</span>`
-    ).join('');
+    const demoTag = m => {
+      const c = SUBLINE_COLOR[modelSubline[m]] || '#94A3B8';
+      return `<span class="badge" style="background:${c}22;color:${c};margin:1px 2px 1px 0;${editable?'cursor:pointer':''}" ${editable?`onclick="removeDemoModel('${esc(t.loc)}','${esc(m)}')"`:''}>${esc(m)}${editable?' ×':''}</span>`;
+    };
+    const demoTags = (v.demo||[]).map(demoTag).join('');
+    const sublineFilterId = id+'_subline';
     const demoCell = editable
       ? `<div id="${id}_demo">${demoTags||'<span style="color:var(--s300);font-size:9.5px">none set</span>'}</div>
-         <select onchange="addDemoModel('${esc(t.loc)}',this.value);this.value=''" style="font-size:9.5px;padding:2px 4px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:100px">
-           <option value="">+ add model</option>${models.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')}
+         <select id="${sublineFilterId}" onchange="filterDemoSelect('${esc(t.loc)}')" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:76px">
+           <option value="">Sub-line…</option>${SUBLINE_LIST.map(s=>`<option value="${esc(s)}">${esc(SUBLINE_ABBR[s]||s)}</option>`).join('')}
+         </select>
+         <select id="${id}_modelsel" onchange="addDemoModel('${esc(t.loc)}',this.value);this.value=''" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:96px">
+           <option value="">+ add model</option>${models.map(m=>`<option value="${esc(m)}" data-sub="${esc(modelSubline[m]||'')}">${esc(m)}</option>`).join('')}
          </select>`
       : (demoTags || '<span style="color:var(--s300)">—</span>');
 
@@ -1026,14 +1058,18 @@ function renderTcTable(){
     const cateringCell = editable
       ? `<input type="checkbox" ${v.catering?'checked':''} onchange="setVenueField('${esc(t.loc)}','catering',this.checked)">`
       : (v.catering ? '✅' : '<span style="color:var(--s300)">—</span>');
-
-    const country = editable ? txt('country','country') : (v.country ? esc(v.country) : (t.geo ? esc(t.geo.country) : '<span style="color:var(--s400)">unmapped</span>'));
+    const toolingCell = editable
+      ? `<input type="text" value="${esc(v.tooling||'')}" placeholder="e.g. full kit" onchange="setVenueField('${esc(t.loc)}','tooling',this.value)" style="width:82px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
+      : (v.tooling ? esc(v.tooling) : '<span style="color:var(--s300)">—</span>');
+    const countryCell = editable
+      ? `<input type="text" value="${esc(v.country||'')}" placeholder="country/city" onchange="setVenueField('${esc(t.loc)}','country',this.value)" style="width:90px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
+      : (v.country ? esc(v.country) : (t.geo ? esc(t.geo.city+', '+t.geo.country) : '<span style="color:var(--s400)">unmapped</span>'));
 
     return `<tr id="${id}"><td><b>${esc(t.loc)}</b>${testTag}</td>`+
       `<td><span class="badge" style="background:${tcColor(t.level)}22;color:${tcColor(t.level)}">${TC_LEVEL_DISPLAY[t.level]}</span></td>`+
-      `<td>${txt('region2','region II')}</td>`+
-      `<td>${txt('region3','region III')}</td>`+
-      `<td>${country}</td>`+
+      `<td>${region2Cell}</td>`+
+      `<td>${region3Cell}</td>`+
+      `<td>${countryCell}</td>`+
       `<td>${t.sessions}</td>`+
       `<td>${t.internal} / ${t.channel}</td>`+
       `<td>${t.mcsr}</td>`+
@@ -1041,16 +1077,40 @@ function renderTcTable(){
       `<td>${t.instr_rts} / ${t.instr_cs} / ${t.instr_channel}</td>`+
       `<td>${capacityCell}</td>`+
       `<td>${demoCell}</td>`+
-      `<td>${txt('tooling','e.g. full kit')}</td>`+
+      `<td>${toolingCell}</td>`+
       `<td style="text-align:center">${utilCell}</td>`+
       `<td style="text-align:center">${cateringCell}</td></tr>`;
   }).join('');
   document.getElementById('tc-cnt').textContent = rows.length+' / '+stats.length+' locations';
 
   const ungeo = stats.filter(t=>!t.geo && !venueFor(t.loc).country);
-  document.getElementById('tc-ungeo-note').textContent = ungeo.length ? `${ungeo.length} locations not on the map — no identifiable country yet: ${ungeo.map(t=>t.loc).join(', ')}. HQ can fill in Region/Country in the table below to link them.` : '';
+  document.getElementById('tc-ungeo-note').textContent = ungeo.length ? `${ungeo.length} locations not on the map — no identifiable country yet: ${ungeo.map(t=>t.loc).join(', ')}. HQ/regional editors can fill in Region/Country in the table below to link them.` : '';
 
+  window._tcRowsForExport = rows;
   renderTcMap(stats);
+}
+function filterDemoSelect(loc){
+  const id = locId(loc);
+  const sub = document.getElementById(id+'_subline').value;
+  const sel = document.getElementById(id+'_modelsel');
+  [...sel.options].forEach(o=>{ if(o.value) o.hidden = sub && o.dataset.sub!==sub; });
+}
+function exportTcCsv(){
+  const rows = window._tcRowsForExport || [];
+  const head = ['Training Center','Level','Region II','Region III','Country/City','Sessions','Trainees Internal','Trainees Channel','MCSR Obtained','MCSR Rate %','Instructors RTS','Instructors CS','Instructors Channel','Capacity','Demo Units','Tooling/Reagent','Water supply/UPS','Catering'];
+  const lines = [head.join(',')];
+  rows.forEach(t=>{
+    const v = venueFor(t.loc);
+    const cells = [t.loc, TC_LEVEL_DISPLAY[t.level], v.region2||'', v.region3||'', v.country||(t.geo?t.geo.city+' '+t.geo.country:''),
+      t.sessions, t.internal, t.channel, t.mcsr, t.mcsr_rate, t.instr_rts, t.instr_cs, t.instr_channel,
+      v.capacity||'', (v.demo||[]).join('; '), v.tooling||'', v.utilities?'Y':'N', v.catering?'Y':'N'];
+    lines.push(cells.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'training_centers_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
 }
 function addDemoModel(loc, model){
   if(!model) return;
