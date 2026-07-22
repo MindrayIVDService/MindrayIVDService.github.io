@@ -146,6 +146,13 @@ tr:hover td{background:var(--s50)}
 .pt{display:inline-flex;align-items:center;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;color:var(--s500);cursor:pointer;background:var(--s100);margin-right:5px}
 .tbtn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border:1.5px solid var(--s200);border-radius:6px;font-size:10.5px;font-weight:600;cursor:pointer;background:var(--wh);color:var(--s600);font-family:inherit}
 .tbtn:hover{border-color:var(--p);color:var(--p)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-dow{font-size:9px;font-weight:700;color:var(--s400);text-align:center;padding:2px 0;text-transform:uppercase}
+.cal-cell{min-height:74px;border:1px solid var(--s100);border-radius:6px;padding:4px;background:var(--s50);font-size:9px}
+.cal-cell.cal-empty{background:transparent;border:none}
+.cal-cell.cal-today{border-color:var(--p);border-width:1.5px}
+.cal-daynum{font-size:9.5px;font-weight:700;color:var(--s500);margin-bottom:2px}
+.cal-chip{display:block;font-size:8px;padding:1px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .pt.on{background:var(--p);color:#fff}
 .pt-row{display:flex;flex-wrap:wrap;gap:0;margin-bottom:12px}
 .flbl{font-size:9.5px;color:var(--s400);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-right:8px}
@@ -565,7 +572,16 @@ details.dcx summary:hover{color:var(--pd)}
 
   <div class="krow" id="cal-kpi"></div>
 
-  <div class="tbl-wrap" style="margin-top:9px">
+  <div class="card" style="margin-top:9px;padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--s100)">
+      <span class="pt on" id="cal-view-month-btn" onclick="setCalView('month')">📅 Month View</span>
+      <span class="pt" id="cal-view-table-btn" onclick="setCalView('table')">☰ Table View</span>
+      <div id="cal-month-nav" style="margin-left:auto;display:flex;align-items:center;gap:8px"></div>
+    </div>
+    <div id="cal-month-grid" style="padding:10px 14px 14px"></div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:9px;display:none" id="cal-table-wrap">
     <div class="tbl-toolbar">
       <input type="text" id="cal-search" placeholder="Search course / instructor..." oninput="renderCalendar()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:200px">
       <div class="fg" id="cal-month-filters" style="margin-left:10px"></div>
@@ -1243,7 +1259,7 @@ function renderTcMap(stats){
 
 // ============ COURSE MASTER ============
 let cmTypeFilter='ALL', cmSortKey='sub_line', cmSortDir=1;
-const CM_MODELS_EXPANDED = new Set(), CM_AGENDA_EXPANDED = new Set();
+const CM_MODELS_EXPANDED = new Set(), CM_AGENDA_EXPANDED = new Set(), CM_EDIT = new Set();
 const CM_TYPE_LABEL = {'face-to-face':'Face-to-face','oral exam':'Oral Exam','self-learning':'Self-learning'};
 // Business rule (per HQ qualification-program slides): key models are certified via
 // face-to-face OR oral exam — both are "hands-on assessed" paths, as opposed to
@@ -1252,6 +1268,56 @@ const CM_TYPE_LABEL = {'face-to-face':'Face-to-face','oral exam':'Oral Exam','se
 const CM_TYPE_GROUP = {'face-to-face':'assessed','oral exam':'assessed','self-learning':'self'};
 const AGENDA_MAP = {}; AGENDA.forEach(a=>AGENDA_MAP[a.course]=a);
 const CM_REGION_COLS = ['HQ', ...Object.keys(REGION_MAP)];
+const ALL_MODEL_NAMES = [...new Set(COURSE_MASTER.map(r=>r.model))].filter(Boolean).sort();
+
+// ── Course content edits (Field Course Name / Linked Models / Syllabus) ──
+// HQ-only: this is the master curriculum definition, not owned by any one region.
+const COURSE_KEY = 'tla_course_edits_v1';
+let COURSE_EDITS = {};
+async function loadCourseEdits(){
+  if(USE_SUPABASE){
+    const { data, error } = await sb.from('tla_course_content').select('*');
+    if(!error && data){
+      const d={}; data.forEach(r=>{ d[r.course_name] = {field_course_name:r.field_course_name, models:r.models, agenda:r.agenda}; });
+      return d;
+    }
+    console.error('Supabase course-content load failed, using local cache', error);
+  }
+  try{ return JSON.parse(localStorage.getItem(COURSE_KEY))||{}; }catch(e){ return {}; }
+}
+function saveCourseEditsLocal(){ try{ localStorage.setItem(COURSE_KEY, JSON.stringify(COURSE_EDITS)); }catch(e){} }
+async function setCourseEdit(name, patch){
+  COURSE_EDITS[name] = Object.assign({}, COURSE_EDITS[name]||{}, patch);
+  if(USE_SUPABASE){
+    const e = COURSE_EDITS[name];
+    const { error } = await sb.from('tla_course_content').upsert({
+      course_name:name, field_course_name:e.field_course_name||null, models:e.models||null, agenda:e.agenda||null,
+      updated_by: CURRENT_USER?CURRENT_USER.username:null, updated_at:new Date().toISOString()
+    }, { onConflict:'course_name' });
+    if(error) console.error('Supabase course-content save failed', error);
+  }else{
+    saveCourseEditsLocal();
+  }
+}
+function effectiveCourse(c){
+  const e = COURSE_EDITS[c.name] || {};
+  const base = AGENDA_MAP[c.name];
+  return {
+    field_course_name: e.field_course_name!=null ? e.field_course_name : c.field_course_name,
+    models: e.models || c.models,
+    day_order: e.agenda ? e.agenda.day_order : (base ? base.day_order : []),
+    days: e.agenda ? e.agenda.days : (base ? base.days : {})
+  };
+}
+function ensureAgendaEdit(name){
+  if(!COURSE_EDITS[name] || !COURSE_EDITS[name].agenda){
+    const base = AGENDA_MAP[name];
+    const agenda = base ? JSON.parse(JSON.stringify({day_order:base.day_order, days:base.days})) : {day_order:[], days:{}};
+    setCourseEdit(name, {agenda});
+  }
+  return COURSE_EDITS[name].agenda;
+}
+
 function toggleCmModels(name){
   if(CM_MODELS_EXPANDED.has(name)) CM_MODELS_EXPANDED.delete(name); else CM_MODELS_EXPANDED.add(name);
   renderCourseMaster();
@@ -1260,7 +1326,56 @@ function toggleCmAgenda(name){
   if(CM_AGENDA_EXPANDED.has(name)) CM_AGENDA_EXPANDED.delete(name); else CM_AGENDA_EXPANDED.add(name);
   renderCourseMaster();
 }
+function toggleCmEdit(name){
+  if(CM_EDIT.has(name)){ CM_EDIT.delete(name); }
+  else{ CM_EDIT.add(name); CM_AGENDA_EXPANDED.add(name); CM_MODELS_EXPANDED.add(name); }
+  renderCourseMaster();
+}
 function cmSort(key){ if(cmSortKey===key) cmSortDir*=-1; else { cmSortKey=key; cmSortDir=1; } renderCourseMaster(); }
+
+function addCourseModel(name, model){
+  if(!model) return;
+  const cur = effectiveCourse(COURSES.find(c=>c.name===name)).models;
+  if(!cur.includes(model)) setCourseEdit(name, {models:[...cur, model]});
+  renderCourseMaster();
+}
+function removeCourseModel(name, model){
+  const cur = effectiveCourse(COURSES.find(c=>c.name===name)).models;
+  setCourseEdit(name, {models:cur.filter(m=>m!==model)});
+  renderCourseMaster();
+}
+function addAgendaDay(name){
+  const agenda = ensureAgendaEdit(name);
+  const label = 'Day'+(agenda.day_order.length+1);
+  agenda.day_order.push(label);
+  agenda.days[label] = [];
+  setCourseEdit(name, {agenda});
+  renderCourseMaster();
+}
+function removeAgendaDay(name, day){
+  const agenda = ensureAgendaEdit(name);
+  agenda.day_order = agenda.day_order.filter(d=>d!==day);
+  delete agenda.days[day];
+  setCourseEdit(name, {agenda});
+  renderCourseMaster();
+}
+function addAgendaItem(name, day){
+  const agenda = ensureAgendaEdit(name);
+  agenda.days[day].push({time:'', content:'', location:'', room:''});
+  setCourseEdit(name, {agenda});
+  renderCourseMaster();
+}
+function removeAgendaItem(name, day, idx){
+  const agenda = ensureAgendaEdit(name);
+  agenda.days[day].splice(idx,1);
+  setCourseEdit(name, {agenda});
+  renderCourseMaster();
+}
+function updateAgendaItem(name, day, idx, field, value){
+  const agenda = ensureAgendaEdit(name);
+  agenda.days[day][idx][field] = value;
+  setCourseEdit(name, {agenda});
+}
 
 function renderCourseMaster(){
   document.getElementById('cm-type-filters').innerHTML = [
@@ -1286,14 +1401,25 @@ function renderCourseMaster(){
     CM_REGION_COLS.map(r=>`<th style="white-space:nowrap">${r}</th>`).join('');
 
   document.getElementById('cm-tbody').innerHTML = rows.map(c=>{
-    // Linked Models — collapsed by default (some courses link 20+ models)
-    const modelsExpanded = CM_MODELS_EXPANDED.has(c.name);
-    const modelChips = c.models.map(m=>`<span class="badge b-bl" style="margin:1px 2px 1px 0">${esc(m)}</span>`).join('');
-    const modelsCell = c.models.length<=4
-      ? modelChips
-      : (modelsExpanded
-          ? `${modelChips}<br><span class="fw-item-link" onclick="toggleCmModels('${esc(c.name)}')">Show fewer ▲</span>`
-          : `${c.models.slice(0,4).map(m=>`<span class="badge b-bl" style="margin:1px 2px 1px 0">${esc(m)}</span>`).join('')}<span class="fw-item-link" onclick="toggleCmModels('${esc(c.name)}')"> +${c.models.length-4} more ▼</span>`);
+    const ec = effectiveCourse(c);
+    const editing = isHQ() && CM_EDIT.has(c.name);
+    const editBtn = isHQ() ? `<span class="fw-item-link" onclick="toggleCmEdit('${esc(c.name)}')">${editing?'✕ Done':'✎ Edit'}</span>` : '';
+
+    // Linked Models
+    const modelsExpanded = CM_MODELS_EXPANDED.has(c.name) || editing;
+    const modelChip = (m, removable) => `<span class="badge b-bl" style="margin:1px 2px 1px 0;${removable?'cursor:pointer':''}" ${removable?`onclick="removeCourseModel('${esc(c.name)}','${esc(m)}')"`:''}>${esc(m)}${removable?' ×':''}</span>`;
+    let modelsCell;
+    if(editing){
+      modelsCell = ec.models.map(m=>modelChip(m,true)).join('') +
+        `<div style="margin-top:4px"><select onchange="addCourseModel('${esc(c.name)}',this.value);this.value=''" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;width:140px">
+           <option value="">+ add model</option>${ALL_MODEL_NAMES.filter(m=>!ec.models.includes(m)).map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')}
+         </select></div>`;
+    }else{
+      const chips = ec.models.map(m=>modelChip(m,false)).join('');
+      modelsCell = ec.models.length<=4 ? chips
+        : (modelsExpanded ? `${chips}<br><span class="fw-item-link" onclick="toggleCmModels('${esc(c.name)}')">Show fewer ▲</span>`
+            : `${ec.models.slice(0,4).map(m=>modelChip(m,false)).join('')}<span class="fw-item-link" onclick="toggleCmModels('${esc(c.name)}')"> +${ec.models.length-4} more ▼</span>`);
+    }
 
     // Duration — real median days from face-to-face record, matched by course name
     let duration;
@@ -1301,18 +1427,36 @@ function renderCourseMaster(){
     else if(c.duration_days!=null) duration = `<b>${c.duration_days}</b> day${c.duration_days===1?'':'s'}`;
     else duration = '<span style="color:var(--s300)">no session yet</span>';
 
-    // Syllabus — real day-by-day agenda from the Standard Face-to-Face Class Schedule,
-    // where the course name matches (18 of 42 courses have one on file)
-    const agenda = AGENDA_MAP[c.name];
-    const agendaExpanded = CM_AGENDA_EXPANDED.has(c.name);
+    // Field Course Name
+    const fcnCell = editing
+      ? `<input type="text" value="${esc(ec.field_course_name||'')}" placeholder="Field course name" onchange="setCourseEdit('${esc(c.name)}',{field_course_name:this.value})" style="width:170px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
+      : (ec.field_course_name ? esc(ec.field_course_name) : '<span style="color:var(--s300)">—</span>');
+
+    // Syllabus — real day-by-day agenda from the Standard Face-to-Face Class Schedule
+    // (18 of 42 courses have one on file); HQ can add/edit/remove days and items.
+    const agendaExpanded = CM_AGENDA_EXPANDED.has(c.name) || editing;
     let syllabusCell;
-    if(!agenda){
+    if(editing){
+      syllabusCell = ec.day_order.map(d=>{
+        const items = ec.days[d]||[];
+        return `<div style="margin-bottom:6px;padding:4px;background:var(--s50);border-radius:4px">
+          <div style="display:flex;align-items:center;gap:4px"><b style="font-size:9px;color:var(--s700)">${esc(d)}</b>
+            <span class="fw-item-link" style="margin-left:auto" onclick="removeAgendaDay('${esc(c.name)}','${esc(d)}')">remove day ×</span></div>
+          ${items.map((it,idx)=>`<div style="display:flex;gap:3px;margin-top:3px">
+            <input value="${esc(it.time||'')}" placeholder="time" onchange="updateAgendaItem('${esc(c.name)}','${esc(d)}',${idx},'time',this.value)" style="width:60px;font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:3px">
+            <input value="${esc(it.content||'')}" placeholder="content" onchange="updateAgendaItem('${esc(c.name)}','${esc(d)}',${idx},'content',this.value)" style="width:150px;font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:3px">
+            <span class="fw-item-link" onclick="removeAgendaItem('${esc(c.name)}','${esc(d)}',${idx})">×</span>
+          </div>`).join('')}
+          <span class="fw-item-link" onclick="addAgendaItem('${esc(c.name)}','${esc(d)}')">+ item</span>
+        </div>`;
+      }).join('') + `<span class="fw-item-link" onclick="addAgendaDay('${esc(c.name)}')">+ Add day</span>`;
+    }else if(!ec.day_order.length){
       syllabusCell = '<span style="color:var(--s300)">no agenda on file</span>';
     }else if(!agendaExpanded){
-      syllabusCell = `${agenda.day_order.length}-day agenda on file <span class="fw-item-link" onclick="toggleCmAgenda('${esc(c.name)}')">View ▼</span>`;
+      syllabusCell = `${ec.day_order.length}-day agenda on file <span class="fw-item-link" onclick="toggleCmAgenda('${esc(c.name)}')">View ▼</span>`;
     }else{
-      syllabusCell = agenda.day_order.map(d=>{
-        const items = agenda.days[d];
+      syllabusCell = ec.day_order.map(d=>{
+        const items = ec.days[d]||[];
         return `<div style="margin-bottom:4px"><b style="font-size:9px;color:var(--s700)">${esc(d)}</b>`+
           items.map(it=>`<div style="font-size:9px;color:var(--s600);padding-left:6px">${it.time?`<b>${esc(it.time)}</b> `:''}${esc(it.content)}</div>`).join('')+
         `</div>`;
@@ -1331,12 +1475,12 @@ function renderCourseMaster(){
     }).join('');
 
     return `<tr><td>${esc(c.sub_line)}</td>`+
-      `<td class="td-course"><b>${esc(c.name)}</b></td>`+
+      `<td class="td-course"><b>${esc(c.name)}</b> ${editBtn}</td>`+
       `<td style="max-width:220px">${modelsCell}</td>`+
       `<td><span class="badge b-gy">${CM_TYPE_LABEL[c.learning_type]||esc(c.learning_type)}</span></td>`+
-      `<td class="td-course">${c.field_course_name?esc(c.field_course_name):'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td class="td-course">${fcnCell}</td>`+
       `<td>${duration}</td>`+
-      `<td style="max-width:200px">${syllabusCell}</td>`+
+      `<td style="max-width:220px">${syllabusCell}</td>`+
       regionCells+`</tr>`;
   }).join('');
   document.getElementById('cm-cnt').textContent = rows.length+' / '+COURSES.length+' courses'+(GF.subline!=='ALL'?' · filtered to '+esc(GF.subline):'');
@@ -1532,11 +1676,96 @@ function addCalendarRow(){
 }
 
 let calMonthFilter='ALL';
+let calViewMode='month';
+let calCurrentYM=null; // {y,m} 1-indexed month, set on first render to a month with real data
+const CAL_TYPE_COLOR = {'Certificate Training':'#818CF8','Advanced Training':'#FBBF24','New Product Training':'#34D399'};
+
+function setCalView(mode){
+  calViewMode = mode;
+  document.getElementById('cal-view-month-btn').classList.toggle('on', mode==='month');
+  document.getElementById('cal-view-table-btn').classList.toggle('on', mode==='table');
+  document.getElementById('cal-month-grid').closest('.card').style.display = mode==='month' ? '' : 'none';
+  document.getElementById('cal-table-wrap').style.display = mode==='table' ? '' : 'none';
+  if(mode==='month') renderMonthGrid();
+}
+function calShiftMonth(delta){
+  calCurrentYM.m += delta;
+  if(calCurrentYM.m>12){ calCurrentYM.m=1; calCurrentYM.y++; }
+  if(calCurrentYM.m<1){ calCurrentYM.m=12; calCurrentYM.y--; }
+  renderMonthGrid();
+}
+function calSessionsFor(){
+  return CALENDAR_DATA.filter(r=>
+    (GF.subline==='ALL'||r.sub_line===GF.subline) &&
+    (GF.region2==='ALL'||r.region2===GF.region2||r.region2==='HQ')
+  );
+}
+function showCalDetail(r){
+  const el = document.getElementById('cal-day-detail');
+  el.innerHTML = `<div class="card" style="margin-top:8px">
+    <div class="ct">${esc(r.mcsr_program||r.field_course_name||'Session')}<span class="en">${esc(r.sub_line||'')} · ${esc(r.training_type||'')}</span></div>
+    <div style="font-size:11px;color:var(--s600);line-height:1.9">
+      <b>Dates:</b> ${esc(r.start||'—')} → ${esc(r.end||'—')} (${esc(String(r.duration||'—'))} days)<br>
+      <b>Region:</b> ${esc(r.region2||'—')} ${r.region3?'· '+esc(r.region3):''} &nbsp; <b>Location:</b> ${esc(r.location||'—')}<br>
+      <b>Instructor:</b> ${esc(r.instructor||'—')} &nbsp; <b>Language:</b> ${esc(r.language||'—')}<br>
+      ${r.reg_link?`<a href="${esc(r.reg_link)}" target="_blank" style="color:var(--p)">Registration link ↗</a>`:''}
+    </div>
+  </div>`;
+}
+function renderMonthGrid(){
+  const sessions = calSessionsFor();
+  if(!calCurrentYM){
+    const withDates = sessions.filter(r=>r.start).sort((a,b)=>a.start.localeCompare(b.start));
+    const first = withDates[0];
+    calCurrentYM = first ? {y:+first.start.slice(0,4), m:+first.start.slice(5,7)} : {y:2026,m:1};
+  }
+  const {y,m} = calCurrentYM;
+  const monthName = new Date(y, m-1, 1).toLocaleString('en-US',{month:'long'});
+  document.getElementById('cal-month-nav').innerHTML =
+    `<span class="tbtn" onclick="calShiftMonth(-1)">‹</span><b style="font-size:12px;min-width:120px;text-align:center;display:inline-block">${monthName} ${y}</b><span class="tbtn" onclick="calShiftMonth(1)">›</span>`;
+
+  const firstDow = new Date(y, m-1, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  // index sessions by every date they span (start..end inclusive)
+  const byDate = {};
+  sessions.forEach(r=>{
+    if(!r.start) return;
+    const end = r.end || r.start;
+    let d = new Date(r.start), stop = new Date(end);
+    let guard=0;
+    while(d<=stop && guard<60){
+      const key = d.toISOString().slice(0,10);
+      (byDate[key]=byDate[key]||[]).push(r);
+      d.setDate(d.getDate()+1); guard++;
+    }
+  });
+
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<firstDow;i++) html += '<div class="cal-cell cal-empty"></div>';
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const todays = byDate[dateStr]||[];
+    const isToday = dateStr===todayStr;
+    html += `<div class="cal-cell${isToday?' cal-today':''}"><div class="cal-daynum">${day}</div>`+
+      todays.slice(0,3).map(r=>{
+        const c = CAL_TYPE_COLOR[r.training_type]||'#94A3B8';
+        const label = (r.mcsr_program||r.field_course_name||'Session').slice(0,20);
+        return `<span class="cal-chip" style="background:${c}30;color:${c}" onclick='showCalDetail(${JSON.stringify(r).replace(/'/g,"&#39;")})'>${esc(label)}</span>`;
+      }).join('') +
+      (todays.length>3?`<span style="font-size:8px;color:var(--s400)">+${todays.length-3} more</span>`:'') +
+      `</div>`;
+  }
+  document.getElementById('cal-month-grid').innerHTML = `<div class="cal-grid">${html}</div><div id="cal-day-detail"></div>`;
+}
+
 function renderCalendar(){
   document.getElementById('cal-edit-hint').innerHTML = isHQ()
     ? '<b style="color:var(--p)">signed in as HQ — edit or add any session</b>'
     : (CURRENT_USER ? `<b style="color:var(--p)">edit/add sessions in ${esc(myRegion2()||CURRENT_USER.region)} only</b>` : 'sign in to edit');
   document.getElementById('cal-add-btn').style.display = CURRENT_USER ? '' : 'none';
+  if(calViewMode==='month') renderMonthGrid();
 
   const months = ['ALL', ...new Set(CALENDAR_DATA.map(r=>(r.start||'').slice(0,7)).filter(Boolean))].sort();
   document.getElementById('cal-month-filters').innerHTML = months.map(m=>
@@ -1631,6 +1860,7 @@ let CURRENT_USER = null;
 async function boot(){
   VENUE_DATA = await loadVenueData();
   CALENDAR_DATA = await loadCalendarData();
+  COURSE_EDITS = await loadCourseEdits();
   renderGlobalFilterBar();
   applyRegionLock();
   renderHome();
