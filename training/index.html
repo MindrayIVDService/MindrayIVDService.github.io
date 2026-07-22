@@ -1645,15 +1645,39 @@ let CALENDAR_DATA = [];
 const CAL_SUBLINE_TO_LONG = {'Hematology':'Hematology','Biochemistry':'Biochemistry Instrument','CLIA':'CLIA Instrument','Urine':'Urinalysis Instrument','Coagulation':'Congulation Instrument','Microbe':'Microbiological instrument'};
 // Reverse lookups built from real data: pick a course from the standard list and its
 // real duration (median days from face-to-face record) and registration link (constant
-// per course in the real 2026 HQ calendar) come along automatically.
+// per course in the real 2026 HQ calendar) come along automatically. Both are keyed by
+// Field Course Name, which is what the dropdown actually shows and what gets selected —
+// keying by mcsr_program only (the earlier bug) silently missed every lookup.
 const COURSE_DURATION_LOOKUP = {}; COURSES.forEach(c=>{ if(c.duration_days!=null){ COURSE_DURATION_LOOKUP[c.name]=c.duration_days; if(c.field_course_name) COURSE_DURATION_LOOKUP[c.field_course_name]=c.duration_days; } });
-const COURSE_LINK_LOOKUP = {}; CALENDAR_SEED.forEach(r=>{ const k=r.mcsr_program||r.field_course_name; if(k && r.reg_link && !COURSE_LINK_LOOKUP[k]) COURSE_LINK_LOOKUP[k]=r.reg_link; });
+const COURSE_LINK_LOOKUP = {};
+CALENDAR_SEED.forEach(r=>{
+  if(r.reg_link){
+    if(r.field_course_name && !COURSE_LINK_LOOKUP[r.field_course_name]) COURSE_LINK_LOOKUP[r.field_course_name]=r.reg_link;
+    if(r.mcsr_program && !COURSE_LINK_LOOKUP[r.mcsr_program]) COURSE_LINK_LOOKUP[r.mcsr_program]=r.reg_link;
+  }
+});
+// Only real face-to-face/oral-exam courses that actually have a Field Course Name —
+// self-learning courses have no face-to-face session to schedule on a calendar.
+const CAL_STANDARD_COURSES = COURSES.filter(c=>c.field_course_name);
+const COURSE_BY_FCN = {}; CAL_STANDARD_COURSES.forEach(c=>{ COURSE_BY_FCN[c.field_course_name]=c; });
 const CAL_LOCATION_SUGGESTIONS = [...new Set([
   ...TC_BUSINESS.map(t=>t.geo?`${t.geo.city}, ${t.geo.country}`:null).filter(Boolean),
   ...TC_BUSINESS.map(t=>t.loc)
 ])].sort();
+// Locations grouped by Region II so picking a region narrows the location suggestions
+const CAL_LOC_BY_REGION = {HQ:['Wuhan']};
+TC_BUSINESS.forEach(t=>{
+  const r2 = LOC_REGION2[t.loc]; if(!r2) return;
+  const label = t.geo ? `${t.geo.city}, ${t.geo.country}` : t.loc;
+  (CAL_LOC_BY_REGION[r2]=CAL_LOC_BY_REGION[r2]||[]).push(label);
+});
 function onCalCourseChange(id, value){
   setCalendarField(id,'field_course_name',value);
+  const course = COURSE_BY_FCN[value];
+  if(course){
+    setCalendarField(id,'sub_line',course.sub_line);
+    setCalendarField(id,'training_type','Certificate Training'); // every real MCSR field course in the seed data is a Certificate Training session
+  }
   const dur = COURSE_DURATION_LOOKUP[value];
   const link = COURSE_LINK_LOOKUP[value];
   if(dur!=null) setCalendarField(id,'duration',dur);
@@ -1661,23 +1685,33 @@ function onCalCourseChange(id, value){
   renderCalendar();
 }
 async function loadCalendarData(){
+  const normalize = arr => arr.map(r=>Object.assign({}, r, {sub_line: CAL_SUBLINE_TO_LONG[r.sub_line]||r.sub_line}));
   if(USE_SUPABASE){
     const { data, error } = await sb.from('tla_calendar').select('*').order('start_date');
-    if(!error && data && data.length) return data.map(r=>({
+    if(!error && data && data.length) return normalize(data.map(r=>({
       id:r.id, sub_line:r.sub_line, training_type:r.training_type, field_course_name:r.field_course_name,
       duration:r.duration, start:r.start_date, end:r.end_date, region2:r.region2, region3:r.region3,
       location:r.location, instructor:r.instructor, devices:r.devices, language:r.language, reg_link:r.reg_link,
       mcsr_program:r.mcsr_program
-    }));
+    })));
     if(error) console.error('Supabase calendar load failed, using seed/local cache', error);
   }
   try{
     const cached = JSON.parse(localStorage.getItem(CAL_KEY));
-    if(cached && cached.length) return cached;
+    if(cached && cached.length) return normalize(cached);
   }catch(e){}
   // First run: seed from the real 2026 HQ workbook, tag each with a stable id,
   // and standardize sub_line to the long form used everywhere else on the site
-  return CALENDAR_SEED.map((r,i)=>Object.assign({id:'seed_'+i}, r, {sub_line: CAL_SUBLINE_TO_LONG[r.sub_line]||r.sub_line}));
+  return normalize(CALENDAR_SEED.map((r,i)=>Object.assign({id:'seed_'+i}, r)));
+}
+function deleteCalendarRow(id){
+  if(!confirm('Delete this session? This cannot be undone.')) return;
+  CALENDAR_DATA = CALENDAR_DATA.filter(r=>r.id!==id);
+  saveCalendarLocal();
+  if(USE_SUPABASE && typeof id!=='string'){
+    sb.from('tla_calendar').delete().eq('id', id).then(({error})=>{ if(error) console.error('Supabase calendar delete failed', error); });
+  }
+  renderCalendar();
 }
 function saveCalendarLocal(){ try{ localStorage.setItem(CAL_KEY, JSON.stringify(CALENDAR_DATA)); }catch(e){} }
 async function setCalendarField(id, field, value){
@@ -1779,7 +1813,7 @@ function calShiftMonth(delta){
 }
 function calSessionsFor(){
   return CALENDAR_DATA.filter(r=>
-    (GF.subline==='ALL'||r.sub_line===GF.subline) &&
+    (GF.subline==='ALL'||r.sub_line===GF.subline||(CAL_SUBLINE_TO_LONG[r.sub_line]||r.sub_line)===GF.subline) &&
     (GF.region2==='ALL'||r.region2===GF.region2||r.region2==='HQ')
   );
 }
@@ -1858,7 +1892,7 @@ function renderCalendar(){
   const q = (document.getElementById('cal-search').value||'').toUpperCase();
   let rows = CALENDAR_DATA.filter(r=>
     (calMonthFilter==='ALL'||(r.start||'').startsWith(calMonthFilter)) &&
-    (GF.subline==='ALL'||r.sub_line===GF.subline) &&
+    (GF.subline==='ALL'||r.sub_line===GF.subline||(CAL_SUBLINE_TO_LONG[r.sub_line]||r.sub_line)===GF.subline) &&
     (GF.region2==='ALL'||r.region2===GF.region2||(GF.region2 && r.region2==='HQ')) &&
     (!q || [r.field_course_name,r.instructor,r.mcsr_program].some(v=>v&&v.toUpperCase().includes(q)))
   ).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
@@ -1870,16 +1904,27 @@ function renderCalendar(){
     {lbl:'Total Training Days', cn:'培训总时长(天)', val:CALENDAR_DATA.reduce((s,r)=>s+(+r.duration||0),0)},
   ].map(c=>`<div class="k"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.cn}</div></div>`).join('');
 
-  const cols = ['Start','End','Sub-Line','Training Type','Field Course Name / MCSR Program','Duration','Region II','Location','Instructor','Language','Link'];
+  const cols = ['Start','End','Sub-Line','Training Type','Field Course Name / MCSR Program','Duration','Region II','Location','Instructor','Language','Link',''];
   document.getElementById('cal-thead').innerHTML = cols.map(c=>`<th style="white-space:nowrap">${c}</th>`).join('');
 
   // Datalists (shared across rows): standardized course/location suggestions, but
   // <input list="..."> still accepts free text for non-standard/one-off sessions.
-  document.getElementById('cal-datalists').innerHTML =
-    `<datalist id="cal-course-list">${COURSES.map(c=>`<option value="${esc(c.field_course_name||c.name)}">`).join('')}</datalist>
-     <datalist id="cal-location-list">${CAL_LOCATION_SUGGESTIONS.map(l=>`<option value="${esc(l)}">`).join('')}</datalist>`;
+  // One course datalist per real sub-line, so picking a sub-line first narrows the
+  // course suggestions to that sub-line's real face-to-face/oral-exam courses.
+  let datalistsHtml = `<datalist id="cal-course-list-ALL">${CAL_STANDARD_COURSES.map(c=>`<option value="${esc(c.field_course_name)}">`).join('')}</datalist>
+     <datalist id="cal-location-list-ALL">${CAL_LOCATION_SUGGESTIONS.map(l=>`<option value="${esc(l)}">`).join('')}</datalist>`;
+  SUBLINE_LIST.forEach(s=>{
+    const opts = CAL_STANDARD_COURSES.filter(c=>c.sub_line===s).map(c=>`<option value="${esc(c.field_course_name)}">`).join('');
+    datalistsHtml += `<datalist id="cal-course-list-${esc(s.replace(/\W/g,'_'))}">${opts}</datalist>`;
+  });
+  Object.keys(CAL_LOC_BY_REGION).forEach(r2=>{
+    datalistsHtml += `<datalist id="cal-location-list-${esc(r2)}">${CAL_LOC_BY_REGION[r2].map(l=>`<option value="${esc(l)}">`).join('')}</datalist>`;
+  });
+  document.getElementById('cal-datalists').innerHTML = datalistsHtml;
 
   const regionOpts = ['HQ', ...Object.keys(REGION_MAP)];
+  const CAL_TRAINING_TYPES = ['Certificate Training','Advanced Training','New Product Training'];
+  const CAL_LANGUAGES = ['EN','RU','ES'];
   document.getElementById('cal-tbody').innerHTML = rows.map(r=>{
     const editable = isHQ() || (CURRENT_USER && r.region2===myRegion2());
     const inp = (field, ph, w) => editable
@@ -1889,31 +1934,49 @@ function renderCalendar(){
       ? `<input type="date" value="${esc(r[field]||'')}" onchange="setCalendarField('${r.id}','${field}',this.value)" style="width:118px;font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">`
       : (r[field] || '<span style="color:var(--s300)">—</span>');
     const regionCell = editable
-      ? `<select onchange="setCalendarField('${r.id}','region2',this.value)" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
+      ? `<select onchange="setCalendarField('${r.id}','region2',this.value);renderCalendar()" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
            ${regionOpts.map(o=>`<option value="${o}" ${r.region2===o?'selected':''}>${o}</option>`).join('')}
          </select>`
       : (r.region2 || '—');
     const sublineCell = editable
-      ? `<select onchange="setCalendarField('${r.id}','sub_line',this.value)" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
+      ? `<select onchange="setCalendarField('${r.id}','sub_line',this.value);renderCalendar()" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
            <option value="">—</option>${SUBLINE_LIST.map(s=>`<option value="${esc(s)}" ${r.sub_line===s?'selected':''}>${esc(SUBLINE_ABBR[s]||s)}</option>`).join('')}
          </select>`
       : (r.sub_line ? esc(r.sub_line) : '<span style="color:var(--s300)">—</span>');
+    // Course suggestions narrow to the chosen sub-line's real courses, if one is set
+    const courseListId = r.sub_line ? `cal-course-list-${r.sub_line.replace(/\W/g,'_')}` : 'cal-course-list-ALL';
     const courseCell = editable
-      ? `<input list="cal-course-list" type="text" value="${esc(r.field_course_name||'')}" placeholder="Standard course, or type custom" onchange="onCalCourseChange('${r.id}',this.value)" style="width:200px;font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">`
+      ? `<input list="${courseListId}" type="text" value="${esc(r.field_course_name||'')}" placeholder="Standard course, or type custom" onchange="onCalCourseChange('${r.id}',this.value)" style="width:200px;font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">`
       : esc(r.mcsr_program || r.field_course_name);
+    const trainingTypeCell = editable
+      ? `<select onchange="setCalendarField('${r.id}','training_type',this.value)" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
+           ${CAL_TRAINING_TYPES.map(t=>`<option value="${t}" ${r.training_type===t?'selected':''}>${t}</option>`).join('')}
+         </select>`
+      : (r.training_type ? esc(r.training_type) : '<span style="color:var(--s300)">—</span>');
+    // Location suggestions narrow to the chosen Region II's real training centers
+    const locListId = r.region2 && CAL_LOC_BY_REGION[r.region2] ? `cal-location-list-${r.region2}` : 'cal-location-list-ALL';
     const locationCell = editable
-      ? `<input list="cal-location-list" type="text" value="${esc(r.location||'')}" placeholder="Standard location, or type custom" onchange="setCalendarField('${r.id}','location',this.value)" style="width:110px;font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">`
+      ? `<input list="${locListId}" type="text" value="${esc(r.location||'')}" placeholder="Standard location, or type custom" onchange="setCalendarField('${r.id}','location',this.value)" style="width:110px;font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">`
       : (r.location ? esc(r.location) : '<span style="color:var(--s300)">—</span>');
+    const isCustomLang = r.language && !CAL_LANGUAGES.includes(r.language);
+    const languageCell = editable
+      ? `<select onchange="if(this.value==='Other'){this.nextElementSibling.style.display='inline-block';this.nextElementSibling.focus();}else{setCalendarField('${r.id}','language',this.value);}" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
+           ${CAL_LANGUAGES.map(l=>`<option value="${l}" ${r.language===l?'selected':''}>${l}</option>`).join('')}
+           <option value="Other" ${isCustomLang?'selected':''}>Other</option>
+         </select><input type="text" value="${isCustomLang?esc(r.language):''}" placeholder="language" onchange="setCalendarField('${r.id}','language',this.value)" style="display:${isCustomLang?'inline-block':'none'};width:50px;font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px;margin-left:2px">`
+      : (r.language ? esc(r.language) : '<span style="color:var(--s300)">—</span>');
+    const deleteBtn = editable ? `<span class="fw-item-link" style="color:var(--er)" onclick="deleteCalendarRow('${r.id}')">🗑</span>` : '';
     return `<tr><td>${dateInp('start')}</td><td>${dateInp('end')}</td>`+
       `<td>${sublineCell}</td>`+
-      `<td>${inp('training_type','Type',110)}</td>`+
+      `<td>${trainingTypeCell}</td>`+
       `<td class="td-course">${courseCell}</td>`+
       `<td>${inp('duration','days',40)}</td>`+
       `<td>${regionCell}</td>`+
       `<td>${locationCell}</td>`+
       `<td>${inp('instructor','name',90)}</td>`+
-      `<td>${inp('language','EN',36)}</td>`+
-      `<td>${r.reg_link?`<a href="${esc(r.reg_link)}" target="_blank" style="color:var(--p)">Register ↗</a>`:'<span style="color:var(--s300)">—</span>'}</td></tr>`;
+      `<td>${languageCell}</td>`+
+      `<td>${r.reg_link?`<a href="${esc(r.reg_link)}" target="_blank" style="color:var(--p)">Register ↗</a>`:'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td>${deleteBtn}</td></tr>`;
   }).join('');
   document.getElementById('cal-cnt').textContent = rows.length+' / '+CALENDAR_DATA.length+' sessions';
 }
