@@ -453,8 +453,7 @@ details.dcx summary:hover{color:var(--pd)}
 </div>
 
 <div class="page" id="p-resource">
-  <div class="ph"><h2>Training Centers<span class="en">Coverage map, venue conditions &amp; business performance</span></h2></div>
-  <div class="ph-sub" style="margin-bottom:10px">Only locations with actual sessions in <b>face-to-face record</b> are shown — <span id="tc-real-count"></span> real active locations, not the full 111-row training-center master list (most of which have never actually run a session). Reacts to the Region / Sub-line / Scope filters above.</div>
+  <div class="ph"><h2>Training Centers<span class="en">Coverage map, venue conditions &amp; business performance</span></h2><span id="tc-real-count" style="display:none"></span></div>
 
   <div style="display:grid;grid-template-columns:220px 1fr;gap:9px;align-items:stretch">
     <div id="tc-kpi" style="display:flex;flex-direction:column;gap:7px"></div>
@@ -896,7 +895,7 @@ const SUPABASE_ANON_KEY = '';  // anon/public key, safe for client-side use with
 const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY && typeof supabase!=='undefined');
 const sb = USE_SUPABASE ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 const VENUE_KEY = 'tla_venue_data_v1';
-const VENUE_DEFAULT = { region2:'', region3:'', country:'', capacity:'', demo:[], tooling:'', utilities:false, catering:false };
+const VENUE_DEFAULT = { region2:'', region3:'', country:'', area:'', headcount:'', demo:[], tooling:'', utilities:false, catering:false };
 
 let VENUE_DATA = {};
 async function loadVenueData(){
@@ -906,19 +905,40 @@ async function loadVenueData(){
     else{
       const d = {};
       data.forEach(row=>{ d[row.loc] = { region2:row.region2||'', region3:row.region3||'', country:row.country||'',
-        capacity:row.capacity||'', demo:row.demo_models||[], tooling:row.tooling||'', utilities:!!row.utilities, catering:!!row.catering }; });
+        area:row.area||'', headcount:row.headcount||'', demo:row.demo_models||[], tooling:row.tooling||'', utilities:!!row.utilities, catering:!!row.catering }; });
       return d;
     }
   }
   try{ return JSON.parse(localStorage.getItem(VENUE_KEY))||{}; }catch(e){ return {}; }
 }
 function venueFor(loc){ return VENUE_DATA[loc] || VENUE_DEFAULT; }
+// Region II is known for certain (computed from real face-to-face record r2 field --
+// see computeTcStats' regionOwner). Region III is only a best-effort guess (matching the
+// geocoded city name against REGION_MAP) since no source table ties a training center
+// directly to a Region III value -- it's pre-filled but stays editable/overridable.
+function guessRegion3(t){
+  if(!t.geo || !t.regionOwner) return '';
+  const opts = REGION_MAP[t.regionOwner] || [];
+  const cityUp = (t.geo.city||'').toUpperCase();
+  let m = opts.find(o=>o===cityUp);
+  if(m) return m;
+  m = opts.find(o=>cityUp.includes(o) || o.includes(cityUp));
+  return m || '';
+}
+function effectiveVenue(t){
+  const v = venueFor(t.loc);
+  return Object.assign({}, v, {
+    region2: v.region2 || t.regionOwner || '',
+    region3: v.region3 || guessRegion3(t) || '',
+    country: v.country || (t.geo ? (t.geo.city+', '+t.geo.country) : '')
+  });
+}
 async function setVenueField(loc, field, value){
   VENUE_DATA[loc] = Object.assign({}, venueFor(loc), { [field]: value });
   if(USE_SUPABASE){
     const v = VENUE_DATA[loc];
     const { error } = await sb.from('tla_venue_conditions').upsert({
-      loc, region2:v.region2, region3:v.region3, country:v.country, capacity:v.capacity||null,
+      loc, region2:v.region2, region3:v.region3, country:v.country, area:v.area||null, headcount:v.headcount||null,
       demo_models:v.demo, tooling:v.tooling, utilities:v.utilities, catering:v.catering,
       updated_by: CURRENT_USER ? CURRENT_USER.username : null, updated_at: new Date().toISOString()
     }, { onConflict:'loc' });
@@ -959,7 +979,8 @@ function computeTcStats(){
   });
 }
 
-let tcSortKey='sessions', tcSortDir=-1;
+let tcSortKey='level', tcSortDir=1;
+const TC_LEVEL_RANK = {}; TC_LEVEL_ORDER.forEach((l,i)=>TC_LEVEL_RANK[l]=i);
 const SUBLINE_COLOR = {};
 (function(){ const palette=['#60A5FA','#818CF8','#34D399','#FBBF24','#2DD4BF','#F472B6']; SUBLINE_LIST.forEach((s,i)=>SUBLINE_COLOR[s]=palette[i%palette.length]); })();
 function tcSort(key){ if(tcSortKey===key) tcSortDir*=-1; else { tcSortKey=key; tcSortDir=-1; } renderTcTable(); }
@@ -992,6 +1013,10 @@ function renderTcTable(){
     (!q || [t.loc,(t.geo&&t.geo.country)||venueFor(t.loc).country||''].some(v=>v&&v.toUpperCase().includes(q)))
   );
   rows.sort((a,b)=>{
+    if(tcSortKey==='level'){
+      const d = tcSortDir*(TC_LEVEL_RANK[a.level]-TC_LEVEL_RANK[b.level]);
+      return d!==0 ? d : (b.sessions-a.sessions); // within the same level, busiest centers first
+    }
     const ka = tcSortKey==='loc' ? a.loc : (a[tcSortKey]!=null?a[tcSortKey]:-Infinity);
     const kb = tcSortKey==='loc' ? b.loc : (b[tcSortKey]!=null?b[tcSortKey]:-Infinity);
     if(typeof ka==='string') return tcSortDir*ka.localeCompare(kb);
@@ -1001,7 +1026,7 @@ function renderTcTable(){
   const cols = [
     ['loc','Training Center'],['level','Level'],['region2','Region II'],['region3','Region III'],['country','Country/City'],
     ['sessions','Sessions'],['trainees','Trainees (Int./Chan.)'],['mcsr','MCSR Obtained'],['mcsr_rate','MCSR Rate'],['instr','Instructors RTS/CS/Ch'],
-    ['capacity','Capacity'],['demo','Demo Units'],['tooling','Tooling / Reagent'],['utilities','Water supply / UPS'],['catering','Catering']
+    ['area','Room Area'],['headcount','Max Headcount'],['demo','Demo Units'],['tooling','Tooling / Reagent'],['utilities','Water supply / UPS'],['catering','Catering']
   ];
   document.getElementById('tc-thead').innerHTML = cols.map(([key,label])=>
     `<th onclick="tcSort('${key}')" style="cursor:pointer;white-space:nowrap">${label}${tcSortKey===key?(tcSortDir===1?' \u2191':' \u2193'):''}</th>`
@@ -1015,10 +1040,8 @@ function renderTcTable(){
     const editable = canEditRegion(t.regionOwner);
     const rateColor = t.mcsr_rate>=70?'var(--ok)':t.mcsr_rate>=40?'var(--wa)':'var(--er)';
     const testTag = t.test_flag ? ' <span class="badge b-er" style="margin-left:4px">TEST record?</span>' : '';
-    const v = venueFor(t.loc);
+    const v = effectiveVenue(t);
     const id = locId(t.loc);
-
-    // Region II: dropdown, options from REGION_MAP keys (no free text)
     const region2Cell = editable
       ? `<select onchange="setVenueField('${esc(t.loc)}','region2',this.value)" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px;width:70px">
            <option value="">—</option>${regionOpts.map(r=>`<option value="${r}" ${v.region2===r?'selected':''}>${r}</option>`).join('')}
@@ -1032,9 +1055,12 @@ function renderTcTable(){
          </select>`
       : (v.region3 ? esc(v.region3) : '<span style="color:var(--s300)">—</span>');
 
-    const capacityCell = editable
-      ? `<input type="number" min="0" value="${esc(v.capacity||'')}" placeholder="pax" onchange="setVenueField('${esc(t.loc)}','capacity',this.value)" style="width:56px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
-      : (v.capacity ? v.capacity+' pax' : '<span style="color:var(--s300)">—</span>');
+    const areaCell = editable
+      ? `<input type="number" min="0" value="${esc(v.area||'')}" placeholder="m\u00b2" onchange="setVenueField('${esc(t.loc)}','area',this.value)" style="width:52px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
+      : (v.area ? v.area+' m\u00b2' : '<span style="color:var(--s300)">—</span>');
+    const headcountCell = editable
+      ? `<input type="number" min="0" value="${esc(v.headcount||'')}" placeholder="pax" onchange="setVenueField('${esc(t.loc)}','headcount',this.value)" style="width:52px;font-size:10px;padding:3px 5px;border:1px solid var(--s200);border-radius:4px">`
+      : (v.headcount ? v.headcount+' pax' : '<span style="color:var(--s300)">—</span>');
 
     const demoTag = m => {
       const c = SUBLINE_COLOR[modelSubline[m]] || '#94A3B8';
@@ -1044,12 +1070,13 @@ function renderTcTable(){
     const sublineFilterId = id+'_subline';
     const demoCell = editable
       ? `<div id="${id}_demo">${demoTags||'<span style="color:var(--s300);font-size:9.5px">none set</span>'}</div>
-         <select id="${sublineFilterId}" onchange="filterDemoSelect('${esc(t.loc)}')" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:76px">
+         <select id="${sublineFilterId}" onchange="filterDemoSelect('${esc(t.loc)}')" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:150px">
            <option value="">Sub-line…</option>${SUBLINE_LIST.map(s=>`<option value="${esc(s)}">${esc(SUBLINE_ABBR[s]||s)}</option>`).join('')}
+         </select><br>
+         <select id="${id}_modelsel" multiple size="4" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:150px">
+           ${models.map(m=>`<option value="${esc(m)}" data-sub="${esc(modelSubline[m]||'')}">${esc(m)}</option>`).join('')}
          </select>
-         <select id="${id}_modelsel" onchange="addDemoModel('${esc(t.loc)}',this.value);this.value=''" style="font-size:9px;padding:2px 3px;border:1px solid var(--s200);border-radius:4px;margin-top:3px;width:96px">
-           <option value="">+ add model</option>${models.map(m=>`<option value="${esc(m)}" data-sub="${esc(modelSubline[m]||'')}">${esc(m)}</option>`).join('')}
-         </select>`
+         <button class="tbtn" style="padding:2px 8px;font-size:9px;margin-top:2px" onclick="addSelectedDemoModels('${esc(t.loc)}')">+ Add selected</button>`
       : (demoTags || '<span style="color:var(--s300)">—</span>');
 
     const utilCell = editable
@@ -1075,7 +1102,8 @@ function renderTcTable(){
       `<td>${t.mcsr}</td>`+
       `<td style="color:${rateColor};font-weight:700">${t.mcsr_rate}%</td>`+
       `<td>${t.instr_rts} / ${t.instr_cs} / ${t.instr_channel}</td>`+
-      `<td>${capacityCell}</td>`+
+      `<td>${areaCell}</td>`+
+      `<td>${headcountCell}</td>`+
       `<td>${demoCell}</td>`+
       `<td>${toolingCell}</td>`+
       `<td style="text-align:center">${utilCell}</td>`+
@@ -1097,13 +1125,13 @@ function filterDemoSelect(loc){
 }
 function exportTcCsv(){
   const rows = window._tcRowsForExport || [];
-  const head = ['Training Center','Level','Region II','Region III','Country/City','Sessions','Trainees Internal','Trainees Channel','MCSR Obtained','MCSR Rate %','Instructors RTS','Instructors CS','Instructors Channel','Capacity','Demo Units','Tooling/Reagent','Water supply/UPS','Catering'];
+  const head = ['Training Center','Level','Region II','Region III','Country/City','Sessions','Trainees Internal','Trainees Channel','MCSR Obtained','MCSR Rate %','Instructors RTS','Instructors CS','Instructors Channel','Room Area (m2)','Max Headcount','Demo Units','Tooling/Reagent','Water supply/UPS','Catering'];
   const lines = [head.join(',')];
   rows.forEach(t=>{
-    const v = venueFor(t.loc);
-    const cells = [t.loc, TC_LEVEL_DISPLAY[t.level], v.region2||'', v.region3||'', v.country||(t.geo?t.geo.city+' '+t.geo.country:''),
+    const v = effectiveVenue(t);
+    const cells = [t.loc, TC_LEVEL_DISPLAY[t.level], v.region2||'', v.region3||'', v.country||'',
       t.sessions, t.internal, t.channel, t.mcsr, t.mcsr_rate, t.instr_rts, t.instr_cs, t.instr_channel,
-      v.capacity||'', (v.demo||[]).join('; '), v.tooling||'', v.utilities?'Y':'N', v.catering?'Y':'N'];
+      v.area||'', v.headcount||'', (v.demo||[]).join('; '), v.tooling||'', v.utilities?'Y':'N', v.catering?'Y':'N'];
     lines.push(cells.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(','));
   });
   const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
@@ -1112,19 +1140,38 @@ function exportTcCsv(){
   a.download = 'training_centers_'+new Date().toISOString().slice(0,10)+'.csv';
   a.click();
 }
+function renderDemoTags(loc, models){
+  const modelSubline = {}; COURSE_MASTER.forEach(r=>{ if(r.model && !modelSubline[r.model]) modelSubline[r.model]=r.sub_line; });
+  return models.map(m=>{
+    const c = SUBLINE_COLOR[modelSubline[m]] || '#94A3B8';
+    return `<span class="badge" style="background:${c}22;color:${c};margin:1px 2px 1px 0;cursor:pointer" onclick="removeDemoModel('${esc(loc)}','${esc(m)}')">${esc(m)} ×</span>`;
+  }).join('') || '<span style="color:var(--s300);font-size:9.5px">none set</span>';
+}
+function addSelectedDemoModels(loc){
+  const sel = document.getElementById(locId(loc)+'_modelsel');
+  const chosen = [...sel.selectedOptions].map(o=>o.value).filter(Boolean);
+  if(!chosen.length) return;
+  const v = venueFor(loc);
+  const merged = [...new Set([...(v.demo||[]), ...chosen])];
+  setVenueField(loc,'demo',merged);
+  const cell = document.getElementById(locId(loc)+'_demo');
+  if(cell) cell.innerHTML = renderDemoTags(loc, merged);
+  [...sel.options].forEach(o=>o.selected=false);
+}
 function addDemoModel(loc, model){
   if(!model) return;
   const v = venueFor(loc);
-  if(!v.demo.includes(model)){ v.demo = [...v.demo, model]; setVenueField(loc,'demo',v.demo); }
+  const merged = v.demo.includes(model) ? v.demo : [...v.demo, model];
+  setVenueField(loc,'demo',merged);
   const cell = document.getElementById(locId(loc)+'_demo');
-  if(cell) cell.innerHTML = v.demo.map(m=>`<span class="badge b-bl" style="margin:1px 2px 1px 0;cursor:pointer" onclick="removeDemoModel('${esc(loc)}','${esc(m)}')">${esc(m)} ×</span>`).join('');
+  if(cell) cell.innerHTML = renderDemoTags(loc, merged);
 }
 function removeDemoModel(loc, model){
   const v = venueFor(loc);
-  v.demo = v.demo.filter(m=>m!==model);
-  setVenueField(loc,'demo',v.demo);
+  const remaining = v.demo.filter(m=>m!==model);
+  setVenueField(loc,'demo',remaining);
   const cell = document.getElementById(locId(loc)+'_demo');
-  if(cell) cell.innerHTML = v.demo.map(m=>`<span class="badge b-bl" style="margin:1px 2px 1px 0;cursor:pointer" onclick="removeDemoModel('${esc(loc)}','${esc(m)}')">${esc(m)} ×</span>`).join('') || '<span style="color:var(--s300);font-size:9.5px">none set</span>';
+  if(cell) cell.innerHTML = renderDemoTags(loc, remaining);
 }
 
 function renderTcMap(stats){
