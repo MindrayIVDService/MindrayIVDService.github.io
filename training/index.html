@@ -435,19 +435,22 @@ details.dcx summary:hover{color:var(--pd)}
   </div>
 
 
-  <div class="krow krow5" id="home-tc-kpi"></div>
-  <div class="krow" id="home-rate-kpi" style="margin-top:8px"></div>
-
+  <div class="ph" style="margin-top:14px"><h2 style="font-size:13.5px;color:var(--p)">① Front Office — Training Delivery<span class="en">前台：培训交付</span></h2></div>
+  <div class="krow" id="home-tc-count-kpi"></div>
+  <div class="krow krow5" id="home-tc-kpi" style="margin-top:8px"></div>
   <div class="cg cg2" style="margin-top:9px">
     <div class="card"><div class="ct">Monthly Trainee Volume<span class="en">by Training Level</span></div><div class="ec-md" id="home-ec-monthly"></div></div>
-    <div class="card"><div class="ct">Training by Product Line<span class="en">Headcount share</span></div><div class="ec-md" id="home-ec-line"></div></div>
-  </div>
-  <div class="cg cg2" style="margin-top:9px">
     <div class="card"><div class="ct">Trainees by Region<span class="en">Sessions / Trainees / MCSR obtained</span></div><div class="ec-md" id="home-ec-region"></div></div>
-    <div class="card"><div class="ct">MCSR Rate by Region<span class="en">vs target ≥70%</span></div><div class="ec-md" id="home-ec-mcsrrate"></div></div>
   </div>
 
-  <div class="ph" style="margin-top:14px"><h2 style="font-size:15px">Internal &amp; Channel Capability<span class="en">Headcount, instructors, coverage</span></h2></div>
+  <div class="ph" style="margin-top:14px"><h2 style="font-size:13.5px;color:var(--pu)">② Mid Office — Certification &amp; Enablement<span class="en">中台：认证与赋能</span></h2></div>
+  <div class="krow" id="home-rate-kpi"></div>
+  <div class="cg cg2" style="margin-top:9px">
+    <div class="card"><div class="ct">MCSR Rate by Region<span class="en">vs target ≥70%</span></div><div class="ec-md" id="home-ec-mcsrrate"></div></div>
+    <div class="card"><div class="ct">Training by Product Line<span class="en">Headcount share</span></div><div class="ec-md" id="home-ec-line"></div></div>
+  </div>
+
+  <div class="ph" style="margin-top:14px"><h2 style="font-size:13.5px;color:var(--green,#0A7C5C)">③ Back Office — Network &amp; Capacity<span class="en">后台：网络与人力</span></h2></div>
   <div class="krow" id="home-capacity-kpi"></div>
   <div class="krow" id="home-capacity-kpi2" style="margin-top:8px"></div>
 </div>
@@ -754,29 +757,46 @@ function renderHome(){
   const selfRate=tr.length?Math.round(nonGlobal/tr.length*100):0;
   const planRate=tr.length?Math.round(planned/tr.length*100):0;
 
-  const tc4=(lbl,list,clr)=>{
+  const tc4=(lbl,cn,list,clr)=>{
     const se=sessions(list),tr2=trainees(list),mc=mcsrN(list);
-    return `<div class="k" style="--kc:${clr}"><div class="k-lbl">${lbl}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-top:4px;border-top:1px solid var(--s100);padding-top:5px">
+    return `<div class="k" style="--kc:${clr}"><div class="k-lbl">${lbl}</div><div class="k-sub" style="margin:-1px 0 3px">${cn}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-top:2px;border-top:1px solid var(--s100);padding-top:5px">
         <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:${clr}">${se}</div><div style="font-size:8px;color:var(--s400)">Sessions</div></div>
         <div style="text-align:center;border-left:1px solid var(--s100);border-right:1px solid var(--s100)"><div style="font-size:16px;font-weight:800;color:${clr}">${tr2}</div><div style="font-size:8px;color:var(--s400)">Trainees</div></div>
         <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:#7C3AED">${mc}</div><div style="font-size:8px;color:var(--s400)">MCSR</div></div>
       </div></div>`;
   };
   document.getElementById('home-tc-kpi').innerHTML = [
-    tc4('HQ TC', hq, '#1A3A5C'),
-    tc4('Regional TC', reg, '#0066CC'),
-    tc4('National + Channel TC', natCh, '#7C3AED'),
-    tc4('Other / Non-certified', other, '#64748B'),
-    tc4('Total', tr, '#334155'),
+    tc4('HQ TC', '总部认证培训中心', hq, '#DC2626'),
+    tc4('Regional TC', '区域认证培训中心', reg, '#0066CC'),
+    tc4('National + Channel TC', '国家级+渠道认证培训中心', natCh, '#7C3AED'),
+    tc4('Other / Non-certified', '未认证渠道场地', other, '#64748B'),
+    tc4('Total', '全部培训场地合计', tr, '#334155'),
   ].join('');
 
+  // Real count of distinct training-center LOCATIONS per level (not sessions) —
+  // e.g. 1 Global / 4 Regional / 5 Certified (National+Channel) / 26 Non-certified = 36 total
+  const locLevel = {};
+  tr.forEach(r=>{ if(r.loc) locLevel[r.loc] = locLevel[r.loc] || r.lv; });
+  const locCounts = {global:0, regional:0, certified:0, noncert:0};
+  Object.values(locLevel).forEach(lv=>{
+    if(lv==='Global TC') locCounts.global++;
+    else if(lv==='Regional TC') locCounts.regional++;
+    else if(lv==='National  TC'||lv==='Channel TC') locCounts.certified++;
+    else locCounts.noncert++;
+  });
+  document.getElementById('home-tc-count-kpi').innerHTML = [
+    {lbl:'Global TC', cn:'全球培训中心', val:locCounts.global, clr:'#DC2626'},
+    {lbl:'Regional TC', cn:'区域培训中心', val:locCounts.regional, clr:'#0066CC'},
+    {lbl:'Certified TC', cn:'认证培训中心（国家级+渠道级）', val:locCounts.certified, clr:'#7C3AED'},
+    {lbl:'Non-certified Channel TC', cn:'未认证渠道场地', val:locCounts.noncert, clr:'#94A3B8'},
+  ].map(c=>`<div class="k" style="--kc:${c.clr}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.cn}</div></div>`).join('');
+
   document.getElementById('home-rate-kpi').innerHTML = [
-    {lbl:'MCSR Rate', val:mcsrRate+'%', sub:'Target ≥70%', cls:mcsrRate>=70?'ok':'er'},
-    {lbl:'Self-Coverage', val:selfRate+'%', sub:'Target ≥90% (non-HQ sessions)', cls:selfRate>=90?'ok':'er'},
-    {lbl:'Scheduled Rate', val:planRate+'%', sub:'Target ≥50% (HQ+Regional+Channel+National)', cls:planRate>=50?'ok':'wa'},
-    {lbl:'Training Centers Active', val:new Set(tr.filter(r=>r.loc&&r.loc!=='--').map(r=>r.loc)).size, sub:'distinct locations in filtered scope', cls:''},
-  ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
+    {lbl:'MCSR Rate', cn:'资质获取率', val:mcsrRate+'%', sub:'Target ≥70%', cls:mcsrRate>=70?'ok':'er'},
+    {lbl:'Self-Coverage', cn:'区域自主覆盖率', val:selfRate+'%', sub:'Target ≥90% (non-HQ sessions)', cls:selfRate>=90?'ok':'er'},
+    {lbl:'Scheduled Rate', cn:'计划内培训率', val:planRate+'%', sub:'Target ≥50% (HQ+Regional+Channel+National)', cls:planRate>=50?'ok':'wa'},
+  ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.cn} · ${c.sub}</div></div>`).join('');
 
   const months=['Jan','Feb','Mar','Apr','May'], moNums=[1,2,3,4,5];
   const LEVELS=['Global TC','Regional TC','National  TC','Channel TC','Other'];
@@ -837,19 +857,19 @@ function renderHome(){
   const equipTotals = REGION_EQUIPMENT.reduce((a,r)=>({out:a.out+r.out, installed:a.installed+r.installed}),{out:0,installed:0});
 
   document.getElementById('home-capacity-kpi').innerHTML = [
-    {lbl:'CSE Headcount (scored)', val:CAP_CSE_DETAIL.length, sub:'from CS Score sheet'},
-    {lbl:'Service KA Headcount', val:CAP_SKA_DETAIL.length, sub:'from CS Score sheet'},
-    {lbl:'RTS Headcount', val:CAP_RTS_DETAIL.length, sub:'from RTS Score sheet'},
-    {lbl:'Channel Companies', val:HEADCOUNT_EXTRA.channel_companies, sub:'distinct distributors in MCSR-E'},
-  ].map(c=>`<div class="k"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
+    {lbl:'CSE Headcount', cn:'CS工程师人数（有打分记录）', val:CAP_CSE_DETAIL.length, sub:'from CS Score sheet'},
+    {lbl:'Service KA Headcount', cn:'Service KA人数', val:CAP_SKA_DETAIL.length, sub:'from CS Score sheet'},
+    {lbl:'RTS Headcount', cn:'RTS工程师人数', val:CAP_RTS_DETAIL.length, sub:'from RTS Score sheet'},
+    {lbl:'Channel Companies', cn:'渠道公司数', val:HEADCOUNT_EXTRA.channel_companies, sub:'distinct distributors in MCSR-E'},
+  ].map(c=>`<div class="k"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.cn} · ${c.sub}</div></div>`).join('');
 
   document.getElementById('home-capacity-kpi2').innerHTML = [
-    {lbl:'Instructors who delivered (RTS/CS/Channel/Other)', val:`${instr.RTS||0} / ${instr.CS||0} / ${instr.channel||0} / ${instr.other||0}`, sub:'distinct names in face-to-face record'},
-    {lbl:'CS-MCST Coverage (instructor pool)', val:CAP_SUMMARY.mcst_rate+'%', sub:'CS engineers holding MCST'},
-    {lbl:'RTS-MCST Coverage (instructor pool)', val:CAP_SUMMARY.rts_mcst_rate+'%', sub:'RTS engineers holding MCST'},
-    {lbl:'Equipment Out / Installed', val:equipTotals.out.toLocaleString()+' / '+equipTotals.installed.toLocaleString(), sub:'from NPI Portal coverage_map.json'},
-    {lbl:'New Employees Completed / Active', val:rosterDone+' / '+rosterActive, sub:'CS Cultivation Program, 90-day cohort'},
-  ].map(c=>`<div class="k"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub}</div></div>`).join('');
+    {lbl:'Instructors who delivered (RTS/CS/Channel/Other)', cn:'实际授课讲师人数', val:`${instr.RTS||0} / ${instr.CS||0} / ${instr.channel||0} / ${instr.other||0}`, sub:'distinct names in face-to-face record'},
+    {lbl:'CS-MCST Coverage', cn:'CS讲师资源池覆盖率', val:CAP_SUMMARY.mcst_rate+'%', sub:'CS engineers holding MCST'},
+    {lbl:'RTS-MCST Coverage', cn:'RTS讲师资源池覆盖率', val:CAP_SUMMARY.rts_mcst_rate+'%', sub:'RTS engineers holding MCST'},
+    {lbl:'Equipment Out / Installed', cn:'出库/装机台数', val:equipTotals.out.toLocaleString()+' / '+equipTotals.installed.toLocaleString(), sub:'from NPI Portal coverage_map.json'},
+    {lbl:'New Employees Completed / Active', cn:'新员工完成/在学人数', val:rosterDone+' / '+rosterActive, sub:'CS Cultivation Program, 90-day cohort'},
+  ].map(c=>`<div class="k"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.cn} · ${c.sub}</div></div>`).join('');
 }
 
 // ============ TRAINING CENTERS ============
