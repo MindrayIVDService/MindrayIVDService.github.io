@@ -353,7 +353,7 @@ details.dcx summary:hover{color:var(--pd)}
     <div class="ni" onclick="nav('newemp',this)"><span class="ni-text"><span class="ni-en">Cultivation Tracker</span><span class="ni-cn">新员工培养进度</span></span></div>
     <div class="sb-sec">Tools</div>
     <div class="ni" onclick="nav('quiz',this)"><span class="ni-text"><span class="ni-en">Quiz Practice</span><span class="ni-cn">题库模拟测练</span></span></div>
-    <div class="ni" onclick="nav('feedback',this)"><span class="ni-text"><span class="ni-en">Material Feedback</span><span class="ni-cn">培训材料反馈</span></span><span class="ni-sub">🚧</span></div>
+    <div class="ni" onclick="nav('feedback',this)"><span class="ni-text"><span class="ni-en">Material Feedback</span><span class="ni-cn">培训材料反馈</span></span></div>
   </div>
   <div class="sb-footer">
     <div class="sb-info">v1 skeleton · 2026-07-21<br>Data: RTS training data.xlsx (face to face record, training center) + MR-learning export samples</div>
@@ -539,7 +539,7 @@ details.dcx summary:hover{color:var(--pd)}
 
 <div class="page" id="p-capability">
   <div class="ph"><h2>Capability &amp; Empowerment<span class="en">Real data from RTS monthly report</span></h2></div>
-  <div class="ph-sub" style="margin-bottom:10px">🔗 Reuses the exact calculation logic and data from the RTS monthly report's Training/Capability pages — not a new definition. Snapshot: July 2026.</div>
+  <div class="ph-sub" style="margin-bottom:10px">🔗 Top KPIs and Self-Coverage/Plan-rate chart are computed live from face-to-face record (same formulas as Executive Cockpit), reacting to the Region/Sub-line bar above. Health/MCSR-MCST-rate/Seminar charts and the individual score tables come from the RTS monthly report's per-region aggregates (July 2026 snapshot) — these react to the Region filter by showing only the matching region, but can't be recomputed live since that's not session-level data.</div>
 
   <div class="krow" id="cap-training-kpi"></div>
 
@@ -648,8 +648,14 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="card">
     <div class="ct">Practice Setup<span class="en">Choose scope</span></div>
     <div style="padding:8px 2px">
+      <div class="field"><label>Sub-Line</label>
+        <select id="quiz-subline" onchange="renderQuiz()" style="font-size:11px;padding:6px 8px;border:1px solid var(--s200);border-radius:6px">
+          <option value="">All sub-lines</option>
+        </select>
+      </div>
       <div class="field"><label>MCSR Category (multi-select)</label>
-        <div class="fg" id="quiz-cat-picker"></div>
+        <input type="text" id="quiz-cat-search" placeholder="Search category..." oninput="renderQuiz()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px;margin-bottom:5px">
+        <div class="fg" id="quiz-cat-picker" style="max-height:120px;overflow-y:auto"></div>
       </div>
       <div class="field"><label>Question Types</label>
         <div class="fg">
@@ -663,11 +669,52 @@ details.dcx summary:hover{color:var(--pd)}
 </div>
 
 <div class="page" id="p-feedback">
-  <div class="ph"><h2>Material Feedback<span class="en">Report an issue</span></h2></div>
-  <div class="map-placeholder" style="padding:40px">
-    <div class="mp-ic">🚧</div>
-    <div class="mp-title">Handling workflow not defined yet</div>
-    <div class="mp-sub" style="max-width:600px;margin:8px auto 0">Open questions: who triages feedback, status flow (pending/in progress/resolved), and whether email/WeCom notifications are needed.</div>
+  <div class="ph"><h2>Material Feedback<span class="en">Report a problem with training material</span></h2></div>
+  <div class="ph-sub" style="margin-bottom:10px">RTS submits an issue by sub-line/model/material type with a description; HQ reviews, changes status, and can export the list. Persisted the same way as Training Centers/Calendar (Supabase, falling back to local storage).</div>
+
+  <div class="card">
+    <div class="ct">Submit an Issue<span class="en">Your account: <span id="fb-whoami"></span></span></div>
+    <div style="padding:8px 2px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px">
+      <div class="field"><label>Sub-Line</label>
+        <select id="fb-subline" onchange="onFbSublineChange()" style="width:100%;font-size:11px;padding:6px 8px;border:1px solid var(--s200);border-radius:6px">
+          <option value="">Select sub-line…</option>
+        </select>
+      </div>
+      <div class="field"><label>Model</label>
+        <select id="fb-model" style="width:100%;font-size:11px;padding:6px 8px;border:1px solid var(--s200);border-radius:6px">
+          <option value="">Select sub-line first…</option>
+        </select>
+      </div>
+      <div class="field"><label>Material Type</label>
+        <select id="fb-mtype" style="width:100%;font-size:11px;padding:6px 8px;border:1px solid var(--s200);border-radius:6px">
+          <option>Field Course PPT</option><option>Installation/Maintenance Guide</option>
+          <option>MCSR/MCST Question Bank</option><option>Training Video</option>
+          <option>Field Course Name / Course Master data</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Your Region (auto-filled from account)</label>
+        <input type="text" id="fb-region" readonly style="width:100%;font-size:11px;padding:6px 8px;border:1px solid var(--s200);border-radius:6px;background:var(--s50)">
+      </div>
+      <div class="field" style="grid-column:1/3"><label>Problem Description</label>
+        <textarea id="fb-desc" rows="3" placeholder="What's wrong with the material? Be specific — page/slide number, which question, what's outdated, etc." style="width:100%;font-size:11px;padding:8px;border:1px solid var(--s200);border-radius:6px;font-family:inherit"></textarea>
+      </div>
+    </div>
+    <button class="tbtn" style="padding:7px 16px;background:var(--p);color:#fff;border:none;margin-top:4px" onclick="submitFeedback()">Submit</button>
+    <span id="fb-submit-msg" style="margin-left:8px;font-size:11px;color:var(--ok)"></span>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:9px">
+    <div class="tbl-toolbar">
+      <input type="text" id="fb-search" placeholder="Search model / description..." oninput="renderFeedback()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px">
+      <div class="fg" id="fb-status-filters" style="margin-left:10px"></div>
+      <button class="tbtn" onclick="exportFeedbackCsv()" style="margin-left:auto">⭳ Export CSV</button>
+      <span id="fb-cnt" style="font-size:11px;color:var(--s500)"></span>
+    </div>
+    <div class="tbl-scroll" style="overflow-x:auto">
+    <table><thead><tr>
+      <th>Date</th><th>Region</th><th>Submitted By</th><th>Sub-Line</th><th>Model</th><th>Material Type</th><th>Description</th><th>Status</th>
+    </tr></thead><tbody id="fb-tbody"></tbody></table>
+    </div>
   </div>
 </div>
 
@@ -1617,66 +1664,104 @@ function capSetRole(role, el){
   if(el) el.classList.add('on');
   renderCapability();
 }
+// Region long-form (used in RTS report source data: CS/RTS score details, seminar,
+// cs_mcsr/cs_mcst/rts_mcst aggregates) -> this site's canonical Region II short codes.
+// Three different real data sources spell the same regions three different ways
+// (APAC REGION / LATAM / Russia / RUSSIA — no consistent convention), so this map
+// has every variant we've actually seen rather than trying to derive it.
+const CAP_R2_TO_GF = {
+  'APAC REGION':'APAC', 'APAC':'APAC',
+  'RUSSIA REGION':'RU', 'RUSSIA':'RU', 'Russia':'RU',
+  'MEA':'MEA',
+  'LATAM':'LA', 'LA':'LA',
+  'INDIA':'India', 'India':'India',
+  'EUROPE':'EU', 'EU':'EU',
+  'CENTRAL ASIA REGION':'CA', 'CA':'CA'
+};
+
 function renderCapability(){
-  const S = CAP_SUMMARY;
+  // ── KPI cards + Self-Coverage/Plan-rate chart: computed live from real session
+  // data (TR_ROWS), same formulas as Executive Cockpit/Coverage — reacts to the
+  // Region/Sub-line filter bar. This replaces what used to be a frozen snapshot.
+  const tr = filterTrRows(TR_ROWS);
+  const trainees=list=>list.filter(r=>r.ps==='Y'||r.ps==='N').length;
+  const mcsrN   =list=>list.filter(r=>r.mc==='Y').length;
+  const hqSessions = new Set(tr.filter(r=>r.lv==='Global TC').map(r=>r.cls).filter(Boolean)).size;
+  const regionalSessions = new Set(tr.filter(r=>r.lv!=='Global TC').map(r=>r.cls).filter(Boolean)).size;
+  const totalTrainees = trainees(tr);
+  const mcsrRate = totalTrainees ? Math.round(mcsrN(tr)/totalTrainees*100) : 0;
+
   document.getElementById('cap-training-kpi').innerHTML = [
-    {lbl:'HQ Sessions', val:S.total_hq, cls:''},
-    {lbl:'Regional Sessions', val:S.total_regional, cls:''},
-    {lbl:'CS-MCSR Coverage (Intl)', val:S.mcsr_rate+'%', cls:S.mcsr_rate>=70?'ok':'wa'},
-    {lbl:'CS-MCST Coverage (Intl)', val:S.mcst_rate+'%', cls:S.mcst_rate>=50?'ok':'wa'},
-    {lbl:'RTS-MCST Coverage (Intl)', val:S.rts_mcst_rate+'%', cls:S.rts_mcst_rate>=70?'ok':'wa'},
-    {lbl:'Mindray TC / Channel TC', val:S.tc_mindray+' / '+S.tc_channel, cls:''},
+    {lbl:'HQ Sessions', val:hqSessions, cls:''},
+    {lbl:'Regional Sessions', val:regionalSessions, cls:''},
+    {lbl:'MCSR Rate (filtered scope)', val:mcsrRate+'%', cls:mcsrRate>=70?'ok':'wa'},
+    {lbl:'CS-MCST Coverage (Intl)', val:CAP_SUMMARY.mcst_rate+'%', cls:CAP_SUMMARY.mcst_rate>=50?'ok':'wa'},
+    {lbl:'RTS-MCST Coverage (Intl)', val:CAP_SUMMARY.rts_mcst_rate+'%', cls:CAP_SUMMARY.rts_mcst_rate>=70?'ok':'wa'},
+    {lbl:'Mindray TC / Channel TC', val:CAP_SUMMARY.tc_mindray+' / '+CAP_SUMMARY.tc_channel, cls:''},
   ].map(k=>`<div class="k ${k.cls}"><div class="k-lbl">${k.lbl}</div><div class="k-val">${k.val}</div></div>`).join('');
 
-  const regions = S.by_region.map(r=>r.region);
+  const regionKeys = GF.region2!=='ALL' ? [GF.region2] : [...new Set(tr.map(r=>r.rt).filter(Boolean).filter(r=>r!=='HQ'))];
+  const selfPlanByRegion = regionKeys.map(r=>{
+    const sub = tr.filter(x=>x.rt===r);
+    const nonGlobal = sub.filter(x=>x.lv!=='Global TC').length;
+    const planned = sub.filter(x=>['Global TC','Regional TC','Channel TC','National  TC'].includes(x.lv)).length;
+    return { region:r, self_rate: sub.length?Math.round(nonGlobal/sub.length*100):0, plan_rate: sub.length?Math.round(planned/sub.length*100):0 };
+  });
   chartFor('cap-ec-region').setOption({
     tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
     legend:{top:0,textStyle:{fontSize:10}},
     grid:{left:8,right:8,top:28,bottom:2,containLabel:true},
-    xAxis:{type:'category',data:regions,axisLabel:{fontSize:9.5}},
+    xAxis:{type:'category',data:selfPlanByRegion.map(r=>r.region),axisLabel:{fontSize:9.5}},
     yAxis:{type:'value',axisLabel:{formatter:'{value}%',fontSize:9},max:100},
     series:[
-      {name:'Self-Coverage',type:'bar',barWidth:12,itemStyle:{color:'#2DD4BF',borderRadius:[3,3,0,0]},data:S.by_region.map(r=>Math.round(r.self_rate*100))},
-      {name:'Plan Rate',type:'bar',barWidth:12,itemStyle:{color:'#60A5FA',borderRadius:[3,3,0,0]},data:S.by_region.map(r=>Math.round(r.plan_rate*100))}
+      {name:'Self-Coverage',type:'bar',barWidth:12,itemStyle:{color:'#2DD4BF',borderRadius:[3,3,0,0]},data:selfPlanByRegion.map(r=>r.self_rate)},
+      {name:'Plan Rate',type:'bar',barWidth:12,itemStyle:{color:'#60A5FA',borderRadius:[3,3,0,0]},data:selfPlanByRegion.map(r=>r.plan_rate)}
     ]
   });
 
-  const hr = ['ap','ca','eu','ind','la','mea','ru'];
-  const hrLabels = ['APAC','CA','EU','India','LATAM','MEA','Russia'];
+  // ── Health / MCSR-MCST rate / Seminar: these come from a separate real source
+  // (RTS monthly report's per-region score aggregates), not from session-level
+  // TR_ROWS, so they can't be recomputed live — but they DO respond to the Region
+  // filter by subsetting to the matching region (via CAP_R2_TO_GF), same idea as
+  // "not every column can drill to the same granularity" elsewhere on this site.
+  const HEALTH_KEYS = {APAC:'ap', CA:'ca', EU:'eu', India:'ind', LA:'la', MEA:'mea', RU:'ru'};
+  const healthRegions = GF.region2!=='ALL' ? [GF.region2] : Object.keys(HEALTH_KEYS);
   chartFor('cap-ec-health').setOption({
     tooltip:{trigger:'axis'},
     legend:{top:0,textStyle:{fontSize:10}},
     grid:{left:8,right:8,top:28,bottom:2,containLabel:true},
-    xAxis:{type:'category',data:hrLabels,axisLabel:{fontSize:9.5}},
+    xAxis:{type:'category',data:healthRegions,axisLabel:{fontSize:9.5}},
     yAxis:{type:'value',axisLabel:{fontSize:9}},
     series:[
-      {name:'CSE',type:'line',data:hr.map(k=>S.health.cse[k]),itemStyle:{color:'#60A5FA'},lineStyle:{width:2.5},smooth:true},
-      {name:'Service KA',type:'line',data:hr.map(k=>S.health.ska[k]),itemStyle:{color:'#FBBF24'},lineStyle:{width:2.5},smooth:true},
-      {name:'RTS',type:'line',data:hr.map(k=>S.health.rts[k]),itemStyle:{color:'#34D399'},lineStyle:{width:2.5},smooth:true}
+      {name:'CSE',type:'line',data:healthRegions.map(r=>CAP_SUMMARY.health.cse[HEALTH_KEYS[r]]),itemStyle:{color:'#60A5FA'},lineStyle:{width:2.5},smooth:true},
+      {name:'Service KA',type:'line',data:healthRegions.map(r=>CAP_SUMMARY.health.ska[HEALTH_KEYS[r]]),itemStyle:{color:'#FBBF24'},lineStyle:{width:2.5},smooth:true},
+      {name:'RTS',type:'line',data:healthRegions.map(r=>CAP_SUMMARY.health.rts[HEALTH_KEYS[r]]),itemStyle:{color:'#34D399'},lineStyle:{width:2.5},smooth:true}
     ]
   });
 
+  const mcsrIdx = CAP_SUMMARY.cs_mcsr.regions.map((r,i)=>({r, i})).filter(({r})=>GF.region2==='ALL'||CAP_R2_TO_GF[r]===GF.region2);
   chartFor('cap-ec-mcsr').setOption({
     tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
     legend:{top:0,textStyle:{fontSize:10}},
     grid:{left:8,right:8,top:28,bottom:2,containLabel:true},
-    xAxis:{type:'category',data:S.cs_mcsr.regions,axisLabel:{fontSize:9.5}},
+    xAxis:{type:'category',data:mcsrIdx.map(o=>o.r),axisLabel:{fontSize:9.5}},
     yAxis:{type:'value',axisLabel:{formatter:'{value}%',fontSize:9},max:100},
     series:[
-      {name:'CS-MCSR',type:'bar',barWidth:8,itemStyle:{color:'#818CF8',borderRadius:[3,3,0,0]},data:S.cs_mcsr.rate},
-      {name:'CS-MCST',type:'bar',barWidth:8,itemStyle:{color:'#60A5FA',borderRadius:[3,3,0,0]},data:S.cs_mcst.rate},
-      {name:'RTS-MCST',type:'bar',barWidth:8,itemStyle:{color:'#34D399',borderRadius:[3,3,0,0]},data:S.rts_mcst.rate}
+      {name:'CS-MCSR',type:'bar',barWidth:8,itemStyle:{color:'#818CF8',borderRadius:[3,3,0,0]},data:mcsrIdx.map(o=>CAP_SUMMARY.cs_mcsr.rate[o.i])},
+      {name:'CS-MCST',type:'bar',barWidth:8,itemStyle:{color:'#60A5FA',borderRadius:[3,3,0,0]},data:mcsrIdx.map(o=>CAP_SUMMARY.cs_mcst.rate[o.i])},
+      {name:'RTS-MCST',type:'bar',barWidth:8,itemStyle:{color:'#34D399',borderRadius:[3,3,0,0]},data:mcsrIdx.map(o=>CAP_SUMMARY.rts_mcst.rate[o.i])}
     ]
   });
 
-  const sem = S.seminar;
+  const sem = CAP_SUMMARY.seminar;
+  const semIdx = sem.regions.map((r,i)=>({r, i})).filter(({r})=>GF.region2==='ALL'||CAP_R2_TO_GF[r]===GF.region2);
   chartFor('cap-ec-seminar').setOption({
     tooltip:{trigger:'axis'},
     grid:{left:8,right:8,top:12,bottom:2,containLabel:true},
-    xAxis:{type:'category',data:sem.regions,axisLabel:{fontSize:9.5}},
+    xAxis:{type:'category',data:semIdx.map(o=>o.r),axisLabel:{fontSize:9.5}},
     yAxis:{type:'value',axisLabel:{formatter:'{value}%',fontSize:9},max:100},
-    series:[{type:'bar',barWidth:16,itemStyle:{color:d=>sem.attendance[d.dataIndex][0]<60?'#FCA5A5':'#86EFAC',borderColor:d=>sem.attendance[d.dataIndex][0]<60?'#EF4444':'#10B981',borderWidth:1,borderRadius:[3,3,0,0]},
-      data:sem.regions.map((r,i)=>sem.attendance[i][0]),label:{show:true,position:'top',fontSize:9,fontWeight:'700',formatter:'{c}%'}}]
+    series:[{type:'bar',barWidth:16,itemStyle:{color:d=>sem.attendance[semIdx[d.dataIndex].i][0]<60?'#FCA5A5':'#86EFAC',borderColor:d=>sem.attendance[semIdx[d.dataIndex].i][0]<60?'#EF4444':'#10B981',borderWidth:1,borderRadius:[3,3,0,0]},
+      data:semIdx.map(o=>sem.attendance[o.i][0]),label:{show:true,position:'top',fontSize:9,fontWeight:'700',formatter:'{c}%'}}]
   });
 
   const FIELD_LABELS = {
@@ -1693,16 +1778,17 @@ function renderCapability(){
 
   const q = (document.getElementById('cap-search').value||'').toUpperCase();
   const src = SRC_MAP[capRole];
-  const rows = src.filter(r=>!q || [r.name,r.r2,r.r3].some(v=>v&&v.toUpperCase().includes(q)))
-    .sort((a,b)=>(b.total||0)-(a.total||0));
+  const rows = src.filter(r=>
+    (GF.region2==='ALL'||CAP_R2_TO_GF[r.r2]===GF.region2) &&
+    (!q || [r.name,r.r2,r.r3].some(v=>v&&v.toUpperCase().includes(q)))
+  ).sort((a,b)=>(b.total||0)-(a.total||0));
   document.getElementById('cap-tbody').innerHTML = rows.map(r=>
     `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.r2)}</td><td>${esc(r.r3)}</td>` +
     cols.map(c=>`<td>${r[c]!=null?r[c]:'<span style="color:var(--s300)">—</span>'}</td>`).join('') +
     `<td style="font-weight:700">${r.total!=null?r.total:'--'}</td></tr>`
   ).join('');
-  document.getElementById('cap-cnt').textContent = rows.length+' / '+src.length+' rows';
+  document.getElementById('cap-cnt').textContent = rows.length+' / '+src.length+' rows'+(GF.region2!=='ALL'?' · filtered to '+esc(GF.region2):'');
 }
-
 // ============ ANNUAL CALENDAR (real 2026 HQ schedule, extensible per-region) ============
 const CAL_KEY = 'tla_calendar_v1';
 let CALENDAR_DATA = [];
@@ -2051,6 +2137,15 @@ function renderCalendar(){
 
 // ============ NEW EMPLOYEE ============
 let neRiskFilter='ALL';
+// dept looks like "全球用户服务部->International Region->LATAM Region->Mexico->Mexico" —
+// pull out the region segment and map it to this site's Region II codes so the top
+// filter bar can narrow the roster the same way it narrows every other page.
+const NE_DEPT_REGION_MAP = {'LATAM':'LA','MEA':'MEA','APAC':'APAC','EU':'EU','EUROPE':'EU','INDIA':'India','RUSSIA':'RU','CENTRAL ASIA':'CA'};
+function neRegionOf(dept){
+  const up = (dept||'').toUpperCase();
+  for(const [k,v] of Object.entries(NE_DEPT_REGION_MAP)) if(up.includes(k)) return v;
+  return null;
+}
 function renderNewEmp(){
   const RISK_LABEL = {not_started:'Not Started', at_risk:'At Risk', on_track:'On Track', completed:'Completed'};
   const RISK_CLS = {not_started:'b-gy', at_risk:'b-er', on_track:'b-ok', completed:'b-bl'};
@@ -2058,16 +2153,17 @@ function renderNewEmp(){
   document.getElementById('ne-risk-filters').innerHTML = buckets.map(b=>
     `<span class="pt${b===neRiskFilter?' on':''}" onclick="neRiskFilter='${b}';renderNewEmp()">${b==='ALL'?'All':RISK_LABEL[b]}</span>`
   ).join('');
+  const scoped = GF.region2==='ALL' ? ROSTER : ROSTER.filter(r=>neRegionOf(r.dept)===GF.region2);
   const byBucket = {};
-  ROSTER.forEach(r=>{ byBucket[r.risk_bucket]=(byBucket[r.risk_bucket]||0)+1; });
+  scoped.forEach(r=>{ byBucket[r.risk_bucket]=(byBucket[r.risk_bucket]||0)+1; });
   document.getElementById('ne-kpi').innerHTML = [
-    {lbl:'Total Learners', val: ROSTER.length, cls:'ok'},
-    {lbl:'Completed', val: byBucket.completed||0, sub: pctTxt(byBucket.completed||0, ROSTER.length), cls:'ok'},
+    {lbl:'Total Learners', val: scoped.length, cls:'ok'},
+    {lbl:'Completed', val: byBucket.completed||0, sub: pctTxt(byBucket.completed||0, scoped.length), cls:'ok'},
     {lbl:'At Risk', val: byBucket.at_risk||0, sub:'overdue>5 or idle>14d', cls:'er'},
     {lbl:'Not Started', val: byBucket.not_started||0, cls:'wa'},
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub||''}</div></div>`).join('');
   const q = (document.getElementById('ne-search').value||'').toUpperCase();
-  let rows = ROSTER.filter(r=>
+  let rows = scoped.filter(r=>
     (neRiskFilter==='ALL'||r.risk_bucket===neRiskFilter) &&
     (!q || [r.name,r.mentor,r.dept].some(v=>v&&String(v).toUpperCase().includes(q)))
   );
@@ -2075,22 +2171,142 @@ function renderNewEmp(){
   document.getElementById('ne-tbody').innerHTML = rows.map(r=>
     `<tr><td><b>${esc(r.name)}</b></td><td style="font-size:10px">${esc((r.dept||'').split('->').slice(-1)[0])}</td><td>${esc(r.mentor)}</td><td>${esc(r.progress)}</td><td>${r.overdue_tasks||0}</td><td style="font-size:10px">${esc(r.last_study)||'--'}</td><td><span class="badge ${RISK_CLS[r.risk_bucket]}">${RISK_LABEL[r.risk_bucket]}</span></td></tr>`
   ).join('');
-  document.getElementById('ne-cnt').textContent = rows.length+' / '+ROSTER.length+' learners';
+  document.getElementById('ne-cnt').textContent = rows.length+' / '+ROSTER.length+' learners'+(GF.region2!=='ALL'?' · filtered to '+esc(GF.region2):'');
 }
 
 // ============ QUIZ (skeleton) ============
 function renderQuiz(){
-  const cats = [...new Set(COURSE_MASTER.map(r=>r.mcsr_category))].filter(Boolean).sort();
-  document.getElementById('quiz-cat-picker').innerHTML = cats.slice(0,30).map(c=>`<span class="pt" onclick="this.classList.toggle('on')">${esc(c)}</span>`).join('')
-    + (cats.length>30 ? `<span style="font-size:10px;color:var(--s400);margin-left:6px">+${cats.length-30} more (should be a searchable dropdown once live, not a flat list)</span>` : '');
+  document.getElementById('quiz-subline').innerHTML = '<option value="">All sub-lines</option>'+SUBLINE_LIST.map(s=>`<option value="${esc(s)}">${esc(SUBLINE_ABBR[s]||s)}</option>`).join('');
+  const sub = document.getElementById('quiz-subline').value;
+  const q = (document.getElementById('quiz-cat-search').value||'').toUpperCase();
+  const cats = [...new Set(COURSE_MASTER.filter(r=>!sub||r.sub_line===sub).map(r=>r.mcsr_category))]
+    .filter(Boolean).filter(c=>!q||c.toUpperCase().includes(q)).sort();
+  document.getElementById('quiz-cat-picker').innerHTML = cats.map(c=>`<span class="pt" onclick="this.classList.toggle('on')">${esc(c)}</span>`).join('')
+    || '<span style="font-size:10px;color:var(--s400)">No categories match</span>';
 }
 
-const RENDERERS = { home:renderHome, resource:renderTcTable, course:renderCourseMaster, coverage:renderCoverage, capability:renderCapability, calendar:renderCalendar, newemp:renderNewEmp, quiz:renderQuiz };
+// ============ MATERIAL FEEDBACK ============
+// RTS submits by sub-line/model/material-type/description; HQ reviews and sets
+// status. Same Supabase/localStorage pattern as venue conditions / calendar.
+const FB_KEY = 'tla_feedback_v1';
+let FEEDBACK_DATA = [];
+async function loadFeedbackData(){
+  if(USE_SUPABASE){
+    const { data, error } = await sb.from('tla_feedback').select('*').order('created_at', {ascending:false});
+    if(!error && data) return data.map(r=>({
+      id:r.id, created_at:r.created_at, region2:r.region2, submitted_by:r.submitted_by,
+      sub_line:r.sub_line, model:r.model, material_type:r.material_type, description:r.description, status:r.status
+    }));
+    console.error('Supabase feedback load failed, using local cache', error);
+  }
+  try{ return JSON.parse(localStorage.getItem(FB_KEY))||[]; }catch(e){ return []; }
+}
+function saveFeedbackLocal(){ try{ localStorage.setItem(FB_KEY, JSON.stringify(FEEDBACK_DATA)); }catch(e){} }
+async function setFeedbackStatus(id, status){
+  const row = FEEDBACK_DATA.find(r=>r.id===id);
+  if(!row) return;
+  row.status = status;
+  if(USE_SUPABASE){
+    const { error } = await sb.from('tla_feedback').update({status, resolved_by: CURRENT_USER?CURRENT_USER.username:null}).eq('id', id);
+    if(error) console.error('Supabase feedback status update failed', error);
+  }else{
+    saveFeedbackLocal();
+  }
+}
+function onFbSublineChange(){
+  const sub = document.getElementById('fb-subline').value;
+  const modelSel = document.getElementById('fb-model');
+  const models = sub ? [...new Set(COURSE_MASTER.filter(r=>r.sub_line===sub).map(r=>r.model))].filter(Boolean).sort() : [];
+  modelSel.innerHTML = sub
+    ? '<option value="">Select model…</option>'+models.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')
+    : '<option value="">Select sub-line first…</option>';
+}
+async function submitFeedback(){
+  const sub_line = document.getElementById('fb-subline').value;
+  const model = document.getElementById('fb-model').value;
+  const material_type = document.getElementById('fb-mtype').value;
+  const description = document.getElementById('fb-desc').value.trim();
+  const msgEl = document.getElementById('fb-submit-msg');
+  if(!sub_line || !description){
+    msgEl.style.color = 'var(--er)';
+    msgEl.textContent = 'Sub-line and description are required.';
+    return;
+  }
+  const region2 = CURRENT_USER ? (myRegion2()||CURRENT_USER.region) : 'Unknown';
+  const row = {
+    id: 'fb_'+Date.now(), created_at: new Date().toISOString(), region2,
+    submitted_by: CURRENT_USER ? CURRENT_USER.username : 'anonymous',
+    sub_line, model, material_type, description, status: 'Pending'
+  };
+  FEEDBACK_DATA.unshift(row);
+  if(USE_SUPABASE){
+    const { data, error } = await sb.from('tla_feedback').insert({
+      region2:row.region2, submitted_by:row.submitted_by, sub_line:row.sub_line, model:row.model,
+      material_type:row.material_type, description:row.description, status:row.status
+    }).select().single();
+    if(error) console.error('Supabase feedback submit failed', error);
+    else if(data && data.id!=null) row.id = data.id;
+  }else{
+    saveFeedbackLocal();
+  }
+  document.getElementById('fb-desc').value = '';
+  document.getElementById('fb-model').value = '';
+  msgEl.style.color = 'var(--ok)';
+  msgEl.textContent = 'Submitted. Thank you!';
+  renderFeedback();
+}
+let fbStatusFilter = 'ALL';
+function exportFeedbackCsv(){
+  const rows = window._fbRowsForExport || [];
+  const head = ['Date','Region','Submitted By','Sub-Line','Model','Material Type','Description','Status'];
+  const lines = [head.join(',')];
+  rows.forEach(r=>{
+    lines.push([r.created_at, r.region2, r.submitted_by, r.sub_line, r.model, r.material_type, r.description, r.status]
+      .map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'material_feedback_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+function renderFeedback(){
+  document.getElementById('fb-whoami').textContent = CURRENT_USER ? `${CURRENT_USER.username} (${CURRENT_USER.region})` : 'not signed in';
+  document.getElementById('fb-region').value = CURRENT_USER ? (myRegion2()||CURRENT_USER.region) : '—';
+  document.getElementById('fb-subline').innerHTML = '<option value="">Select sub-line…</option>'+SUBLINE_LIST.map(s=>`<option value="${esc(s)}">${esc(SUBLINE_ABBR[s]||s)}</option>`).join('');
+
+  const STATUSES = ['ALL','Pending','In Progress','Resolved'];
+  document.getElementById('fb-status-filters').innerHTML = STATUSES.map(s=>
+    `<span class="pt${s===fbStatusFilter?' on':''}" onclick="fbStatusFilter='${s}';renderFeedback()">${s}</span>`
+  ).join('');
+
+  const q = (document.getElementById('fb-search').value||'').toUpperCase();
+  const rows = FEEDBACK_DATA.filter(r=>
+    (fbStatusFilter==='ALL'||r.status===fbStatusFilter) &&
+    (!q || [r.model,r.description,r.sub_line].some(v=>v&&v.toUpperCase().includes(q)))
+  );
+  const canReview = isHQ();
+  document.getElementById('fb-tbody').innerHTML = rows.map(r=>{
+    const statusCell = canReview
+      ? `<select onchange="setFeedbackStatus('${r.id}',this.value)" style="font-size:10px;padding:3px 4px;border:1px solid var(--s200);border-radius:4px">
+           ${['Pending','In Progress','Resolved'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}
+         </select>`
+      : `<span class="badge ${r.status==='Resolved'?'b-ok':r.status==='In Progress'?'b-bl':'b-wa'}">${esc(r.status)}</span>`;
+    return `<tr><td style="font-size:10px">${esc((r.created_at||'').slice(0,10))}</td><td>${esc(r.region2)}</td><td>${esc(r.submitted_by)}</td>`+
+      `<td>${esc(SUBLINE_ABBR[r.sub_line]||r.sub_line)}</td><td>${esc(r.model)}</td><td>${esc(r.material_type)}</td>`+
+      `<td style="max-width:260px;font-size:10.5px">${esc(r.description)}</td><td>${statusCell}</td></tr>`;
+  }).join('');
+  document.getElementById('fb-cnt').textContent = rows.length+' / '+FEEDBACK_DATA.length+' items'+(canReview?'':' · sign in as HQ to change status');
+  window._fbRowsForExport = rows;
+}
+
+const RENDERERS = { home:renderHome, resource:renderTcTable, course:renderCourseMaster, coverage:renderCoverage, capability:renderCapability, calendar:renderCalendar, newemp:renderNewEmp, quiz:renderQuiz, feedback:renderFeedback };
 let CURRENT_USER = null;
 async function boot(){
   VENUE_DATA = await loadVenueData();
   CALENDAR_DATA = await loadCalendarData();
   COURSE_EDITS = await loadCourseEdits();
+  FEEDBACK_DATA = await loadFeedbackData();
   renderGlobalFilterBar();
   applyRegionLock();
   renderHome();
