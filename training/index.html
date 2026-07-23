@@ -524,6 +524,17 @@ details.dcx summary:hover{color:var(--pd)}
   <div class="cg" style="grid-template-columns:1fr;margin-top:9px">
     <div class="card"><div class="ct">Out vs Installed by Region</div><div class="ec-md" id="eq-ec-region"></div></div>
   </div>
+
+  <div class="ph-sub" style="margin:14px 0 8px">🔗 Every real class session from face-to-face record, one row per Class ID — same table shape as the RTS monthly report's "Training Session Detail" page. This is the actual execution log the coverage numbers above are computed from.</div>
+  <div class="tbl-wrap">
+    <div class="tbl-toolbar">
+      <input type="text" id="sess-search" placeholder="Search course / lecturer / location..." oninput="renderSessionLog()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px">
+      <span id="sess-cnt" style="margin-left:auto;font-size:11px;color:var(--s500)"></span>
+    </div>
+    <div class="tbl-scroll" style="overflow-x:auto">
+    <table><thead><tr id="sess-thead"></tr></thead><tbody id="sess-tbody"></tbody></table>
+    </div>
+  </div>
 </div>
 
 <div class="page" id="p-capability">
@@ -1518,6 +1529,46 @@ function renderCoverage(){
     series:[{type:'bar',barWidth:11,itemStyle:{color:'#818CF8',borderRadius:[0,3,3,0]},data:labels.map(l=>courses[l]).reverse(),label:{show:true,position:'right',fontSize:9}}]
   });
   renderEquipmentCoverage();
+  renderSessionLog();
+}
+
+let sessSortKey='mo', sessSortDir=1;
+function sessSort(key){ if(sessSortKey===key) sessSortDir*=-1; else { sessSortKey=key; sessSortDir=1; } renderSessionLog(); }
+const MONTH_NAMES=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function renderSessionLog(){
+  const tr = filterTrRows(TR_ROWS);
+  const byClass = {};
+  tr.forEach(r=>{
+    const cls = r.cls || ('(no class id)_'+r.loc+'_'+r.crs);
+    if(!byClass[cls]) byClass[cls] = {cls:r.cls||'—', mo:r.mo, lv:r.lv, loc:r.loc, r2:r.rt, pr:r.pr, lec:r.lec, ln:r.ln, crs:r.crs, headcount:0, pass:0, mcsr:0};
+    const d = byClass[cls];
+    if(r.ps==='Y'||r.ps==='N'){ d.headcount++; if(r.ps==='Y') d.pass++; if(r.mc==='Y') d.mcsr++; }
+  });
+  let rows = Object.values(byClass);
+  const q = (document.getElementById('sess-search').value||'').toUpperCase();
+  rows = rows.filter(r=>!q || [r.crs,r.ln,r.loc,r.pr].some(v=>v&&v.toUpperCase().includes(q)));
+  rows.sort((a,b)=>{
+    const ka = a[sessSortKey], kb = b[sessSortKey];
+    if(typeof ka==='string') return sessSortDir*(ka||'').localeCompare(kb||'');
+    return sessSortDir*((ka||0)-(kb||0));
+  });
+
+  const cols = [['cls','Class ID'],['mo','Month'],['lv','Level'],['loc','Location'],['r2','Region'],['pr','Product'],['lec','Trainer Level'],['ln','Lecturer'],['crs','Course'],['headcount','Headcount'],['pass','Pass'],['mcsr','MCSR']];
+  document.getElementById('sess-thead').innerHTML = cols.map(([k,l])=>
+    `<th onclick="sessSort('${k}')" style="cursor:pointer;white-space:nowrap">${l}${sessSortKey===k?(sessSortDir===1?' \u2191':' \u2193'):''}</th>`
+  ).join('');
+
+  document.getElementById('sess-tbody').innerHTML = rows.map(r=>{
+    const passRateColor = r.headcount && r.pass<r.headcount ? 'var(--wa)' : 'var(--s700)';
+    return `<tr><td style="color:var(--s400)">${esc(r.cls)}</td><td>${MONTH_NAMES[r.mo]||''}</td>`+
+      `<td>${r.lv?`<span class="badge" style="background:${tcColor(r.lv)}22;color:${tcColor(r.lv)}">${esc(TC_LEVEL_DISPLAY[r.lv]||r.lv)}</span>`:'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td>${esc(r.loc||'')}</td><td><span class="badge b-gy">${esc(r.r2||'')}</span></td><td>${esc(r.pr||'')}</td>`+
+      `<td><span class="badge b-bl">${esc(r.lec||'')}</span></td><td><b>${esc(r.ln||'')}</b></td>`+
+      `<td class="td-course">${esc(r.crs||'')}</td>`+
+      `<td>${r.headcount}</td><td style="color:${passRateColor}">${r.pass}/${r.headcount}</td>`+
+      `<td style="color:#7C3AED;font-weight:700">${r.mcsr||'<span style=\"color:var(--s300)\">—</span>'}</td></tr>`;
+  }).join('');
+  document.getElementById('sess-cnt').textContent = rows.length+' classes';
 }
 
 // ============ EQUIPMENT OUT/INSTALLED (real coverage_map.json aggregation) ============
