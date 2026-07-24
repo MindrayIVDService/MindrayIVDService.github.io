@@ -158,6 +158,9 @@ tr:hover td{background:var(--s50)}
 .pt-row{display:flex;flex-wrap:wrap;gap:0;margin-bottom:12px}
 .flbl{font-size:9.5px;color:var(--s400);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-right:8px}
 .fg{display:flex;align-items:center}
+.cat-grid{display:flex;flex-wrap:wrap;gap:6px}
+.cat-grp-hd{font-size:9.5px;font-weight:700;color:var(--s500);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 5px;display:flex;align-items:center;gap:6px}
+.cat-grp-hd:first-child{margin-top:0}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10.5px;color:var(--s500);margin-bottom:10px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
@@ -618,17 +621,19 @@ details.dcx summary:hover{color:var(--pd)}
 
 <div class="page" id="p-newemp">
   <div class="ph"><h2>New Employee Cultivation Tracker<span class="en">Onboarding progress</span></h2></div>
-  <div class="ph-sub" style="margin-bottom:10px">Real export from one cohort (IVD CS International New Employee Cultivation Program, 23 people, 90-day cycle, snapshot 2026-07-21). "Risk" tiers are a new analysis added in this build — see Data Contract below.</div>
+  <div class="ph-sub" style="margin-bottom:10px">Real export from one cohort (IVD CS International New Employee Cultivation Program, 23 people, snapshot 2026-07-21). Mentor is genuinely blank in the source data for all 23 rows — not a display bug, the export just has nothing in that column. "Risk"/"Probation Overdue" tiers are analysis added in this build — see Data Contract below.</div>
   <div class="krow" id="ne-kpi"></div>
   <div class="tbl-wrap">
     <div class="tbl-toolbar">
-      <input type="text" id="ne-search" placeholder="Search name / mentor..." oninput="renderNewEmp()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px">
+      <input type="text" id="ne-search" placeholder="Search name / region..." oninput="renderNewEmp()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px">
       <div class="fg" id="ne-risk-filters" style="margin-left:10px"></div>
       <span id="ne-cnt" style="margin-left:auto;font-size:11px;color:var(--s500)"></span>
     </div>
+    <div class="tbl-scroll" style="overflow-x:auto">
     <table><thead><tr>
-      <th>Name</th><th>Region/Dept</th><th>Mentor</th><th>Progress</th><th>Overdue</th><th>Last Study</th><th>Risk</th>
+      <th>Name</th><th>Region II</th><th>Region III</th><th>Country</th><th>Mentor</th><th>Joined</th><th>Days Since Joining</th><th>Progress</th><th>Overdue</th><th>Last Study</th><th>Risk</th><th>Probation (&gt;90d)</th>
     </tr></thead><tbody id="ne-tbody"></tbody></table>
+    </div>
   </div>
   <div class="card" style="margin-top:9px">
     <div class="ct">Data Contract</div>
@@ -637,6 +642,7 @@ details.dcx summary:hover{color:var(--pd)}
       <b>At Risk</b>: status = in progress, AND (overdue tasks &gt;5 OR days since last study &gt;14)<br>
       <b>On Track</b>: status = in progress, and neither condition above applies<br>
       <b>Completed</b>: status = completed<br>
+      <b>Probation Overdue</b>: days since "Joined" date &gt; 90 (the usual 3-month probation window) AND status ≠ completed — this is a separate flag from Risk, not a replacement for it; someone can be "On Track" week-to-week but still past their 90-day window.<br>
       These thresholds were set against this sample and are not an official HQ standard yet — confirm with HQ RTS before go-live.
     </div>
   </div>
@@ -656,7 +662,7 @@ details.dcx summary:hover{color:var(--pd)}
       </div>
       <div class="field"><label>MCSR Category (multi-select)</label>
         <input type="text" id="quiz-cat-search" placeholder="Search category..." oninput="renderQuiz()" style="font-size:11px;padding:5px 8px;border:1px solid var(--s200);border-radius:6px;width:220px;margin-bottom:5px">
-        <div class="fg" id="quiz-cat-picker" style="max-height:120px;overflow-y:auto"></div>
+        <div id="quiz-cat-picker" style="max-height:220px;overflow-y:auto"></div>
       </div>
       <div class="field"><label>Question Types</label>
         <div class="fg">
@@ -2184,11 +2190,25 @@ let neRiskFilter='ALL';
 // dept looks like "全球用户服务部->International Region->LATAM Region->Mexico->Mexico" —
 // pull out the region segment and map it to this site's Region II codes so the top
 // filter bar can narrow the roster the same way it narrows every other page.
-const NE_DEPT_REGION_MAP = {'LATAM':'LA','MEA':'MEA','APAC':'APAC','EU':'EU','EUROPE':'EU','INDIA':'India','RUSSIA':'RU','CENTRAL ASIA':'CA'};
-function neRegionOf(dept){
-  const up = (dept||'').toUpperCase();
-  for(const [k,v] of Object.entries(NE_DEPT_REGION_MAP)) if(up.includes(k)) return v;
-  return null;
+const NE_DEPT_REGION_MAP = {'LATAM':'LA','MEA':'MEA','APAC':'APAC','EUROPE':'EU','INDIA':'India','RUSSIA':'RU','CENTRAL ASIA':'CA'};
+// dept is a full org path like "全球用户服务部->International Region->LATAM Region->Mexico->Mexico"
+// (org -> "International Region" -> Region II -> Region III -> Country). One real row
+// ("temp_dept->DiaSys") doesn't follow this at all — that's a channel/distributor
+// placeholder path, not a real Mindray region, so it's called out separately rather
+// than force-matched into a region it isn't in.
+function parseDept(dept){
+  if(!dept) return {region2:null, region3:null, country:null};
+  const seg = dept.split('->').map(s=>s.trim());
+  if(seg[0]==='temp_dept') return {region2:null, region3:null, country:null, channel:true};
+  const r2raw = seg[2] || null;
+  const region2 = r2raw ? (Object.entries(NE_DEPT_REGION_MAP).find(([k])=>r2raw.toUpperCase().includes(k))||[])[1] || r2raw : null;
+  return { region2, region3: seg[3]||null, country: seg[4]||null, channel:false };
+}
+function daysSince(dateStr){
+  if(!dateStr || dateStr==='--') return null;
+  const d = new Date(dateStr.replace(' ','T'));
+  if(isNaN(d)) return null;
+  return Math.floor((Date.now()-d.getTime())/86400000);
 }
 function renderNewEmp(){
   const RISK_LABEL = {not_started:'Not Started', at_risk:'At Risk', on_track:'On Track', completed:'Completed'};
@@ -2197,24 +2217,48 @@ function renderNewEmp(){
   document.getElementById('ne-risk-filters').innerHTML = buckets.map(b=>
     `<span class="pt${b===neRiskFilter?' on':''}" onclick="neRiskFilter='${b}';renderNewEmp()">${b==='ALL'?'All':RISK_LABEL[b]}</span>`
   ).join('');
-  const scoped = GF.region2==='ALL' ? ROSTER : ROSTER.filter(r=>neRegionOf(r.dept)===GF.region2);
+
+  const enriched = ROSTER.map(r=>{
+    const geo = parseDept(r.dept);
+    const joinDays = daysSince(r.joined);
+    const probationOverdue = joinDays!=null && joinDays>90 && r.risk_bucket!=='completed';
+    return Object.assign({}, r, geo, joinDays, probationOverdue);
+  });
+  const scoped = GF.region2==='ALL' ? enriched : enriched.filter(r=>r.region2===GF.region2);
+
   const byBucket = {};
   scoped.forEach(r=>{ byBucket[r.risk_bucket]=(byBucket[r.risk_bucket]||0)+1; });
+  const probationCount = scoped.filter(r=>r.probationOverdue).length;
   document.getElementById('ne-kpi').innerHTML = [
     {lbl:'Total Learners', val: scoped.length, cls:'ok'},
     {lbl:'Completed', val: byBucket.completed||0, sub: pctTxt(byBucket.completed||0, scoped.length), cls:'ok'},
     {lbl:'At Risk', val: byBucket.at_risk||0, sub:'overdue>5 or idle>14d', cls:'er'},
     {lbl:'Not Started', val: byBucket.not_started||0, cls:'wa'},
+    {lbl:'Probation Overdue', val: probationCount, sub:'>90 days since joining, not completed', cls: probationCount?'er':'ok'},
   ].map(c=>`<div class="k ${c.cls}"><div class="k-lbl">${c.lbl}</div><div class="k-val">${c.val}</div><div class="k-sub">${c.sub||''}</div></div>`).join('');
+
   const q = (document.getElementById('ne-search').value||'').toUpperCase();
   let rows = scoped.filter(r=>
     (neRiskFilter==='ALL'||r.risk_bucket===neRiskFilter) &&
-    (!q || [r.name,r.mentor,r.dept].some(v=>v&&String(v).toUpperCase().includes(q)))
+    (!q || [r.name,r.region2,r.region3,r.country].some(v=>v&&String(v).toUpperCase().includes(q)))
   );
   rows.sort((a,b)=>{ const order={at_risk:0,not_started:1,on_track:2,completed:3}; return order[a.risk_bucket]-order[b.risk_bucket]; });
-  document.getElementById('ne-tbody').innerHTML = rows.map(r=>
-    `<tr><td><b>${esc(r.name)}</b></td><td style="font-size:10px">${esc((r.dept||'').split('->').slice(-1)[0])}</td><td>${esc(r.mentor)}</td><td>${esc(r.progress)}</td><td>${r.overdue_tasks||0}</td><td style="font-size:10px">${esc(r.last_study)||'--'}</td><td><span class="badge ${RISK_CLS[r.risk_bucket]}">${RISK_LABEL[r.risk_bucket]}</span></td></tr>`
-  ).join('');
+  document.getElementById('ne-tbody').innerHTML = rows.map(r=>{
+    const regionCell = r.channel
+      ? '<span class="badge b-gy">Channel/Distributor (non-standard path)</span>'
+      : `${esc(r.region2)||'<span style="color:var(--s300)">—</span>'}`;
+    return `<tr><td><b>${esc(r.name)}</b></td>`+
+      `<td>${regionCell}</td>`+
+      `<td style="font-size:10px">${esc(r.region3)||'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td style="font-size:10px">${esc(r.country)||'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td>${r.mentor&&r.mentor!=='--'?esc(r.mentor):'<span style="color:var(--s300)">not in source data</span>'}</td>`+
+      `<td style="font-size:10px">${r.joined&&r.joined!=='--'?esc(r.joined.slice(0,10)):'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td>${r.joinDays!=null?r.joinDays+'d':'<span style="color:var(--s300)">—</span>'}</td>`+
+      `<td>${esc(r.progress)}</td><td>${r.overdue_tasks||0}</td>`+
+      `<td style="font-size:10px">${esc(r.last_study)||'--'}</td>`+
+      `<td><span class="badge ${RISK_CLS[r.risk_bucket]}">${RISK_LABEL[r.risk_bucket]}</span></td>`+
+      `<td>${r.probationOverdue?'<span class="badge b-er">⚠ Overdue</span>':'<span style="color:var(--s300)">—</span>'}</td></tr>`;
+  }).join('');
   document.getElementById('ne-cnt').textContent = rows.length+' / '+ROSTER.length+' learners'+(GF.region2!=='ALL'?' · filtered to '+esc(GF.region2):'');
 }
 
@@ -2336,10 +2380,19 @@ function renderQuiz(){
   document.getElementById('quiz-subline').innerHTML = '<option value="">All sub-lines</option>'+SUBLINE_LIST.map(s=>`<option value="${esc(s)}">${esc(SUBLINE_ABBR[s]||s)}</option>`).join('');
   const sub = document.getElementById('quiz-subline').value;
   const q = (document.getElementById('quiz-cat-search').value||'').toUpperCase();
+  // Every mcsr_category maps to exactly one learning_type in Course Master (verified —
+  // no category mixes face-to-face/oral-exam with self-learning models), so this split
+  // is a clean grouping, not an approximation.
+  const catType = {}; COURSE_MASTER.forEach(r=>{ if(r.mcsr_category && !catType[r.mcsr_category]) catType[r.mcsr_category]=CM_TYPE_GROUP[r.learning_type]; });
   const cats = [...new Set(COURSE_MASTER.filter(r=>!sub||r.sub_line===sub).map(r=>r.mcsr_category))]
     .filter(Boolean).filter(c=>!q||c.toUpperCase().includes(q)).sort();
-  document.getElementById('quiz-cat-picker').innerHTML = cats.map(c=>`<span class="pt" onclick="this.classList.toggle('on')">${esc(c)}</span>`).join('')
-    || '<span style="font-size:10px;color:var(--s400)">No categories match</span>';
+  const assessed = cats.filter(c=>catType[c]==='assessed');
+  const selfLearn = cats.filter(c=>catType[c]==='self');
+  const chip = c => `<span class="pt" onclick="this.classList.toggle('on')">${esc(c)}</span>`;
+  let html = '';
+  if(assessed.length) html += `<div class="cat-grp-hd">🎓 Face-to-face / Oral Exam (${assessed.length})</div><div class="cat-grid">${assessed.map(chip).join('')}</div>`;
+  if(selfLearn.length) html += `<div class="cat-grp-hd">💻 Self-learning (${selfLearn.length})</div><div class="cat-grid">${selfLearn.map(chip).join('')}</div>`;
+  document.getElementById('quiz-cat-picker').innerHTML = html || '<span style="font-size:10px;color:var(--s400)">No categories match</span>';
 }
 
 // ============ MATERIAL FEEDBACK ============
